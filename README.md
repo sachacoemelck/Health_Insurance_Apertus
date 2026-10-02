@@ -1,60 +1,66 @@
-# Hack Apertus — project template
+# Health Insurance Apertus — LAMal premium assistant
 
-Template repository for [Hack Apertus](https://hackapertus.ch/) submissions.
-Every project keeps almost the same layout, so organizers and judges find the
-same things in the same place.
+A chatbot that understands your situation in plain language and finds the cheapest
+Swiss basic health insurance (LAMal) premiums from official FOPH data, explained by Apertus.
 
-## Select your track
+**Status: work-in-progress prototype** (Hack Apertus, Track 2B).
 
-This repository holds one example project per track:
+## The problem
 
-- `track_1a/`
-- `track_1b/`
-- `track_2a/`
-- `track_2b/`
+Every autumn, people in Switzerland can switch their basic health insurance. Premiums for
+the exact same legal coverage vary a lot between insurers, but comparing them means knowing
+your canton, premium region, age class, deductible and accident coverage — and reading
+tables with hundreds of thousands of rows. Many people never compare, and overpay.
 
-Keep the directory for the track you are competing in **exactly as it is** —
-don't rename it or move its files — and delete the other track directories.
-That directory is your project root. Keep the files and directories as shown
-below.
+## How it works
 
-## The structure
+1. **Describe** — the user describes their situation in free text (age, place, work, deductible).
+2. **Extract** — Apertus turns that text into a structured JSON profile
+   (`canton`, `region`, `age`, `franchise`, `travaille_8h`). Python validates every field
+   against the dataset and asks again for anything missing or invalid.
+3. **Compute** — `comparateur.py` filters the official FOPH premium table with pandas and
+   returns the cheapest offers. Accident coverage is excluded when the person works at
+   least 8 hours/week for the same employer (covered by their employer's insurance).
+4. **Explain** — Apertus explains the results in French, using only the numbers it was given.
 
-| Path | What it is |
-| --- | --- |
-| `README.md` | The challenge description and submission requirements for your track |
-| `technical_report.md` | The deeper write-up: architecture, evaluation, limitations |
-| `Makefile` | `make run` must spin up your project |
-| `src/` | Your code |
-| `data/` | Datasets — `track_1a`, `track_2a` and `track_2b` only; max. 100 MB |
-| `findings/` | Issue files — `track_1a` only |
-| `docs/` | Diagrams, notes, longer write-ups |
+## Why the LLM does not compute premiums
 
-## Run it
+Premiums are looked up, not generated. A language model can misread a table, round
+numbers or invent an insurer, and for a financial decision a single wrong figure is
+unacceptable. So the work is split: Apertus handles language (understanding the user,
+explaining the result), and deterministic code handles numbers. Every premium shown
+comes straight from the FOPH dataset and can be traced back to a row in the CSV.
 
-Judges run `make run` from the root of the project, on a clean checkout:
+## How to run
 
-```bash
-make run
-```
+1. Create your `.env` from the template and add your API key:
+   ```bash
+   cd track_2b
+   cp .env.example .env
+   ```
+   It defines `LLM_NAME`, `LLM_BASE_URL` and `LLM_API_KEY` (OpenAI-compatible endpoint).
+   Never commit `.env`.
+2. From the root of the repository:
+   ```bash
+   make run
+   ```
+   > The Docker setup behind `make run` is still in progress. Meanwhile, run locally:
+   > `pip install -r track_2b/requirements.txt && python track_2b/src/chatbot.py`
 
-`make run` is expected to run the project using Docker, since that
-is how the judges will run it.
-- If you used other local open-weight models, include instructions for running the project in your technical report.
-- Use the following environment variables:
-```
-LLM_NAME — name and version of the model
-LLM_BASE_URL — endpoint base URL
-LLM_API_KEY — your API key
-```
+## Data
 
-## Getting started
+LAMal premiums 2027 published by the Federal Office of Public Health (FOPH / OFSP),
+via [opendata.swiss](https://opendata.swiss).
+Licence: **Open use, must provide the source.** — Source: Federal Office of Public Health FOPH.
+The file is `track_2b/data/primes_CH.csv`.
 
-1. Click **Use this template** to create your own repository.
-2. Delete the other track directories. Don't rename or restructure yours.
-3. Read its `README.md` and fill in `technical_report.md`.
-4. Make `make run` work from the root of the project, on a clean checkout.
+## Repository layout
+
+- `track_2b/src/` — `comparateur.py` (premium engine), `chatbot.py` (Apertus dialogue)
+- `track_2b/data/` — FOPH premium data
+- `track_2b/technical_report.md` — **[full technical report](track_2b/technical_report.md)**
 
 ## License
 
-All Hack Apertus projects are open-sourced. Please check our Terms & Conditions for specific licensing details (6. What you build is open source): https://hackapertus.ch/terms-and-conditions
+All Hack Apertus projects are open source — see [LICENSE](LICENSE) and the
+[Hack Apertus Terms & Conditions](https://hackapertus.ch/terms-and-conditions).
