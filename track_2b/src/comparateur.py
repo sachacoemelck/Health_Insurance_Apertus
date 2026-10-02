@@ -1,3 +1,5 @@
+from pathlib import Path
+
 import pandas as pd
 
 ASSUREURS = {
@@ -9,7 +11,9 @@ ASSUREURS = {
     1384: "SWICA", 509: "Vivao Sympany", 1509: "Sanitas",  # à vérifier
 }
 
-df = pd.read_csv("primes_CH.csv")
+# Chemin absolu vers track_2b/data/primes_CH.csv, quel que soit le dossier de lancement
+CSV_PATH = Path(__file__).resolve().parent.parent / "data" / "primes_CH.csv"
+df = pd.read_csv(CSV_PATH)
 
 def classe_age(age):
     if age <= 18:
