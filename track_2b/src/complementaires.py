@@ -12,7 +12,7 @@ from datetime import date
 import pandas as pd
 from openai import OpenAI
 
-from chatbot import demander_llm, extraire_json, lire_config, montants_intrus
+from chatbot import demander_llm, en_langue, extraire_json, lire_config, montants_intrus
 from comparateur import DATA_DIR
 
 produits = pd.read_csv(DATA_DIR / "complementaires.csv", dtype=str)
@@ -41,7 +41,7 @@ LAMAL_COUVRE = {
                        "figurant sur la liste du canton de résidence, au maximum au tarif de ce canton.",
 }
 
-# Contrôles Python de la réponse du LLM (voir reponse_valide)
+# Contrôles Python de la réponse du LLM (voir problemes) — en français uniquement pour l'instant
 MOTIF_LAMAL = re.compile(r"LAMal|assurance de base|assurance obligatoire", re.IGNORECASE)
 MOTIF_RENVOI = re.compile(r"(?:ci|au)-dessus", re.IGNORECASE)
 MOTIF_INDISPENSABLE = re.compile(r"indispensable|n[ée]cessaire|obligatoire", re.IGNORECASE)
@@ -91,7 +91,7 @@ Règles strictes :
 - Cite toujours un plafond avec sa période (par séance, par année, sur 3 ans).
 - « Non mentionné » ne veut pas dire « non couvert » : ne transforme jamais un silence en exclusion.
 - Ne tire aucune conclusion du nom d'un produit : seule sa description compte.
-- Tutoie l'utilisateur. Écris en français simple.
+- Tutoie l'utilisateur. Écris en {langue} simple.
 - Écris 5 à 6 phrases au total, en un seul paragraphe, sans liste ni tableau.
 Contenu : les grandes différences entre les offres (plafonds, taux, périodes), et les
 pièges importants : délais de carence, exclusions, garanties préalables."""
@@ -264,13 +264,19 @@ def faits_pour(besoin, categories, choix):
     return "\n".join(faits)
 
 
-def afficher_a_verifier(choix):
-    """Liste finale des produits à vérifier, affichée par Python (pas par le LLM)."""
-    a_verifier = {}  # un produit peut avoir plusieurs lignes : on l'affiche une seule fois
+def produits_a_verifier(choix):
+    """{(caisse, produit): [avertissements]} ; un produit à plusieurs lignes n'apparaît qu'une fois."""
+    a_verifier = {}
     for _, p in choix.iterrows():
         alertes = avertissements(p)
         if alertes:
-            a_verifier.setdefault((p["assureur"], p["produit"]), "; ".join(alertes))
+            a_verifier.setdefault((p["assureur"], p["produit"]), alertes)
+    return a_verifier
+
+
+def afficher_a_verifier(choix):
+    """Liste finale des produits à vérifier, affichée par Python (pas par le LLM)."""
+    a_verifier = {cle: "; ".join(alertes) for cle, alertes in produits_a_verifier(choix).items()}
     if a_verifier:
         print("\nProduits à vérifier avant de te décider :")
         for (assureur, produit), alertes in a_verifier.items():
@@ -318,12 +324,13 @@ def problemes(explication, faits, choix, lamal_interdite):
     return sorted(set(trouves))
 
 
-def expliquer(client, modele, faits, choix, categories):
+def expliquer(client, modele, faits, choix, categories, langue="français"):
     """Résumé par le LLM, vérifié ; un nouvel essai, puis renvoi à la liste s'il reste faux."""
     lamal_interdite = all(LAMAL_COUVRE[c] == "A_REMPLIR" for c in categories)
+    systeme = en_langue(PROMPT_EXPLICATION, langue)
     rappel = ""
     for _ in range(3):
-        explication = demander_llm(client, modele, PROMPT_EXPLICATION, faits + rappel)
+        explication = demander_llm(client, modele, systeme, faits + rappel)
         erreurs = problemes(explication, faits, choix, lamal_interdite)
         if not erreurs:
             return explication
