@@ -4,7 +4,8 @@
 2. Apertus extrait un profil JSON (npa, commune, age, franchise, travaille_8h).
 3. Python déduit canton et région du NPA (fichier OFSP), vérifie le profil
    et appelle comparer() sur les données OFSP.
-4. Apertus explique les offres en français, sans calculer ni inventer de chiffre.
+4. Python résume les faits ; Apertus les explique en français, sans calculer.
+   Python vérifie que chaque montant cité figure dans les faits.
 """
 import json
 import os
@@ -37,13 +38,16 @@ Mets null pour toute information absente. N'invente rien."""
 PROMPT_EXPLICATION = """Tu aides une personne vivant en Suisse à choisir son assurance maladie de base (LAMal).
 Règles strictes :
 - Utilise UNIQUEMENT les faits fournis. N'ajoute aucune information extérieure.
-- Ne fais AUCUN calcul : reprends tels quels les montants fournis (primes, écarts, coût maximal).
+- Ne fais AUCUN calcul et ne cite AUCUN montant qui n'apparaît pas tel quel dans les faits.
 - Ne définis aucun terme qui n'est pas défini dans les faits. Pour décrire un modèle,
   reprends uniquement sa définition fournie.
+- N'attribue à un modèle aucun avantage ni inconvénient qui n'est pas dans sa définition.
+- Pour le Modèle alternatif, dis SEULEMENT de vérifier les conditions exactes chez
+  l'assureur. N'ajoute rien d'autre sur ce modèle : ni avantage, ni liberté, ni contrainte.
 - Ne tire aucune conclusion du nom d'un modèle ou d'un produit (par exemple « flex »,
   « smart », « care ») : seule la définition fournie compte.
 - Tutoie l'utilisateur. Écris en français simple.
-- Écris 5 à 6 phrases, sans liste ni tableau, et ne recopie pas le tableau des offres.
+- Écris 5 à 6 phrases au total, en un seul paragraphe, sans liste ni tableau.
 Explique les compromis : le prix face aux contraintes de chaque modèle, et le risque
 d'une franchise élevée (le coût maximal annuel si tu as beaucoup de frais médicaux)."""
 
@@ -54,6 +58,8 @@ def lire_config():
     if manquantes:
         sys.exit(f"Variables manquantes : {', '.join(manquantes)}. "
                  "Copie .env.example vers .env et remplis-le.")
+    # Modèle facultatif pour l'explication (ex. 70B, qui suit mieux les consignes)
+    config["LLM_NAME_RESTITUTION"] = os.getenv("LLM_NAME_RESTITUTION") or config["LLM_NAME"]
     return config
 
 
@@ -158,6 +164,68 @@ def valider_profil(profil, demander=demander):
             "age": age, "franchise": franchise, "travaille_8h": travaille_8h}
 
 
+def resumer_faits(profil, resultats):
+    """Résumé factuel pour le LLM : moins chère, moins chère par modèle, risque de franchise.
+    Tous les montants sont calculés ici et arrondis au franc."""
+    def chf(x):
+        return f"{round(x)} CHF"
+
+    moins_chere = resultats.iloc[0]
+    quote_part = QUOTE_PART_MAX[classe_age(profil["age"])]
+    descriptions = {m["nom"]: m["description"] for m in MODELES.values()}
+    lignes = [
+        f"Profil : {profil['age']} ans, {profil['commune']} ({profil['canton']}), couverture "
+        f"accident {'exclue (assurée par l’employeur)' if profil['travaille_8h'] else 'incluse'}.",
+        f"Offre la moins chère : {moins_chere['Assureur']}, modèle {moins_chere['Modèle']}, "
+        f"{chf(moins_chere['Prime/an'])} par an.",
+        "Offre la moins chère de chaque modèle :",
+    ]
+    for nom_modele, offres in resultats.groupby("Modèle", sort=False):
+        o = offres.iloc[0]
+        ecart = ("c'est l'offre la moins chère" if o["Écart/an"] == 0
+                 else f"soit {chf(o['Écart/an'])} de plus par an que l'offre la moins chère")
+        lignes.append(f"- {nom_modele} ({descriptions[nom_modele]}) : {o['Assureur']}, "
+                      f"{chf(o['Prime/an'])} par an, {ecart}.")
+    lignes += [
+        f"Franchise : {profil['franchise']} CHF par an, payés par toi avant que l'assurance rembourse.",
+        f"Quote-part maximale : {quote_part} CHF par an.",
+        f"Si tes frais médicaux sont élevés, tu paies jusqu'à "
+        f"{chf(profil['franchise'] + quote_part)} en plus de la prime (franchise + quote-part), "
+        f"soit un coût maximal de {chf(moins_chere['Coût max/an'])} par an avec l'offre la moins chère.",
+        "Source : primes officielles OFSP 2027.",
+    ]
+    return "\n".join(lignes)
+
+
+def nombres(texte):
+    """Nombres cités dans un texte ('5 124', "5'124" et '5124.00' donnent 5124)."""
+    texte = re.sub(r"(?<=\d)[ '’  ](?=\d{3}\b)", "", texte or "")
+    return {float(n.replace(",", ".")) for n in re.findall(r"\d+(?:[.,]\d+)?", texte)}
+
+
+def montants_intrus(reponse, faits):
+    """Nombres de la réponse du LLM absents des faits fournis (vide si tout est correct)."""
+    return sorted(nombres(reponse) - nombres(faits))
+
+
+def texte_standard(faits):
+    """Explication de secours, sans LLM, si les montants d'Apertus restent faux."""
+    return ("Je n'ai pas pu générer d'explication fiable. Voici les faits principaux :\n"
+            + "\n".join(l for l in faits.splitlines() if not l.startswith("Profil")))
+
+
+def expliquer(client, modele, faits):
+    """Demande l'explication au LLM, la vérifie, réessaie une fois, sinon texte standard."""
+    explication = demander_llm(client, modele, PROMPT_EXPLICATION, faits)
+    intrus = montants_intrus(explication, faits)
+    if not intrus:
+        return explication
+    rappel = (f"\n\nATTENTION : une réponse précédente citait des montants absents des faits "
+              f"({', '.join(f'{n:g}' for n in intrus)}). N'utilise que les montants ci-dessus.")
+    explication = demander_llm(client, modele, PROMPT_EXPLICATION, faits + rappel)
+    return explication if not montants_intrus(explication, faits) else texte_standard(faits)
+
+
 def main():
     config = lire_config()
     client = OpenAI(base_url=config["LLM_BASE_URL"], api_key=config["LLM_API_KEY"])
@@ -183,29 +251,9 @@ def main():
     tableau = resultats.to_string(index=False, float_format="%.2f")
     print(f"\nLes {len(resultats)} offres les moins chères (CHF) :\n{tableau}\n")
 
-    # Tous les faits (définitions et montants) viennent de Python, pas du LLM.
-    # Montants arrondis au franc pour que le LLM n'ait rien à arrondir lui-même.
-    montants = resultats.select_dtypes("number").columns
-    tableau_llm = resultats.copy()
-    tableau_llm[montants] = resultats[montants].round(0).astype(int)
-    quote_part = QUOTE_PART_MAX[classe_age(profil["age"])]
-    definitions = "\n".join(f"- {m['nom']} : {m['description']}" for m in MODELES.values()
-                            if m["nom"] in set(resultats["Modèle"]))
-    faits = (
-        f"Profil : {profil['age']} ans, {profil['commune']} ({profil['canton']}), "
-        f"franchise {profil['franchise']} CHF, couverture accident "
-        f"{'exclue (assurée par l’employeur)' if profil['travaille_8h'] else 'incluse'}.\n"
-        f"Franchise : {profil['franchise']} CHF par an, payés par l'assuré avant que "
-        f"l'assurance rembourse.\n"
-        f"Quote-part maximale : {quote_part} CHF par an.\n"
-        f"Coût max/an = prime annuelle + franchise + quote-part maximale "
-        f"(cas où les frais médicaux sont élevés).\n"
-        f"Écart/an = différence de prime annuelle avec l'offre la moins chère.\n\n"
-        f"Définition des modèles :\n{definitions}\n\n"
-        f"Offres (montants en CHF arrondis au franc, source OFSP) :\n"
-        f"{tableau_llm.to_string(index=False)}"
-    )
-    explication = demander_llm(client, modele, PROMPT_EXPLICATION, faits)
+    # Tous les faits (définitions et montants) viennent de Python, pas du LLM
+    faits = resumer_faits(profil, resultats)
+    explication = expliquer(client, config["LLM_NAME_RESTITUTION"], faits)
     print(f"Apertus :\n{explication}\n")
     print("Primes officielles OFSP 2027. Vérifie sur priminfo.admin.ch avant de changer d'assurance.")
 
