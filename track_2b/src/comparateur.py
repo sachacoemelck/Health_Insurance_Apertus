@@ -2,18 +2,28 @@ from pathlib import Path
 
 import pandas as pd
 
-ASSUREURS = {
-    1560: "Agrisano", 1507: "AMB", 32: "Aquilana", 1542: "Assura",
-    312: "Atupri", 343: "Avenir", 1322: "Birchmeier", 290: "Concordia",
-    8: "CSS", 820: "curaulta", 881: "EGK", 134: "Einsiedler",
-    1386: "Galenos", 780: "Glarner", 1562: "Helsana", 376: "KPT",
-    360: "Luzerner Hinterland", 1479: "Mutuel",
-    1384: "SWICA", 509: "Vivao Sympany", 1509: "Sanitas",  # à vérifier
-}
+# Chemin absolu vers track_2b/data/, quel que soit le dossier de lancement
+DATA_DIR = Path(__file__).resolve().parent.parent / "data"
 
-# Chemin absolu vers track_2b/data/primes_CH.csv, quel que soit le dossier de lancement
-CSV_PATH = Path(__file__).resolve().parent.parent / "data" / "primes_CH.csv"
-df = pd.read_csv(CSV_PATH)
+df = pd.read_csv(DATA_DIR / "primes_CH.csv")
+
+# Liste officielle des assureurs admis (OFSP) : numéro (colonne Versicherer) -> nom
+_assureurs = pd.read_excel(DATA_DIR / "assureurs-admis-2026-10.xlsx",
+                           sheet_name="Index ", header=2).dropna(subset=["Nummer"])
+ASSUREURS = dict(zip(_assureurs["Nummer"].astype(int), _assureurs["Name"].str.strip()))
+
+# Régions de primes 2027 par NPA (OFSP). C'est la commune (n° OFS) qui fait foi, pas le NPA.
+regions = pd.read_excel(DATA_DIR / "praemienregionen-2027.xlsx",
+                        sheet_name="B_NPA", header=6).rename(columns={
+    "PLZ\nNPA": "npa", "Kanton\nCanton": "canton", "Region\nRégion": "region",
+    "BFS-Nr.\nNo OFS": "no_ofs", "Gemeinde\nCommune": "commune",
+})
+regions = (regions[["npa", "canton", "region", "no_ofs", "commune"]]
+           .dropna().astype({"npa": int, "region": int, "no_ofs": int}))
+
+def communes_du_npa(npa):
+    """Communes couvertes par un NPA (une ligne par n° OFS), avec canton et région."""
+    return regions[regions["npa"] == npa].drop_duplicates("no_ofs").reset_index(drop=True)
 
 def classe_age(age):
     if age <= 18:

@@ -1,8 +1,9 @@
 """Chatbot LAMal : Apertus comprend la situation, pandas calcule les primes.
 
 1. L'utilisateur décrit sa situation en langage libre.
-2. Apertus extrait un profil JSON (canton, region, age, franchise, travaille_8h).
-3. Python vérifie le profil et appelle comparer() sur les données OFSP.
+2. Apertus extrait un profil JSON (npa, commune, age, franchise, travaille_8h).
+3. Python déduit canton et région du NPA (fichier OFSP), vérifie le profil
+   et appelle comparer() sur les données OFSP.
 4. Apertus explique les offres en français, sans calculer ni inventer de chiffre.
 """
 import json
@@ -13,7 +14,7 @@ import sys
 from dotenv import load_dotenv
 from openai import OpenAI
 
-from comparateur import classe_age, comparer, df
+from comparateur import classe_age, communes_du_npa, comparer, regions
 
 load_dotenv()
 
@@ -25,8 +26,8 @@ FRANCHISES = {
 
 PROMPT_EXTRACTION = """Tu extrais le profil d'assurance maladie (LAMal) d'une personne vivant en Suisse.
 Réponds UNIQUEMENT avec un objet JSON, sans texte autour, avec ces clés :
-- "canton" : abréviation officielle en 2 lettres majuscules (ex. "VD", "GE", "ZH")
-- "region" : région de primes (0, 1, 2 ou 3), ou null si inconnue
+- "npa" : code postal suisse à 4 chiffres (entier), ou null si non mentionné
+- "commune" : nom de la commune de domicile si la personne le cite, sinon null
 - "age" : âge en années (entier)
 - "franchise" : franchise annuelle en CHF (entier), ou null si non mentionnée
 - "travaille_8h" : true si la personne travaille au moins 8 heures par semaine chez le même employeur, false sinon, null si inconnu
@@ -71,7 +72,7 @@ def extraire_json(texte):
         return {}
 
 
-def demander(question, valides, convertir=str):
+def demander(question, valides, convertir=str, aide=None):
     while True:
         reponse = input(f"{question} ").strip()
         try:
@@ -80,7 +81,7 @@ def demander(question, valides, convertir=str):
             valeur = None
         if valeur in valides:
             return valeur
-        print(f"  Choix possibles : {', '.join(str(v) for v in valides)}")
+        print(f"  {aide or 'Choix possibles : ' + ', '.join(str(v) for v in valides)}")
 
 
 def entier(valeur):
@@ -90,25 +91,49 @@ def entier(valeur):
         return None
 
 
+def nom_simple(commune):
+    """'Cugy (VD)' -> 'cugy' : l'OFSP ajoute parfois le canton au nom de la commune."""
+    return re.sub(r"\s*\([A-Z]{2}\)$", "", str(commune).strip()).casefold()
+
+
+def trouver_commune(npa, commune_citee=None, demander=demander):
+    """Déduit commune, canton et région d'un NPA. La commune fait foi (OFSP) :
+    si le NPA couvre des communes de régions différentes, on demande laquelle."""
+    communes = communes_du_npa(npa)
+    if commune_citee:
+        citee = communes[communes["commune"].map(nom_simple) == nom_simple(commune_citee)]
+        if len(citee) == 1:
+            communes = citee
+
+    if len(communes[["canton", "region"]].drop_duplicates()) == 1:
+        # Une seule région possible : inutile de demander la commune
+        c = communes.iloc[0]
+        return " / ".join(communes["commune"]), c["canton"], int(c["region"])
+
+    print(f"\nLe NPA {npa} couvre des communes de régions de primes différentes.")
+    print("C'est ta commune de domicile qui fait foi :")
+    for i, c in enumerate(communes.itertuples(), 1):
+        canton = "" if c.commune.endswith(f"({c.canton})") else f" ({c.canton})"
+        print(f"  {i}. {c.commune}{canton}")
+    choix = demander("Numéro de ta commune ?", range(1, len(communes) + 1), int,
+                     aide=f"Tape un numéro entre 1 et {len(communes)}.")
+    c = communes.iloc[choix - 1]
+    return c["commune"], c["canton"], int(c["region"])
+
+
 def valider_profil(profil, demander=demander):
     """Vérifie chaque champ extrait par le LLM ; redemande ceux qui manquent ou sont faux."""
-    cantons = sorted(df["Kanton"].unique())
-    canton = str(profil.get("canton") or "").upper()
-    if canton not in cantons:
-        canton = demander("Dans quel canton habites-tu (ex. VD, GE, ZH) ?",
-                          cantons, lambda s: s.upper())
-
-    regions = sorted(int(r.removeprefix("PR_REG_"))
-                     for r in df.loc[df["Kanton"] == canton, "Region"].unique())
-    region = entier(profil.get("region"))
-    if region not in regions:
-        region = regions[0] if len(regions) == 1 else demander(
-            f"Région de primes de ta commune ({', '.join(map(str, regions))}) ? "
-            "(voir priminfo.admin.ch)", regions, int)
+    npas = set(regions["npa"])
+    npa = entier(profil.get("npa"))
+    if npa not in npas:
+        npa = demander("Quel est ton code postal (NPA) ?", npas, int,
+                       aide="NPA inconnu : tape un code postal suisse à 4 chiffres.")
+    commune, canton, region = trouver_commune(npa, profil.get("commune"), demander)
 
     age = entier(profil.get("age"))
     if age not in range(0, 121):
-        age = demander("Quel âge as-tu ?", range(0, 121), int)
+        age = demander("Quel âge as-tu ?", range(0, 121), int,
+                       aide="Tape un âge entre 0 et 120.")
 
     franchises = FRANCHISES[classe_age(age)]
     franchise = entier(profil.get("franchise"))
@@ -123,8 +148,8 @@ def valider_profil(profil, demander=demander):
             "Travailles-tu au moins 8 h par semaine chez le même employeur ? (o/n)",
             ["o", "n"], lambda s: s.lower()[:1]) == "o"
 
-    return {"canton": canton, "region": region, "age": age,
-            "franchise": franchise, "travaille_8h": travaille_8h}
+    return {"npa": npa, "commune": commune, "canton": canton, "region": region,
+            "age": age, "franchise": franchise, "travaille_8h": travaille_8h}
 
 
 def main():
@@ -133,11 +158,14 @@ def main():
     modele = config["LLM_NAME"]
 
     print("=== Comparateur de primes LAMal (données OFSP) ===\n")
-    situation = input("Décris ta situation (âge, lieu, travail, franchise souhaitée) :\n> ")
+    situation = input("Décris ta situation (âge, code postal, travail, franchise souhaitée) :\n> ")
 
     brut = demander_llm(client, modele, PROMPT_EXTRACTION, situation)
     profil = valider_profil(extraire_json(brut))
-    print(f"\nProfil retenu : {profil}")
+    print(f"\nProfil retenu : {profil['commune']} ({profil['npa']}), canton "
+          f"{profil['canton']}, région {profil['region']}, {profil['age']} ans, "
+          f"franchise {profil['franchise']} CHF, "
+          f"accident {'exclu' if profil['travaille_8h'] else 'inclus'}")
 
     # Qui travaille >= 8 h/semaine est assuré contre les accidents par l'employeur (LAA)
     resultats = comparer(profil["canton"], profil["region"], profil["age"],
