@@ -1,4 +1,4 @@
-"""Évaluation de l'extraction d'Apertus sur data/eval_extraction.csv.
+"""Évaluation de l'extraction d'Apertus sur data/eval_extraction.csv (ou un autre fichier).
 
 Chaque phrase passe dans les deux extractions du projet :
 - profil LAMal (PROMPT_EXTRACTION de chatbot.py) : age, npa, franchise, travaille_8h, plusieurs_personnes
@@ -14,6 +14,11 @@ Usage :
   python src/evaluation.py                          # LLM_NAME, 3 passages
   python src/evaluation.py --modele apertus-v1.5-70b --passages 1 --sortie eval_resultats_70b.csv
   python src/evaluation.py --depuis ancien.csv --controles anciens   # re-note sans appeler le LLM
+  python src/evaluation.py --fichier eval_extraction_test.csv        # phrases inédites (test)
+
+Format du fichier : id, phrase, age, npa, franchise, travaille_8h, categories (séparées par ;),
+type_test, note ; colonnes facultatives : plusieurs_personnes (true/false, défaut false) et
+vide_apres_controles (champ que Python doit vider, ex. franchise).
 """
 import argparse
 import sys
@@ -28,6 +33,8 @@ from comparateur import DATA_DIR, regions
 from complementaires import CATEGORIES, PROMPT_BESOINS, filtrer_categories
 
 CHAMPS = ["age", "npa", "franchise", "travaille_8h", "plusieurs_personnes", "categories"]
+COLONNES_OBLIGATOIRES = ["id", "phrase", "age", "npa", "franchise", "travaille_8h",
+                         "categories", "type_test"]
 
 
 def booleen(valeur):
@@ -102,6 +109,24 @@ def taux(serie):
     return f"{100 * serie.mean():.0f}% ({int(serie.sum())}/{len(serie)})"
 
 
+def lire_tests(nom):
+    """Phrases de test, avec vérification du format et colonnes facultatives par défaut."""
+    chemin = DATA_DIR / nom
+    if not chemin.exists():
+        sys.exit(f"Fichier introuvable : {chemin}")
+    tests = pd.read_csv(chemin, dtype=str)
+    manquantes = [c for c in COLONNES_OBLIGATOIRES if c not in tests.columns]
+    if manquantes:
+        sys.exit(f"Colonnes manquantes dans {chemin} : {', '.join(manquantes)}")
+    if tests["id"].duplicated().any():
+        sys.exit(f"Identifiants en double dans {chemin} : "
+                 f"{', '.join(tests.loc[tests['id'].duplicated(), 'id'])}")
+    for colonne in ("plusieurs_personnes", "vide_apres_controles"):
+        if colonne not in tests.columns:
+            tests[colonne] = None
+    return tests.set_index("id", drop=False)
+
+
 def reponses_llm(args, tests):
     """Réponses brutes : appels au LLM, ou relecture d'un fichier de résultats (--depuis)."""
     if args.depuis:
@@ -153,13 +178,18 @@ def main():
     parser = argparse.ArgumentParser(description=__doc__.splitlines()[0])
     parser.add_argument("--modele", help="modèle d'extraction (défaut : LLM_NAME)")
     parser.add_argument("--passages", type=int, default=3)
-    parser.add_argument("--sortie", default="eval_resultats.csv", help="fichier dans data/")
+    parser.add_argument("--fichier", default="eval_extraction.csv",
+                        help="phrases à évaluer, dans data/ (ex. eval_extraction_test.csv)")
+    parser.add_argument("--sortie", help="fichier de résultats dans data/ (défaut : déduit de --fichier)")
     parser.add_argument("--depuis", help="re-noter un fichier de résultats existant, sans LLM")
     parser.add_argument("--controles", choices=["actuels", "anciens"], default="actuels")
     parser.add_argument("--court", action="store_true", help="scores seulement, sans le détail")
     args = parser.parse_args()
 
-    tests = pd.read_csv(DATA_DIR / "eval_extraction.csv", dtype=str).set_index("id", drop=False)
+    tests = lire_tests(args.fichier)
+    sortie = args.sortie or args.fichier.replace("eval_extraction", "eval_resultats")
+    if sortie == args.fichier:
+        sortie = "resultats_" + args.fichier
     reponses, modele = reponses_llm(args, tests)
     controler = controles_actuels if args.controles == "actuels" else controles_anciens
     nb_passages = len({r[0] for r in reponses})
@@ -187,8 +217,8 @@ def main():
     comp = pd.DataFrame(comp)
 
     if not args.depuis:
-        pd.DataFrame(lignes).to_csv(DATA_DIR / args.sortie, index=False)
-        print(f"Réponses brutes sauvegardées dans data/{args.sortie}")
+        pd.DataFrame(lignes).to_csv(DATA_DIR / sortie, index=False)
+        print(f"Réponses brutes sauvegardées dans {DATA_DIR / sortie}")
     if nb_passages > 1:
         ext = comp[comp["score"] == "extraction"]
         stable = ext.groupby(["id", "champ"])["obtenu"].nunique() == 1

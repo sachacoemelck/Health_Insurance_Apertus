@@ -11,6 +11,7 @@ import json
 import os
 import re
 import sys
+import unicodedata
 
 from dotenv import load_dotenv
 from openai import OpenAI
@@ -116,8 +117,31 @@ def entier(valeur):
 
 
 def nom_simple(commune):
-    """'Cugy (VD)' -> 'cugy' : l'OFSP ajoute parfois le canton au nom de la commune."""
-    return re.sub(r"\s*\([A-Z]{2}\)$", "", str(commune).strip()).casefold()
+    """'Cugy (VD)' -> 'cugy', 'Neuchâtel' -> 'neuchatel' : sans canton ajouté par l'OFSP,
+    sans accents ni majuscules."""
+    nom = re.sub(r"\s*\([A-Z]{2}\)$", "", str(commune).strip())
+    nom = unicodedata.normalize("NFD", nom).encode("ascii", "ignore").decode()
+    return nom.casefold()
+
+
+def communes_par_nom(nom):
+    """Communes (une ligne par n° OFS) dont le nom correspond à celui donné, sinon vide."""
+    if not nom:
+        return regions.iloc[0:0]
+    trouvees = regions[regions["commune"].map(nom_simple) == nom_simple(nom)]
+    return trouvees.drop_duplicates("no_ofs").reset_index(drop=True)
+
+
+def choisir_commune(communes, message, demander=demander):
+    """Liste numérotée des communes ; renvoie commune, canton et région choisis."""
+    print(f"\n{message}")
+    for i, c in enumerate(communes.itertuples(), 1):
+        canton = "" if c.commune.endswith(f"({c.canton})") else f" ({c.canton})"
+        print(f"  {i}. {c.commune}{canton}")
+    choix = demander("Numéro de ta commune ?", range(1, len(communes) + 1), int,
+                     aide=f"Tape un numéro entre 1 et {len(communes)}.")
+    c = communes.iloc[choix - 1]
+    return c["commune"], c["canton"], int(c["region"])
 
 
 def trouver_commune(npa, commune_citee=None, demander=demander):
@@ -134,15 +158,9 @@ def trouver_commune(npa, commune_citee=None, demander=demander):
         c = communes.iloc[0]
         return " / ".join(communes["commune"]), c["canton"], int(c["region"])
 
-    print(f"\nLe NPA {npa} couvre des communes de régions de primes différentes.")
-    print("C'est ta commune de domicile qui fait foi :")
-    for i, c in enumerate(communes.itertuples(), 1):
-        canton = "" if c.commune.endswith(f"({c.canton})") else f" ({c.canton})"
-        print(f"  {i}. {c.commune}{canton}")
-    choix = demander("Numéro de ta commune ?", range(1, len(communes) + 1), int,
-                     aide=f"Tape un numéro entre 1 et {len(communes)}.")
-    c = communes.iloc[choix - 1]
-    return c["commune"], c["canton"], int(c["region"])
+    return choisir_commune(communes, f"Le NPA {npa} couvre des communes de régions de primes "
+                                     "différentes.\nC'est ta commune de domicile qui fait foi :",
+                           demander)
 
 
 def npa_dans_phrase(phrase):
@@ -174,6 +192,9 @@ def nettoyer_profil(profil, phrase=""):
          "age": entier(profil.get("age")), "franchise": entier(profil.get("franchise")),
          "travaille_8h": travaille if isinstance(travaille, bool) else None,
          "plusieurs_personnes": profil.get("plusieurs_personnes") is True}
+    # Le modèle ne doit jamais deviner un NPA : il n'est gardé que s'il figure dans la phrase
+    if phrase and p["npa"] is not None and not re.search(rf"(?<!\d){p['npa']}(?!\d)", phrase):
+        p["npa"] = None
     if p["npa"] not in set(regions["npa"]):
         p["npa"] = npa_dans_phrase(phrase)
     if p["age"] not in range(0, 121) or p["plusieurs_personnes"]:
@@ -189,12 +210,20 @@ def nettoyer_profil(profil, phrase=""):
 def valider_profil(profil, demander=demander, phrase=""):
     """Vérifie chaque champ extrait par le LLM ; redemande ceux qui manquent ou sont faux."""
     p = nettoyer_profil(profil, phrase)
-    npas = set(regions["npa"])
     npa = p["npa"]
-    if npa is None:
-        npa = demander("Quel est ton code postal (NPA) ?", npas, int,
-                       aide="NPA inconnu : tape un code postal suisse à 4 chiffres.")
-    commune, canton, region = trouver_commune(npa, p["commune"], demander)
+    par_nom = communes_par_nom(p["commune"]) if npa is None else regions.iloc[0:0]
+    if len(par_nom) == 1:
+        # Commune sans NPA, trouvée une seule fois dans le fichier OFSP : la commune fait foi
+        c = par_nom.iloc[0]
+        commune, canton, region = c["commune"], c["canton"], int(c["region"])
+    elif len(par_nom) > 1:
+        commune, canton, region = choisir_commune(
+            par_nom, f"Plusieurs communes s'appellent « {p['commune']} » :", demander)
+    else:
+        if npa is None:
+            npa = demander("Quel est ton code postal (NPA) ?", set(regions["npa"]), int,
+                           aide="NPA inconnu : tape un code postal suisse à 4 chiffres.")
+        commune, canton, region = trouver_commune(npa, p["commune"], demander)
 
     if p["plusieurs_personnes"]:
         print("Je compare une personne à la fois : réponds pour la personne à assurer.")
@@ -293,7 +322,8 @@ def main():
 
     brut = demander_llm(client, modele, PROMPT_EXTRACTION, situation)
     profil = valider_profil(extraire_json(brut), phrase=situation)
-    print(f"\nProfil retenu : {profil['commune']} ({profil['npa']}), canton "
+    npa = f" ({profil['npa']})" if profil["npa"] else ""
+    print(f"\nProfil retenu : {profil['commune']}{npa}, canton "
           f"{profil['canton']}, région {profil['region']}, {profil['age']} ans, "
           f"franchise {profil['franchise']} CHF, "
           f"accident {'exclu' if profil['travaille_8h'] else 'inclus'}")
