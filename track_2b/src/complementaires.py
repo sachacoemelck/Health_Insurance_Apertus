@@ -74,6 +74,8 @@ Règles strictes :
 - Ne dis jamais qu'une assurance complémentaire est indispensable, nécessaire ou obligatoire.
 - Pour les taux de remboursement, utilise uniquement la fourchette fournie pour chaque
   catégorie : ne mélange jamais les catégories.
+- Cite toujours un plafond avec sa période (par séance, par année, sur 3 ans).
+- « Non mentionné » ne veut pas dire « non couvert » : ne transforme jamais un silence en exclusion.
 - Ne tire aucune conclusion du nom d'un produit : seule sa description compte.
 - Tutoie l'utilisateur. Écris en français simple.
 - Écris 5 à 6 phrases au total, en un seul paragraphe, sans liste ni tableau.
@@ -151,27 +153,101 @@ def fourchette_taux(choix, categorie):
     return (taux.min(), taux.max()) if len(taux) else None
 
 
+# Comptages par catégorie : élément recherché -> motif dans prestation/conditions
+MOTS_CLES = {
+    "lunettes": {"montures": r"monture", "lentilles": r"lentille",
+                 "chirurgie de la vue": r"chirurgie|laser|correction des yeux"},
+    "dentaire": {"orthodontie": r"orthodont", "contrôles et hygiène": r"contr[ôo]le|hygi[èe]n|détartrage",
+                 "couronnes, ponts ou prothèses": r"couronne|pont|proth[èe]se"},
+    "medecines_alternatives": {"ostéopathie (citée explicitement)": r"ost[ée]opath",
+                               "massages": r"massage"},
+    "hospitalisation": {"division privée": r"(?<![-\w])priv[ée]e",
+                        "division demi-privée": r"(?:demi|mi|semi)-priv"},
+}
+MOTIF_NEGATION = re.compile(r"non couvert|exclu|pas d[e'’]|aucune prestation", re.IGNORECASE)
+MOTIF_CONDITION = re.compile(r"carence|exclu|garantie préalable|accord préalable|franchise|"
+                             r"attestation|souscription jusqu", re.IGNORECASE)
+TOUS_LES_NOMS = sorted(set(produits["produit"]) | set(produits["assureur"]), key=len, reverse=True)
+
+
+def offres_txt(nb):
+    return f"{nb} offre{'s' if nb > 1 else ''}"
+
+
+def type_periode(periode):
+    p = str(periode).lower()
+    if "séance" in p or "heure" in p:
+        return "par séance ou par heure"
+    if "3 an" in p:
+        return "par période de 3 ans"
+    if "année" in p or "par an" in p:
+        return "par année"
+    return "période non précisée"
+
+
+def anonymiser(texte):
+    for nom in TOUS_LES_NOMS:
+        texte = re.sub(rf"\b{re.escape(nom)}\b", "un autre produit", texte)
+    return texte
+
+
+def fragments(p):
+    """Morceaux de phrase d'une ligne (prestation, période, conditions)."""
+    texte = ". ".join(str(p[c]) for c in ("prestation", "periode", "conditions") if pd.notna(p[c]))
+    return [f.strip() for f in re.split(r"\.\s+|,\s+(?=après)", texte) if f.strip()]
+
+
+def faits_categorie(c, lignes):
+    """Faits agrégés et anonymes d'une catégorie : aucun nom de caisse ni de produit."""
+    vides = lignes["prestation"].str.contains("aucune prestation", case=False)
+    offres = lignes[~vides]
+    n = len(offres)
+    affiche = LAMAL_COUVRE[c] != "A_REMPLIR"
+    faits = [f"[{CATEGORIES[c]}] Ce que couvre la LAMal : {'affiché ci-dessus' if affiche else 'non affiché'}.",
+             f"- {len(lignes)} offres listées, dont {int(vides.sum())} sans aucune prestation "
+             f"dans cette catégorie."]
+    taux = fourchette_taux(lignes, c)
+    if taux:
+        faits.append(f"- Taux de remboursement (hors compléments à un autre produit) : "
+                     + (f"{taux[0]}%." if taux[0] == taux[1] else f"de {taux[0]}% à {taux[1]}%."))
+    plafonds = offres.assign(montant=pd.to_numeric(offres["plafond_chf"], errors="coerce"),
+                             type=offres["periode"].map(type_periode)).dropna(subset=["montant"])
+    for type_p, groupe in plafonds.groupby("type", sort=False):
+        mini, maxi = int(groupe["montant"].min()), int(groupe["montant"].max())
+        etendue = f"{mini} CHF" if mini == maxi else f"de {mini} à {maxi} CHF"
+        faits.append(f"- Plafonds {type_p} : {etendue} ({offres_txt(len(groupe))}).")
+    for element, motif in MOTS_CLES[c].items():
+        couvert = non_couvert = 0
+        for _, p in offres.iterrows():
+            trouves = [f for f in fragments(p) if re.search(motif, f, re.IGNORECASE)]
+            if trouves:
+                if all(MOTIF_NEGATION.search(f) for f in trouves):
+                    non_couvert += 1
+                else:
+                    couvert += 1
+        faits.append(f"- {element.capitalize()} : mentionné comme couvert par {offres_txt(couvert)}, "
+                     f"explicitement non couvert par {non_couvert}, non mentionné pour les "
+                     f"{n - couvert - non_couvert} autres (sur {n}).")
+    conditions = {}
+    for _, p in offres.iterrows():
+        for f in dict.fromkeys(fragments(p)):
+            if MOTIF_CONDITION.search(f):
+                cle = anonymiser(f)
+                conditions[cle] = conditions.get(cle, 0) + 1
+    if conditions:
+        faits.append("- Conditions relevées : " + " ; ".join(
+            f"« {cond} » ({offres_txt(nb)})" for cond, nb in conditions.items()))
+    return faits
+
+
 def faits_pour(besoin, categories, choix):
-    """Faits transmis au LLM : besoin exprimé, couverture LAMal si rédigée, taux, produits du CSV."""
-    lignes = [f"Besoin exprimé : {besoin}"]
+    """Faits transmis au LLM : uniquement des agrégats calculés par Python, sans aucun nom."""
+    faits = [f"Besoin exprimé : {besoin}"]
     for c in categories:
-        # Le texte LAMal est affiché par Python : le LLM sait seulement s'il l'est
-        affiche = LAMAL_COUVRE[c] != "A_REMPLIR"
-        lignes.append(f"Ce que couvre la LAMal ({CATEGORIES[c]}) : "
-                      f"{'affiché ci-dessus' if affiche else 'non affiché'}")
-        taux = fourchette_taux(choix, c)
-        if taux:
-            lignes.append(f"Taux de remboursement des complémentaires ({CATEGORIES[c]}) : "
-                          f"de {taux[0]}% à {taux[1]}%")
-    lignes.append("Produits (source : sites des caisses) :")
-    for _, p in choix.iterrows():
-        ligne = f"- [{CATEGORIES.get(p['categorie'], 'toutes catégories')}] {p['assureur']}, " \
-                f"{p['produit']} : {p['prestation']}"
-        for morceau in (details(p), p["conditions"] if pd.notna(p["conditions"]) else ""):
-            if morceau:
-                ligne += f". {morceau}"
-        lignes.append(ligne)
-    return "\n".join(lignes)
+        faits += faits_categorie(c, choix[choix["categorie"] == c])
+    for _, p in choix[choix["categorie"] == "toutes"].iterrows():
+        faits.append(f"[Toutes catégories] 1 caisse indique : {anonymiser(p['prestation'])}.")
+    return "\n".join(faits)
 
 
 def afficher_a_verifier(choix):
@@ -223,7 +299,7 @@ def expliquer(client, modele, faits, choix, categories):
     """Résumé par le LLM, vérifié ; un nouvel essai, puis renvoi à la liste s'il reste faux."""
     lamal_interdite = all(LAMAL_COUVRE[c] == "A_REMPLIR" for c in categories)
     rappel = ""
-    for _ in range(2):
+    for _ in range(3):
         explication = demander_llm(client, modele, PROMPT_EXPLICATION, faits + rappel)
         erreurs = problemes(explication, faits, choix, lamal_interdite)
         if not erreurs:
