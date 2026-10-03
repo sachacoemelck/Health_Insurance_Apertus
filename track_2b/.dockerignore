@@ -1,0 +1,24 @@
+# Secrets : jamais dans l'image (les variables LLM_* sont passées au lancement)
+.env
+.env.*
+!.env.example
+
+# Python
+__pycache__/
+*.py[cod]
+.venv/
+venv/
+
+# Inutile pour faire tourner l'app
+docs/
+*.md
+*.pdf
+Makefile
+Dockerfile
+.dockerignore
+data/eval_*.csv
+
+# Système et éditeurs
+.DS_Store
+.idea/
+.vscode/
