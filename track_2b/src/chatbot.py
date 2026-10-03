@@ -32,8 +32,20 @@ Réponds UNIQUEMENT avec un objet JSON, sans texte autour, avec ces clés :
 - "commune" : nom de la commune de domicile si la personne le cite, sinon null
 - "age" : âge en années (entier)
 - "franchise" : franchise annuelle en CHF (entier), ou null si non mentionnée
-- "travaille_8h" : true si la personne travaille au moins 8 heures par semaine chez le même employeur, false sinon, null si inconnu
-Mets null pour toute information absente. N'invente rien."""
+- "travaille_8h" : true si la personne travaille au moins 8 heures par semaine chez le même employeur, false sinon, null si rien ne permet de le déduire.
+  Règles : salarié, apprenti, plein temps, temps partiel d'au moins 8 heures par semaine = true ;
+  étudiant, élève, retraité, chômeur, sans emploi, indépendant, moins de 8 heures par semaine = false.
+- "plusieurs_personnes" : true si la phrase décrit plusieurs personnes à assurer (ex. « ma femme et moi »), sinon false
+Mets null pour toute information absente. N'invente rien.
+Recopie les nombres tels qu'ils sont écrits, même s'ils te semblent impossibles."""
+
+# Franchise demandée en mots (« la plus haute », « minimale ») -> valeur légale selon l'âge
+MOTIF_FRANCHISE_MAX = re.compile(r"plus\s+(?:haute|élevée)|\bmax", re.IGNORECASE)
+MOTIF_FRANCHISE_MIN = re.compile(r"plus\s+basse|\bmin", re.IGNORECASE)
+# Montants à écarter avant de chercher un NPA dans la phrase (1000, 2000, 2500 sont aussi des NPA)
+MOTIF_MONTANT = re.compile(r"franchise\s*(?:de\s*)?\d{3,4}|\d{3,4}\s*(?:CHF|francs|fr\.)",
+                           re.IGNORECASE)
+AGE_SANS_EMPLOI = 15  # en dessous, travaille_8h = false sans poser la question
 
 PROMPT_EXPLICATION = """Tu aides une personne vivant en Suisse à choisir son assurance maladie de base (LAMal).
 Règles strictes :
@@ -133,29 +145,74 @@ def trouver_commune(npa, commune_citee=None, demander=demander):
     return c["commune"], c["canton"], int(c["region"])
 
 
-def valider_profil(profil, demander=demander):
+def npa_dans_phrase(phrase):
+    """Seul nombre à 4 chiffres de la phrase qui existe comme NPA (montants écartés), sinon None."""
+    texte = MOTIF_MONTANT.sub(" ", phrase or "")
+    candidats = {int(n) for n in re.findall(r"(?<!\d)\d{4}(?!\d)", texte)} & set(regions["npa"])
+    return candidats.pop() if len(candidats) == 1 else None
+
+
+def regles_age(p, phrase):
+    """Règles qui dépendent de l'âge : franchise en mots, pas d'emploi avant 15 ans."""
+    if p["age"] is None:
+        return
+    franchises = FRANCHISES[classe_age(p["age"])]
+    if "franchise" in (phrase or "").lower():
+        if MOTIF_FRANCHISE_MAX.search(phrase):
+            p["franchise"] = max(franchises)
+        elif MOTIF_FRANCHISE_MIN.search(phrase):
+            p["franchise"] = min(franchises)
+    if p["age"] < AGE_SANS_EMPLOI:
+        p["travaille_8h"] = False
+
+
+def nettoyer_profil(profil, phrase=""):
+    """Contrôles Python sans interaction : corrige ce qui peut l'être, met None ce qui est
+    invalide ou douteux (le bot le redemandera)."""
+    travaille = profil.get("travaille_8h")
+    p = {"npa": entier(profil.get("npa")), "commune": profil.get("commune"),
+         "age": entier(profil.get("age")), "franchise": entier(profil.get("franchise")),
+         "travaille_8h": travaille if isinstance(travaille, bool) else None,
+         "plusieurs_personnes": profil.get("plusieurs_personnes") is True}
+    if p["npa"] not in set(regions["npa"]):
+        p["npa"] = npa_dans_phrase(phrase)
+    if p["age"] not in range(0, 121) or p["plusieurs_personnes"]:
+        p["age"] = None  # âge impossible, ou on ne sait pas de quelle personne il s'agit
+    regles_age(p, phrase)
+    toutes = set().union(*FRANCHISES.values())
+    valides = FRANCHISES[classe_age(p["age"])] if p["age"] is not None else toutes
+    if p["franchise"] not in valides:
+        p["franchise"] = None
+    return p
+
+
+def valider_profil(profil, demander=demander, phrase=""):
     """Vérifie chaque champ extrait par le LLM ; redemande ceux qui manquent ou sont faux."""
+    p = nettoyer_profil(profil, phrase)
     npas = set(regions["npa"])
-    npa = entier(profil.get("npa"))
-    if npa not in npas:
+    npa = p["npa"]
+    if npa is None:
         npa = demander("Quel est ton code postal (NPA) ?", npas, int,
                        aide="NPA inconnu : tape un code postal suisse à 4 chiffres.")
-    commune, canton, region = trouver_commune(npa, profil.get("commune"), demander)
+    commune, canton, region = trouver_commune(npa, p["commune"], demander)
 
-    age = entier(profil.get("age"))
-    if age not in range(0, 121):
-        age = demander("Quel âge as-tu ?", range(0, 121), int,
-                       aide="Tape un âge entre 0 et 120.")
+    if p["plusieurs_personnes"]:
+        print("Je compare une personne à la fois : réponds pour la personne à assurer.")
+    if p["age"] is None:
+        p["age"] = demander("Quel âge a la personne à assurer ?", range(0, 121), int,
+                            aide="Tape un âge entre 0 et 120.")
+        regles_age(p, phrase)
+    age = p["age"]
 
     franchises = FRANCHISES[classe_age(age)]
-    franchise = entier(profil.get("franchise"))
+    franchise = p["franchise"]
     if franchise not in franchises:
         franchise = demander(
             f"Quelle franchise en CHF ({', '.join(map(str, franchises))}) ?",
             franchises, int)
 
-    travaille_8h = profil.get("travaille_8h")
-    if not isinstance(travaille_8h, bool):
+    travaille_8h = p["travaille_8h"]
+    if travaille_8h is None:
         travaille_8h = demander(
             "Travailles-tu au moins 8 h par semaine chez le même employeur ? (o/n)",
             ["o", "n"], lambda s: s.lower()[:1]) == "o"
@@ -235,7 +292,7 @@ def main():
     situation = input("Décris ta situation (âge, code postal, travail, franchise souhaitée) :\n> ")
 
     brut = demander_llm(client, modele, PROMPT_EXTRACTION, situation)
-    profil = valider_profil(extraire_json(brut))
+    profil = valider_profil(extraire_json(brut), phrase=situation)
     print(f"\nProfil retenu : {profil['commune']} ({profil['npa']}), canton "
           f"{profil['canton']}, région {profil['region']}, {profil['age']} ans, "
           f"franchise {profil['franchise']} CHF, "
