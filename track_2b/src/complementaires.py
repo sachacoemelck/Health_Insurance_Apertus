@@ -60,7 +60,21 @@ Catégories possibles :
 - "dentaire" : dentiste, contrôles, hygiéniste, orthodontie, couronnes
 - "medecines_alternatives" : ostéopathie, acupuncture, naturopathie, homéopathie, massages, thérapeutes
 - "hospitalisation" : hôpital, opération, chambre privée ou demi-privée, libre choix du médecin à l'hôpital
-Mets seulement les catégories clairement mentionnées. Liste vide si aucune."""
+Par défaut, la liste est VIDE. Ajoute une catégorie seulement si la personne exprime
+explicitement un besoin qui la concerne. L'âge, le lieu, le travail ou la franchise ne sont pas des besoins.
+Exemples sans aucun besoin, réponse {"categories": []} :
+- « 25 ans, 2000 Neuchâtel, franchise 2500, je suis au chômage »
+- « 44 ans, 1260, franchise 500, je vais souvent chez le médecin »
+- « j'ai 40 ans, j'habite à Renens, je bosse »"""
+
+# Garde-fou : une catégorie n'est gardée que si un mot lié figure dans la phrase
+MOTS_BESOINS = {
+    "lunettes": r"lunette|lentille|verres|\bvue\b|opticien|myop|presbyt|brille|occhiali",
+    "dentaire": r"\bdent|orthodont|hygi[ée]niste|d[ée]tartrage|couronne|zahn",
+    "medecines_alternatives": r"ost[ée]o|acupunct|naturo|hom[ée]o|massage|th[ée]rapeute|chiro|"
+                              r"kin[ée]sio|shiatsu|phyto|m[ée]decines?\s+(?:alternative|douce|compl[ée]mentaire)",
+    "hospitalisation": r"h[ôo]pita|hospitalis|clinique|chambre|op[ée]ration|spital|ospedal",
+}
 
 PROMPT_EXPLICATION = """Tu aides une personne vivant en Suisse à comprendre les assurances complémentaires.
 Règles strictes :
@@ -263,6 +277,15 @@ def afficher_a_verifier(choix):
             print(f"  ⚠ {assureur} {produit} : {alertes}")
 
 
+def filtrer_categories(categories, phrase):
+    """Catégories valides du LLM, gardées seulement si un mot lié est dans la phrase."""
+    if not isinstance(categories, list):
+        return []
+    gardees = [c for c in categories if c in CATEGORIES
+               and re.search(MOTS_BESOINS[c], phrase or "", re.IGNORECASE)]
+    return list(dict.fromkeys(gardees))
+
+
 def demander_categories():
     noms = list(CATEGORIES)
     print("Je n'ai pas identifié ton besoin. Choisis une ou plusieurs catégories :")
@@ -316,8 +339,8 @@ def main():
     print("=== Orientation assurances complémentaires ===\n")
     besoin = input("Décris tes besoins (lunettes, dentiste, ostéo, hôpital...) :\n> ")
     brut = demander_llm(client, config["LLM_NAME"], PROMPT_BESOINS, besoin)
-    categories = [c for c in extraire_json(brut).get("categories", []) if c in CATEGORIES]
-    categories = list(dict.fromkeys(categories)) or demander_categories()
+    categories = (filtrer_categories(extraire_json(brut).get("categories"), besoin)
+                  or demander_categories())
     print(f"\nCatégories retenues : {', '.join(CATEGORIES[c] for c in categories)}")
 
     choix = produits_pour(categories)
