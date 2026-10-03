@@ -59,10 +59,15 @@ Règles strictes :
   l'assureur. N'ajoute rien d'autre sur ce modèle : ni avantage, ni liberté, ni contrainte.
 - Ne tire aucune conclusion du nom d'un modèle ou d'un produit (par exemple « flex »,
   « smart », « care ») : seule la définition fournie compte.
-- Tutoie l'utilisateur. Écris en français simple.
+- Tutoie l'utilisateur. Écris en {langue} simple.
 - Écris 5 à 6 phrases au total, en un seul paragraphe, sans liste ni tableau.
 Explique les compromis : le prix face aux contraintes de chaque modèle, et le risque
 d'une franchise élevée (le coût maximal annuel si tu as beaucoup de frais médicaux)."""
+
+
+def en_langue(prompt, langue):
+    """Prompt avec la langue de réponse voulue (ex. « français », « allemand »)."""
+    return prompt.replace("{langue}", langue)
 
 
 def lire_config():
@@ -144,22 +149,37 @@ def choisir_commune(communes, message, demander=demander):
     return c["commune"], c["canton"], int(c["region"])
 
 
-def trouver_commune(npa, commune_citee=None, demander=demander):
-    """Déduit commune, canton et région d'un NPA. La commune fait foi (OFSP) :
-    si le NPA couvre des communes de régions différentes, on demande laquelle."""
-    communes = communes_du_npa(npa)
-    if commune_citee:
-        citee = communes[communes["commune"].map(nom_simple) == nom_simple(commune_citee)]
-        if len(citee) == 1:
-            communes = citee
-
-    if len(communes[["canton", "region"]].drop_duplicates()) == 1:
-        # Une seule région possible : inutile de demander la commune
+def localiser(npa=None, commune=None):
+    """Lieu sans interaction. Renvoie (commune, canton, région) si le lieu est sûr, les
+    communes entre lesquelles choisir (DataFrame) s'il est ambigu, ou None s'il est inconnu.
+    La commune fait foi (OFSP), pas le NPA."""
+    if npa is None:
+        communes = communes_par_nom(commune)
+    else:
+        communes = communes_du_npa(npa)
+        if commune:
+            citee = communes[communes["commune"].map(nom_simple) == nom_simple(commune)]
+            if len(citee) == 1:
+                communes = citee
+        if not communes.empty and len(communes[["canton", "region"]].drop_duplicates()) == 1:
+            # Une seule région possible pour ce NPA : inutile de demander la commune
+            c = communes.iloc[0]
+            return " / ".join(communes["commune"]), c["canton"], int(c["region"])
+    if communes.empty:
+        return None
+    if len(communes) == 1:
         c = communes.iloc[0]
-        return " / ".join(communes["commune"]), c["canton"], int(c["region"])
+        return c["commune"], c["canton"], int(c["region"])
+    return communes
 
-    return choisir_commune(communes, f"Le NPA {npa} couvre des communes de régions de primes "
-                                     "différentes.\nC'est ta commune de domicile qui fait foi :",
+
+def trouver_commune(npa, commune_citee=None, demander=demander):
+    """Déduit commune, canton et région d'un NPA ; demande la commune si le NPA est ambigu."""
+    lieu = localiser(npa, commune_citee)
+    if isinstance(lieu, tuple):
+        return lieu
+    return choisir_commune(lieu, f"Le NPA {npa} couvre des communes de régions de primes "
+                                 "différentes.\nC'est ta commune de domicile qui fait foi :",
                            demander)
 
 
@@ -211,19 +231,19 @@ def valider_profil(profil, demander=demander, phrase=""):
     """Vérifie chaque champ extrait par le LLM ; redemande ceux qui manquent ou sont faux."""
     p = nettoyer_profil(profil, phrase)
     npa = p["npa"]
-    par_nom = communes_par_nom(p["commune"]) if npa is None else regions.iloc[0:0]
-    if len(par_nom) == 1:
-        # Commune sans NPA, trouvée une seule fois dans le fichier OFSP : la commune fait foi
-        c = par_nom.iloc[0]
-        commune, canton, region = c["commune"], c["canton"], int(c["region"])
-    elif len(par_nom) > 1:
-        commune, canton, region = choisir_commune(
-            par_nom, f"Plusieurs communes s'appellent « {p['commune']} » :", demander)
-    else:
-        if npa is None:
-            npa = demander("Quel est ton code postal (NPA) ?", set(regions["npa"]), int,
-                           aide="NPA inconnu : tape un code postal suisse à 4 chiffres.")
+    # Commune sans NPA : cherchée dans le fichier OFSP (le modèle ne devine jamais le NPA)
+    lieu = localiser(npa, p["commune"]) if npa is not None or p["commune"] else None
+    if lieu is None:
+        npa = demander("Quel est ton code postal (NPA) ?", set(regions["npa"]), int,
+                       aide="NPA inconnu : tape un code postal suisse à 4 chiffres.")
         commune, canton, region = trouver_commune(npa, p["commune"], demander)
+    elif isinstance(lieu, tuple):
+        commune, canton, region = lieu
+    elif npa is not None:
+        commune, canton, region = trouver_commune(npa, p["commune"], demander)
+    else:
+        commune, canton, region = choisir_commune(
+            lieu, f"Plusieurs communes s'appellent « {p['commune']} » :", demander)
 
     if p["plusieurs_personnes"]:
         print("Je compare une personne à la fois : réponds pour la personne à assurer.")
@@ -300,15 +320,16 @@ def texte_standard(faits):
             + "\n".join(l for l in faits.splitlines() if not l.startswith("Profil")))
 
 
-def expliquer(client, modele, faits):
+def expliquer(client, modele, faits, langue="français"):
     """Demande l'explication au LLM, la vérifie, réessaie une fois, sinon texte standard."""
-    explication = demander_llm(client, modele, PROMPT_EXPLICATION, faits)
+    systeme = en_langue(PROMPT_EXPLICATION, langue)
+    explication = demander_llm(client, modele, systeme, faits)
     intrus = montants_intrus(explication, faits)
     if not intrus:
         return explication
     rappel = (f"\n\nATTENTION : une réponse précédente citait des montants absents des faits "
               f"({', '.join(f'{n:g}' for n in intrus)}). N'utilise que les montants ci-dessus.")
-    explication = demander_llm(client, modele, PROMPT_EXPLICATION, faits + rappel)
+    explication = demander_llm(client, modele, systeme, faits + rappel)
     return explication if not montants_intrus(explication, faits) else texte_standard(faits)
 
 

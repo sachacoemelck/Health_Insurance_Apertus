@@ -1,0 +1,9 @@
+# Configuration Streamlit (lue quand l'app est lancée depuis track_2b/)
+[browser]
+# Pas de statistiques d'utilisation envoyées à Streamlit
+gatherUsageStats = false
+
+[server]
+# En local, l'app n'est accessible que depuis cet ordinateur (elle utilise ta clé API).
+# Dans Docker, lancer avec --server.address 0.0.0.0 (l'option de la commande l'emporte).
+address = "localhost"
