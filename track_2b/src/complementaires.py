@@ -41,8 +41,12 @@ LAMAL_COUVRE = {
                        "figurant sur la liste du canton de résidence, au maximum au tarif de ce canton.",
 }
 
-# Filet de sécurité : mentions de l'assurance de base interdites si aucun texte n'est rédigé
+# Contrôles Python de la réponse du LLM (voir reponse_valide)
 MOTIF_LAMAL = re.compile(r"LAMal|assurance de base|assurance obligatoire", re.IGNORECASE)
+MOTIF_RENVOI = re.compile(r"(?:ci|au)-dessus", re.IGNORECASE)
+MOTIF_INDISPENSABLE = re.compile(r"indispensable|n[ée]cessaire|obligatoire", re.IGNORECASE)
+# Produit souscrit uniquement en plus d'un autre : exclu des fourchettes de taux
+MOTIF_COMPLEMENT = re.compile(r"compl[ée]ment à|en combinaison avec|en plus de", re.IGNORECASE)
 
 RAPPEL = ("Les assurances complémentaires ne sont pas obligatoires : un questionnaire de santé "
           "est demandé, et la caisse peut refuser ta demande ou exclure des problèmes de santé "
@@ -63,16 +67,18 @@ Règles strictes :
 - Utilise UNIQUEMENT les faits fournis. N'ajoute aucune information extérieure.
 - Ne fais AUCUN calcul et ne cite AUCUN montant qui n'apparaît pas tel quel dans les faits.
 - Ne cite aucun prix de prime. Ne recommande aucune caisse ni aucun produit en particulier.
-- Si ce que couvre la LAMal est « non disponible », ne dis rien sur la LAMal pour cette catégorie.
+- Ne cite AUCUN nom de caisse ni de produit : parle de tendances (« certaines offres »,
+  « les plafonds vont de ... à ... »). L'utilisateur voit déjà la liste détaillée.
+- Ne décris JAMAIS ce que couvre la LAMal. Si c'est utile, dis seulement que c'est expliqué
+  ci-dessus. Si les faits indiquent que ce n'est pas affiché, ne parle pas de la LAMal.
+- Ne dis jamais qu'une assurance complémentaire est indispensable, nécessaire ou obligatoire.
 - Pour les taux de remboursement, utilise uniquement la fourchette fournie pour chaque
   catégorie : ne mélange jamais les catégories.
 - Ne tire aucune conclusion du nom d'un produit : seule sa description compte.
 - Tutoie l'utilisateur. Écris en français simple.
 - Écris 5 à 6 phrases au total, en un seul paragraphe, sans liste ni tableau.
-  Ne recopie pas la liste des produits : l'utilisateur la voit déjà.
-Contenu : ce que la LAMal couvre déjà (si fourni), les grandes différences entre les offres
-(plafonds, taux, périodes), et les pièges importants : délais de carence, exclusions,
-garanties préalables."""
+Contenu : les grandes différences entre les offres (plafonds, taux, périodes), et les
+pièges importants : délais de carence, exclusions, garanties préalables."""
 
 # Signalement : source secondaire, mention « à vérifier / non vérifié » ou chiffre d'un comparateur
 MOTIF_A_VERIFIER = re.compile(r"v[ée]rifi|moneyland|comparis", re.IGNORECASE)
@@ -132,9 +138,15 @@ def afficher(choix):
                     print(f"      ⚠ {alerte.upper()}")
 
 
+def est_complement(p):
+    """Vrai si le produit ne se souscrit qu'en plus d'un autre (ex. COMPLETA PLUS)."""
+    return bool(MOTIF_COMPLEMENT.search(f"{p['prestation']} {p['conditions']}"))
+
+
 def fourchette_taux(choix, categorie):
-    """Taux de remboursement minimal et maximal d'une catégorie (None si aucun taux connu)."""
-    taux = choix.loc[choix["categorie"] == categorie, "taux_rembourse"].dropna()
+    """Taux minimal et maximal d'une catégorie, hors compléments (None si aucun taux connu)."""
+    lignes = choix[(choix["categorie"] == categorie) & ~choix.apply(est_complement, axis=1)]
+    taux = lignes["taux_rembourse"].dropna()
     taux = taux.str.rstrip("%").astype(int)
     return (taux.min(), taux.max()) if len(taux) else None
 
@@ -143,9 +155,10 @@ def faits_pour(besoin, categories, choix):
     """Faits transmis au LLM : besoin exprimé, couverture LAMal si rédigée, taux, produits du CSV."""
     lignes = [f"Besoin exprimé : {besoin}"]
     for c in categories:
-        texte = LAMAL_COUVRE[c]
+        # Le texte LAMal est affiché par Python : le LLM sait seulement s'il l'est
+        affiche = LAMAL_COUVRE[c] != "A_REMPLIR"
         lignes.append(f"Ce que couvre la LAMal ({CATEGORIES[c]}) : "
-                      f"{'non disponible' if texte == 'A_REMPLIR' else texte}")
+                      f"{'affiché ci-dessus' if affiche else 'non affiché'}")
         taux = fourchette_taux(choix, c)
         if taux:
             lignes.append(f"Taux de remboursement des complémentaires ({CATEGORIES[c]}) : "
@@ -187,21 +200,36 @@ def demander_categories():
         print("  Tape au moins un numéro entre 1 et 4.")
 
 
-def reponse_valide(explication, faits, lamal_interdite):
-    """Montants tous présents dans les faits, et pas de LAMal si aucun texte n'est rédigé."""
-    if montants_intrus(explication, faits):
-        return False
-    return not (lamal_interdite and MOTIF_LAMAL.search(explication or ""))
+def problemes(explication, faits, choix, lamal_interdite):
+    """Règles violées par la réponse du LLM (liste vide si elle est valide)."""
+    texte = explication or ""
+    trouves = []
+    if montants_intrus(texte, faits):
+        trouves.append("montant absent des faits")
+    noms = set(choix["produit"]) | set(choix["assureur"])
+    caisses = set(choix["assureur"])
+    if any(re.search(rf"\b{re.escape(n)}\b", texte, 0 if n not in caisses else re.IGNORECASE)
+           for n in noms):
+        trouves.append("nom de caisse ou de produit")
+    for phrase in re.split(r"(?<=[.!?])\s+", texte):
+        if MOTIF_LAMAL.search(phrase) and (lamal_interdite or not MOTIF_RENVOI.search(phrase)):
+            trouves.append("description de la LAMal")
+        if "complémentaire" in phrase.lower() and MOTIF_INDISPENSABLE.search(phrase):
+            trouves.append("complémentaire présentée comme indispensable")
+    return sorted(set(trouves))
 
 
-def expliquer(client, modele, faits, categories):
+def expliquer(client, modele, faits, choix, categories):
     """Résumé par le LLM, vérifié ; un nouvel essai, puis renvoi à la liste s'il reste faux."""
     lamal_interdite = all(LAMAL_COUVRE[c] == "A_REMPLIR" for c in categories)
-    for rappel in ("", "\n\nATTENTION : n'utilise QUE des montants présents ci-dessus"
-                       + (" et ne parle pas de la LAMal." if lamal_interdite else ".")):
+    rappel = ""
+    for _ in range(2):
         explication = demander_llm(client, modele, PROMPT_EXPLICATION, faits + rappel)
-        if reponse_valide(explication, faits, lamal_interdite):
+        erreurs = problemes(explication, faits, choix, lamal_interdite)
+        if not erreurs:
             return explication
+        rappel = (f"\n\nATTENTION : ta réponse précédente enfreignait ces règles : "
+                  f"{', '.join(erreurs)}. Respecte strictement les règles.")
     return "Je n'ai pas pu générer de résumé fiable : réfère-toi à la liste ci-dessus."
 
 
@@ -220,7 +248,7 @@ def main():
     afficher(choix)
 
     faits = faits_pour(besoin, categories, choix)
-    explication = expliquer(client, config["LLM_NAME_RESTITUTION"], faits, categories)
+    explication = expliquer(client, config["LLM_NAME_RESTITUTION"], faits, choix, categories)
     print(f"\nApertus :\n{explication}\n")
     print(RAPPEL.format(date=produits["date_verification"].max()))
     afficher_a_verifier(choix)
