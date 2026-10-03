@@ -14,7 +14,8 @@ import sys
 from dotenv import load_dotenv
 from openai import OpenAI
 
-from comparateur import classe_age, communes_du_npa, comparer, regions
+from comparateur import (MODELES, QUOTE_PART_MAX, classe_age, communes_du_npa,
+                         comparer, regions)
 
 load_dotenv()
 
@@ -34,12 +35,17 @@ Réponds UNIQUEMENT avec un objet JSON, sans texte autour, avec ces clés :
 Mets null pour toute information absente. N'invente rien."""
 
 PROMPT_EXPLICATION = """Tu aides une personne vivant en Suisse à choisir son assurance maladie de base (LAMal).
-Explique en français, simplement, les offres du tableau fourni : qui est le moins cher,
-les écarts de prix et ce que signifient les types de modèle (TEL = télémédecine,
-HAM = médecin de famille, HMO/PRAXIS = cabinet de groupe, BASE = libre choix du médecin, etc.).
-Utilise UNIQUEMENT les chiffres du tableau : ne calcule et n'invente aucune prime ni aucun assureur.
-Les primes sont mensuelles, en CHF, issues des données officielles de l'OFSP.
-Rappelle de vérifier sur priminfo.admin.ch avant de changer d'assurance."""
+Règles strictes :
+- Utilise UNIQUEMENT les faits fournis. N'ajoute aucune information extérieure.
+- Ne fais AUCUN calcul : reprends tels quels les montants fournis (primes, écarts, coût maximal).
+- Ne définis aucun terme qui n'est pas défini dans les faits. Pour décrire un modèle,
+  reprends uniquement sa définition fournie.
+- Ne tire aucune conclusion du nom d'un modèle ou d'un produit (par exemple « flex »,
+  « smart », « care ») : seule la définition fournie compte.
+- Tutoie l'utilisateur. Écris en français simple.
+- Écris 5 à 6 phrases, sans liste ni tableau, et ne recopie pas le tableau des offres.
+Explique les compromis : le prix face aux contraintes de chaque modèle, et le risque
+d'une franchise élevée (le coût maximal annuel si tu as beaucoup de frais médicaux)."""
 
 
 def lire_config():
@@ -174,14 +180,34 @@ def main():
         print("\nAucune prime trouvée pour ce profil.")
         return
 
-    tableau = resultats.to_string(index=False)
-    print(f"\nLes {len(resultats)} primes mensuelles les moins chères (CHF) :\n{tableau}\n")
+    tableau = resultats.to_string(index=False, float_format="%.2f")
+    print(f"\nLes {len(resultats)} offres les moins chères (CHF) :\n{tableau}\n")
 
-    explication = demander_llm(client, modele, PROMPT_EXPLICATION, (
-        f"Profil : {json.dumps(profil, ensure_ascii=False)}\n"
-        f"Couverture accident : {'exclue' if profil['travaille_8h'] else 'incluse'}\n\n"
-        f"Tableau des primes (OFSP) :\n{tableau}"))
-    print(f"Apertus :\n{explication}")
+    # Tous les faits (définitions et montants) viennent de Python, pas du LLM.
+    # Montants arrondis au franc pour que le LLM n'ait rien à arrondir lui-même.
+    montants = resultats.select_dtypes("number").columns
+    tableau_llm = resultats.copy()
+    tableau_llm[montants] = resultats[montants].round(0).astype(int)
+    quote_part = QUOTE_PART_MAX[classe_age(profil["age"])]
+    definitions = "\n".join(f"- {m['nom']} : {m['description']}" for m in MODELES.values()
+                            if m["nom"] in set(resultats["Modèle"]))
+    faits = (
+        f"Profil : {profil['age']} ans, {profil['commune']} ({profil['canton']}), "
+        f"franchise {profil['franchise']} CHF, couverture accident "
+        f"{'exclue (assurée par l’employeur)' if profil['travaille_8h'] else 'incluse'}.\n"
+        f"Franchise : {profil['franchise']} CHF par an, payés par l'assuré avant que "
+        f"l'assurance rembourse.\n"
+        f"Quote-part maximale : {quote_part} CHF par an.\n"
+        f"Coût max/an = prime annuelle + franchise + quote-part maximale "
+        f"(cas où les frais médicaux sont élevés).\n"
+        f"Écart/an = différence de prime annuelle avec l'offre la moins chère.\n\n"
+        f"Définition des modèles :\n{definitions}\n\n"
+        f"Offres (montants en CHF arrondis au franc, source OFSP) :\n"
+        f"{tableau_llm.to_string(index=False)}"
+    )
+    explication = demander_llm(client, modele, PROMPT_EXPLICATION, faits)
+    print(f"Apertus :\n{explication}\n")
+    print("Primes officielles OFSP 2027. Vérifie sur priminfo.admin.ch avant de changer d'assurance.")
 
 
 if __name__ == "__main__":
