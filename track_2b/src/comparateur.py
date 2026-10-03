@@ -24,15 +24,21 @@ regions = (regions[["npa", "canton", "region", "no_ofs", "commune"]]
 # Modèles d'assurance (colonne Tariftyp) : nom affiché et définition factuelle
 MODELES = {
     "BASE": {"nom": "Libre choix",
-             "description": "libre choix du médecin"},
+             "description": "aucune contrainte, accès direct à n'importe quel médecin "
+                            "ou spécialiste, prime la plus élevée"},
     "PRAXIS": {"nom": "Médecin de famille / HMO",
-               "description": "médecin de famille ou HMO, à consulter en premier"},
+               "description": "on passe toujours d'abord par son médecin de famille, qui "
+                              "oriente vers les spécialistes. Suivi coordonné par quelqu'un "
+                              "qui connaît ton historique, prime réduite. Moins adapté si on "
+                              "veut un accès rapide : il faut attendre un rendez-vous selon "
+                              "ses disponibilités. Pas de passage obligatoire en cas d'urgence"},
     "TEL_DIG": {"nom": "Télémédecine",
-                "description": "appel obligatoire à un centre de télémédecine "
-                               "avant toute consultation"},
+                "description": "appel obligatoire à un centre de conseil avant toute "
+                               "consultation, sauf en cas d'urgence. Prime réduite. "
+                               "Contraignant si on veut voir directement son médecin"},
     "FLEX": {"nom": "Modèle alternatif",
-             "description": "modèle alternatif propre à chaque assureur, "
-                            "conditions à vérifier chez l'assureur"},
+             "description": "règles propres à chaque assureur : vérifier les conditions "
+                            "exactes chez l'assureur"},
 }
 
 # Quote-part annuelle maximale (10 % des frais après franchise), plafonnée par la LAMal
