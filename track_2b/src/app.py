@@ -22,26 +22,27 @@ import complementaires as compl
 import sante
 from chatbot import (FRANCHISES, NOMS_PRIORITE, PROMPT_EXTRACTION, PROMPT_INTRO, PROMPT_PRIORITE,
                      en_langue, extraire_json, faits_propositions, filtrer_priorite, lire_config,
-                     localiser, montants_intrus, nettoyer_profil, nom_simple, regles_age)
+                     localiser, montants_intrus, nettoyer_profil, nom_simple, regles_age,
+                     tutoie)
 from comparateur import QUOTE_PART_MAX, classe_age, propositions, toutes_les_offres
 
 # Langue des explications d'Apertus (paramètre conservé pour ajouter d'autres langues plus tard)
 LANGUE = "français"
 
-AVERTISSEMENT = ("Outil d'orientation, pas un conseil personnalisé ; vérifie sur "
+AVERTISSEMENT = ("Outil d'orientation, pas un conseil personnalisé ; vérifiez sur "
                  "priminfo.admin.ch avant de décider.")
 QUESTIONS_DE_SECOURS = {
-    "lieu": "Quel est ton code postal (NPA) ou ta commune de domicile ?",
-    "commune": "Plusieurs communes correspondent. Laquelle est ta commune de domicile ?",
+    "lieu": "Quel est votre code postal (NPA) ou votre commune de domicile ?",
+    "commune": "Plusieurs communes correspondent. Laquelle est votre commune de domicile ?",
     "age": "Quel âge a la personne à assurer ?",
-    "franchise": "Quelle franchise annuelle veux-tu ? Si tu hésites, dis-moi si tu vas souvent "
+    "franchise": "Quelle franchise annuelle souhaitez-vous ? Si vous hésitez, dites-moi si vous allez souvent "
                  "ou rarement chez le médecin.",
-    "travaille_8h": "Travailles-tu au moins 8 heures par semaine chez le même employeur ?",
+    "travaille_8h": "Travaillez-vous au moins 8 heures par semaine chez le même employeur ?",
 }
-COMPROMIS_DE_SECOURS = ("Plus la franchise est élevée, plus la prime est basse, mais tu paies "
-                        "toi-même tes frais jusqu'au montant de la franchise. Choisis une "
+COMPROMIS_DE_SECOURS = ("Plus la franchise est élevée, plus la prime est basse, mais vous payez "
+                        "vous-même vos frais jusqu'au montant de la franchise. Choisissez une "
                         "franchise ci-dessous.")
-RAPPEL_LAMAL = ("Primes officielles OFSP 2027. Vérifie sur priminfo.admin.ch avant de changer "
+RAPPEL_LAMAL = ("Primes officielles OFSP 2027. Vérifiez sur priminfo.admin.ch avant de changer "
                 "d'assurance.")
 
 # --------------------------------------------------------------------------------------
@@ -49,7 +50,7 @@ RAPPEL_LAMAL = ("Primes officielles OFSP 2027. Vérifie sur priminfo.admin.ch av
 # --------------------------------------------------------------------------------------
 PROMPT_QUESTION = """Tu aides une personne vivant en Suisse à comparer son assurance maladie de base.
 Il manque une information. Pose UNE seule question courte et naturelle pour l'obtenir.
-Règles : écris en {langue} ; tutoie ; réponds uniquement par la question, sans salutation
+Règles : écris en {langue} ; vouvoie la personne ; réponds uniquement par la question, sans salutation
 ni explication ; ne cite aucun nombre qui n'apparaît pas dans le message."""
 
 DESCRIPTIONS = {
@@ -71,9 +72,11 @@ Réponds UNIQUEMENT avec un objet JSON {"frais_medicaux": ...}, sans texte autou
 null sinon."""
 
 PROMPT_COMPROMIS = """Tu aides une personne à choisir la franchise de son assurance maladie de base (LAMal).
+Tu peux lui conseiller une franchise selon les frais médicaux qu'elle annonce, en t'appuyant
+uniquement sur les faits fournis.
 Règles strictes : utilise UNIQUEMENT les faits fournis ; ne fais aucun calcul ; ne cite aucun
-nombre absent des faits ; ne choisis pas à sa place ; tutoie ; écris en {langue} ;
-2 à 3 phrases ; termine en l'invitant à choisir une franchise parmi les boutons affichés."""
+nombre absent des faits ; vouvoie la personne ; écris en {langue} ; 2 à 3 phrases ;
+termine en l'invitant à choisir une franchise parmi les boutons affichés."""
 
 
 class ErreurLLM(Exception):
@@ -237,7 +240,8 @@ def poser_question(champ):
         description = DESCRIPTIONS[champ]
     question = llm(cfg["LLM_NAME_RESTITUTION"], en_langue(PROMPT_QUESTION, LANGUE),
                    f"Information à obtenir : {description}").strip()
-    if "?" not in question or montants_intrus(question, description) or len(question) > 300:
+    if ("?" not in question or montants_intrus(question, description) or len(question) > 300
+            or tutoie(question)):
         question = QUESTIONS_DE_SECOURS[champ]
     if s.lieu_inconnu and champ == "lieu":
         question = f"Je n'ai pas trouvé ce lieu en Suisse. {question}"
@@ -259,7 +263,8 @@ def expliquer_compromis(frais):
              "Avec peu de frais médicaux, une franchise élevée revient souvent moins cher au total. "
              "Avec des frais réguliers, une franchise basse limite ce que la personne paie elle-même.")
     texte = llm(cfg["LLM_NAME_RESTITUTION"], en_langue(PROMPT_COMPROMIS, LANGUE), faits)
-    dire(texte if texte and not montants_intrus(texte, faits) else COMPROMIS_DE_SECOURS)
+    valide = texte and not montants_intrus(texte, faits) and not tutoie(texte)
+    dire(texte if valide else COMPROMIS_DE_SECOURS)
 
 
 def avancer():
@@ -324,7 +329,7 @@ def traiter_message(texte):
 # Calcul : comparateur + explications vérifiées (code existant)
 # --------------------------------------------------------------------------------------
 INTRO_DE_SECOURS = ("Voici trois propositions : la moins chère, la moins chère avec médecin de "
-                    "famille, et la moins chère avec libre choix du médecin. Compare le prix et "
+                    "famille, et la moins chère avec libre choix du médecin. Comparez le prix et "
                     "les contreparties ci-dessous.")
 
 
@@ -379,7 +384,7 @@ def chf(montant):
 
 def afficher_sante(r):
     """Section santé : uniquement des textes fixes et des calculs Python (aucun texte du LLM)."""
-    st.markdown("### Ta situation de santé")
+    st.markdown("### Votre situation de santé")
     e = r["existant"]
     if e:
         st.markdown("**Pour un problème de santé actuel**")
@@ -399,10 +404,10 @@ def afficher_sante(r):
             meme = basse["produit"] == haute["produit"] and basse["assureur"] == haute["assureur"]
             st.markdown(("Avec le même produit (" + f"{basse['assureur']}, *{basse['produit']}*), "
                          if meme else "Avec l'offre la moins chère pour chaque franchise, ")
-                        + "voici ce que tu paierais par an :")
+                        + "voici ce que vous paieriez par an :")
             st.markdown("\n".join(
                 f"- **Franchise {x['franchise']} CHF** : {chf(x['prime_an'])} CHF de primes ; "
-                f"au maximum {chf(x['cout_max'])} CHF si tes frais médicaux sont élevés "
+                f"au maximum {chf(x['cout_max'])} CHF si vos frais médicaux sont élevés "
                 f"(prime + franchise + quote-part maximale)" for x in f))
             if basse["cout_max"] < haute["cout_max"]:
                 st.markdown(
@@ -424,7 +429,7 @@ def afficher_sante(r):
             st.caption("Les produits dont les conditions excluent la maternité sont retirés de la liste.")
         for prod, carence in a["produits"]:
             st.markdown(f"- {texte_produit(prod, avec_conditions=False)}  \n  Délai de carence : "
-                        f"{carence}  \n  *Prix non connu : demande une offre à {prod['assureur']}.*")
+                        f"{carence}  \n  *Prix non connu : demandez une offre à {prod['assureur']}.*")
 
 
 def texte_produit(prod, avec_conditions=True):
@@ -458,16 +463,16 @@ def afficher_propositions(bloc):
 
 def afficher_meilleurs_complementaires(c):
     st.markdown("### Assurances complémentaires")
-    st.info("Le prix de ces assurances n'est pas connu : demande une offre à la caisse.", icon="ℹ️")
+    st.info("Le prix de ces assurances n'est pas connu : demandez une offre à la caisse.", icon="ℹ️")
     for categorie in c["categories"]:
         meilleurs, ex_aequo = c["meilleurs"][categorie]
         st.markdown(f"#### {compl.CATEGORIES[categorie]}")
         if compl.LAMAL_COUVRE.get(categorie, "A_REMPLIR") != "A_REMPLIR":
             st.markdown(f"*Ce que couvre déjà la LAMal* : {compl.LAMAL_COUVRE[categorie]}")
         st.markdown("Les 3 produits avec la couverture la plus élevée :" if meilleurs
-                    else "Aucun produit accessible pour ton âge dans cette catégorie.")
+                    else "Aucun produit accessible pour votre âge dans cette catégorie.")
         for prod in meilleurs:
-            st.markdown(f"- {texte_produit(prod)}  \n  *Prix non connu : demande une offre à "
+            st.markdown(f"- {texte_produit(prod)}  \n  *Prix non connu : demandez une offre à "
                         f"{prod['assureur']}.*")
         critere = compl.CRITERE_CLASSEMENT["hospitalisation" if categorie == "hospitalisation"
                                            else "autres"]
@@ -480,7 +485,7 @@ def afficher_meilleurs_complementaires(c):
     a_verifier = compl.produits_a_verifier(
         compl.produits.loc[[p.name for cat in c["categories"] for p in c["meilleurs"][cat][0]]])
     if a_verifier:
-        st.markdown("**Parmi ces produits, à vérifier avant de te décider :**")
+        st.markdown("**Parmi ces produits, à vérifier avant de vous décider :**")
         st.markdown("\n".join(f"- ⚠ {assureur} {produit} : {'; '.join(alertes)}"
                               for (assureur, produit), alertes in a_verifier.items()))
     st.warning(compl.RAPPEL.format(date=compl.produits["date_verification"].max()))
@@ -516,7 +521,7 @@ def afficher_resultats(bloc):
     if bloc["compl"]:
         afficher_meilleurs_complementaires(bloc["compl"])
     afficher_toutes_les_offres(bloc)
-    st.caption("Tu peux poser une question de suivi, par exemple « et avec une franchise de 300 ? » "
+    st.caption("Vous pouvez poser une question de suivi, par exemple « et avec une franchise de 300 ? » "
                "ou « je veux garder le libre choix du médecin ».")
 
 
@@ -526,7 +531,7 @@ def bouton(libelle, action, *args, cle):
         try:
             action(*args)
         except ErreurLLM:
-            dire("Apertus ne répond pas pour le moment. Réessaie dans un instant.")
+            dire("Apertus ne répond pas pour le moment. Réessayez dans un instant.")
     st.button(libelle, key=cle, on_click=rappel)
 
 
@@ -574,7 +579,7 @@ def reponses_rapides():
         st.multiselect("Besoins en assurances complémentaires", options=list(compl.CATEGORIES),
                        default=p["besoins"], format_func=compl.CATEGORIES.get, key="choix_besoins")
         bouton("C'est correct, lancer la comparaison", confirmer, cle="confirmer")
-        st.caption("Sinon, écris ta correction dans le chat (ex. « j'ai 31 ans »).")
+        st.caption("Sinon, écrivez votre correction dans le chat (ex. « j'ai 31 ans »).")
 
 
 def recommencer():
@@ -594,11 +599,11 @@ def main():
             with st.spinner("Apertus réfléchit…"):
                 traiter_message(texte.strip())
         except ErreurLLM:
-            dire("Apertus ne répond pas pour le moment. Réessaie dans un instant.")
+            dire("Apertus ne répond pas pour le moment. Réessayez dans un instant.")
 
     st.title("Comparateur d'assurance maladie")
-    st.write("Décris ta situation en quelques mots : je compare les primes officielles de "
-             "l'assurance de base (LAMal) 2027 et je t'explique les différences.")
+    st.write("Décrivez votre situation en quelques mots : je compare les primes officielles de "
+             "l'assurance de base (LAMal) 2027 et je vous explique les différences.")
     st.warning(AVERTISSEMENT, icon="⚠️")
     st.caption("Les informations de santé ne sont pas enregistrées.")
     with st.sidebar:

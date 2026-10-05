@@ -71,7 +71,7 @@ Règles strictes :
 - Pour un modèle, reprends uniquement sa contrepartie fournie : n'ajoute aucun avantage ni inconvénient.
 - Ne recommande aucune proposition : présente les compromis entre le prix et les contraintes.
 - Si une priorité est indiquée, commence par la proposition qui y correspond.
-- Tutoie l'utilisateur. Écris en {langue} simple.
+- Vouvoie l'utilisateur. Écris en {langue} simple.
 - Écris 2 à 3 phrases au total, en un seul paragraphe, sans liste ni tableau."""
 
 PROMPT_EXPLICATION = """Tu aides une personne vivant en Suisse à choisir son assurance maladie de base (LAMal).
@@ -85,10 +85,10 @@ Règles strictes :
   l'assureur. N'ajoute rien d'autre sur ce modèle : ni avantage, ni liberté, ni contrainte.
 - Ne tire aucune conclusion du nom d'un modèle ou d'un produit (par exemple « flex »,
   « smart », « care ») : seule la définition fournie compte.
-- Tutoie l'utilisateur. Écris en {langue} simple.
+- Vouvoie l'utilisateur. Écris en {langue} simple.
 - Écris 5 à 6 phrases au total, en un seul paragraphe, sans liste ni tableau.
 Explique les compromis : le prix face aux contraintes de chaque modèle, et le risque
-d'une franchise élevée (le coût maximal annuel si tu as beaucoup de frais médicaux)."""
+d'une franchise élevée (le coût maximal annuel si l'on a beaucoup de frais médicaux)."""
 
 
 def en_langue(prompt, langue):
@@ -169,8 +169,8 @@ def choisir_commune(communes, message, demander=demander):
     for i, c in enumerate(communes.itertuples(), 1):
         canton = "" if c.commune.endswith(f"({c.canton})") else f" ({c.canton})"
         print(f"  {i}. {c.commune}{canton}")
-    choix = demander("Numéro de ta commune ?", range(1, len(communes) + 1), int,
-                     aide=f"Tape un numéro entre 1 et {len(communes)}.")
+    choix = demander("Numéro de votre commune ?", range(1, len(communes) + 1), int,
+                     aide=f"Tapez un numéro entre 1 et {len(communes)}.")
     c = communes.iloc[choix - 1]
     return c["commune"], c["canton"], int(c["region"])
 
@@ -205,7 +205,7 @@ def trouver_commune(npa, commune_citee=None, demander=demander):
     if isinstance(lieu, tuple):
         return lieu
     return choisir_commune(lieu, f"Le NPA {npa} couvre des communes de régions de primes "
-                                 "différentes.\nC'est ta commune de domicile qui fait foi :",
+                                 "différentes.\nC'est votre commune de domicile qui fait foi :",
                            demander)
 
 
@@ -267,8 +267,8 @@ def valider_profil(profil, demander=demander, phrase=""):
     # Commune sans NPA : cherchée dans le fichier OFSP (le modèle ne devine jamais le NPA)
     lieu = localiser(npa, p["commune"]) if npa is not None or p["commune"] else None
     if lieu is None:
-        npa = demander("Quel est ton code postal (NPA) ?", set(regions["npa"]), int,
-                       aide="NPA inconnu : tape un code postal suisse à 4 chiffres.")
+        npa = demander("Quel est votre code postal (NPA) ?", set(regions["npa"]), int,
+                       aide="NPA inconnu : tapez un code postal suisse à 4 chiffres.")
         commune, canton, region = trouver_commune(npa, p["commune"], demander)
     elif isinstance(lieu, tuple):
         commune, canton, region = lieu
@@ -282,7 +282,7 @@ def valider_profil(profil, demander=demander, phrase=""):
         print("Je compare une personne à la fois : réponds pour la personne à assurer.")
     if p["age"] is None:
         p["age"] = demander("Quel âge a la personne à assurer ?", range(0, 121), int,
-                            aide="Tape un âge entre 0 et 120.")
+                            aide="Tapez un âge entre 0 et 120.")
         regles_age(p, phrase)
     age = p["age"]
 
@@ -296,7 +296,7 @@ def valider_profil(profil, demander=demander, phrase=""):
     travaille_8h = p["travaille_8h"]
     if travaille_8h is None:
         travaille_8h = demander(
-            "Travailles-tu au moins 8 h par semaine chez le même employeur ? (o/n)",
+            "Travaillez-vous au moins 8 h par semaine chez le même employeur ? (o/n)",
             ["o", "n"], lambda s: s.lower()[:1]) == "o"
 
     return {"npa": npa, "commune": commune, "canton": canton, "region": region,
@@ -326,9 +326,9 @@ def resumer_faits(profil, resultats):
         lignes.append(f"- {nom_modele} ({descriptions[nom_modele]}) : {o['Assureur']}, "
                       f"{chf(o['Prime/an'])} par an, {ecart}.")
     lignes += [
-        f"Franchise : {profil['franchise']} CHF par an, payés par toi avant que l'assurance rembourse.",
+        f"Franchise : {profil['franchise']} CHF par an, payés par vous avant que l'assurance rembourse.",
         f"Quote-part maximale : {quote_part} CHF par an.",
-        f"Si tes frais médicaux sont élevés, tu paies jusqu'à "
+        f"Si vos frais médicaux sont élevés, vous payez jusqu'à "
         f"{chf(profil['franchise'] + quote_part)} en plus de la prime (franchise + quote-part), "
         f"soit un coût maximal de {chf(moins_chere['Coût max/an'])} par an avec l'offre la moins chère.",
         "Source : primes officielles OFSP 2027.",
@@ -347,6 +347,14 @@ def montants_intrus(reponse, faits):
     return sorted(nombres(reponse) - nombres(faits))
 
 
+# L'utilisateur est vouvoyé : toute forme de tutoiement dans une réponse du LLM est refusée
+MOTIF_TUTOIEMENT = re.compile(r"\b(?:tu|te|toi|ton|ta|tes)\b|\bt['’]", re.IGNORECASE)
+
+
+def tutoie(texte):
+    return bool(MOTIF_TUTOIEMENT.search(texte or ""))
+
+
 def texte_standard(faits):
     """Explication de secours, sans LLM, si les montants d'Apertus restent faux."""
     return ("Je n'ai pas pu générer d'explication fiable. Voici les faits principaux :\n"
@@ -358,12 +366,16 @@ def expliquer(client, modele, faits, langue="français", prompt=PROMPT_EXPLICATI
     systeme = en_langue(prompt, langue)
     explication = demander_llm(client, modele, systeme, faits)
     intrus = montants_intrus(explication, faits)
-    if not intrus:
+    if not intrus and not tutoie(explication):
         return explication
-    rappel = (f"\n\nATTENTION : une réponse précédente citait des montants absents des faits "
-              f"({', '.join(f'{n:g}' for n in intrus)}). N'utilise que les montants ci-dessus.")
+    rappel = "\n\nATTENTION :"
+    if intrus:
+        rappel += (f" une réponse précédente citait des montants absents des faits "
+                   f"({', '.join(f'{n:g}' for n in intrus)}). N'utilise que les montants ci-dessus.")
+    if tutoie(explication):
+        rappel += " Vouvoie l'utilisateur : n'utilise jamais « tu », « ton », « ta » ni « tes »."
     explication = demander_llm(client, modele, systeme, faits + rappel)
-    if not montants_intrus(explication, faits):
+    if not montants_intrus(explication, faits) and not tutoie(explication):
         return explication
     return secours or texte_standard(faits)
 
@@ -391,7 +403,7 @@ def main():
     modele = config["LLM_NAME"]
 
     print("=== Comparateur de primes LAMal (données OFSP) ===\n")
-    situation = input("Décris ta situation (âge, code postal, travail, franchise souhaitée) :\n> ")
+    situation = input("Décrivez votre situation (âge, code postal, travail, franchise souhaitée) :\n> ")
 
     brut = demander_llm(client, modele, PROMPT_EXTRACTION, situation)
     profil = valider_profil(extraire_json(brut), phrase=situation)
@@ -415,7 +427,7 @@ def main():
     faits = resumer_faits(profil, resultats)
     explication = expliquer(client, config["LLM_NAME_RESTITUTION"], faits)
     print(f"Apertus :\n{explication}\n")
-    print("Primes officielles OFSP 2027. Vérifie sur priminfo.admin.ch avant de changer d'assurance.")
+    print("Primes officielles OFSP 2027. Vérifiez sur priminfo.admin.ch avant de changer d'assurance.")
 
 
 if __name__ == "__main__":

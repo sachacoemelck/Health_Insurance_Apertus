@@ -42,17 +42,17 @@ EXCLUSIONS_THEME = {
 
 TEXTE_LAMAL_MALADIE = (
     "L'assurance de base (LAMal) prend en charge les traitements médicaux reconnus de la plupart "
-    "des maladies, quelle que soit ta caisse, avec ta franchise et ta quote-part. En assurance de "
-    "base, la caisse ne peut ni te refuser, ni te demander une surprime à cause de ta santé.")
+    "des maladies, quelle que soit votre caisse, avec votre franchise et votre quote-part. En assurance de "
+    "base, la caisse ne peut ni vous refuser, ni vous demander une surprime à cause de votre santé.")
 AVERTISSEMENT_EXISTANT = (
-    "Attention : si tu souscris maintenant une nouvelle assurance complémentaire, la caisse "
-    "examinera ton questionnaire de santé et exclura probablement ce problème de la couverture, "
-    "ou refusera ta demande.")
+    "Attention : si vous souscrivez maintenant une nouvelle assurance complémentaire, la caisse "
+    "examinera votre questionnaire de santé et exclura probablement ce problème de la couverture, "
+    "ou refusera votre demande.")
 TEXTE_AVENIR = (
     "Une assurance complémentaire se souscrit avant que le besoin n'apparaisse : un "
     "questionnaire de santé est demandé, et des délais de carence peuvent s'appliquer.")
 SANS_CATEGORIE = ("Nos données d'assurances complémentaires ne couvrent pas ce type de besoin : "
-                  "renseigne-toi directement auprès des caisses.")
+                  "renseignez-vous directement auprès des caisses.")
 CARENCE_INCONNUE = "délai de carence non indiqué dans nos données : à demander à la caisse"
 MOTIF_CARENCE = re.compile(r"carence|d[ée]lai", re.IGNORECASE)
 # Pour ces catégories, la LAMal ne rembourse en général pas les frais : comparer les

@@ -29,7 +29,7 @@ MODELES = {
     "PRAXIS": {"nom": "Médecin de famille / HMO",
                "description": "on passe toujours d'abord par son médecin de famille, qui "
                               "oriente vers les spécialistes. Suivi coordonné par quelqu'un "
-                              "qui connaît ton historique, prime réduite. Moins adapté si on "
+                              "qui connaît votre historique, prime réduite. Moins adapté si on "
                               "veut un accès rapide : il faut attendre un rendez-vous selon "
                               "ses disponibilités. Pas de passage obligatoire en cas d'urgence"},
     "TEL_DIG": {"nom": "Télémédecine",
