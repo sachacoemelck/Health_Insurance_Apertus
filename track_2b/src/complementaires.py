@@ -12,7 +12,7 @@ from datetime import date
 import pandas as pd
 from openai import OpenAI
 
-from chatbot import demander_llm, en_langue, extraire_json, lire_config, montants_intrus
+from chatbot import demander_llm, en_langue, extraire_json, lire_config, montants_intrus, tutoie
 from comparateur import DATA_DIR
 
 produits = pd.read_csv(DATA_DIR / "complementaires.csv", dtype=str)
@@ -49,8 +49,8 @@ MOTIF_INDISPENSABLE = re.compile(r"indispensable|n[ée]cessaire|obligatoire", re
 MOTIF_COMPLEMENT = re.compile(r"compl[ée]ment à|en combinaison avec|en plus de", re.IGNORECASE)
 
 RAPPEL = ("Les assurances complémentaires ne sont pas obligatoires : un questionnaire de santé "
-          "est demandé, et la caisse peut refuser ta demande ou exclure des problèmes de santé "
-          "existants. Vérifie les délais de carence et les conditions générales sur le site de "
+          "est demandé, et la caisse peut refuser votre demande ou exclure des problèmes de santé "
+          "existants. Vérifiez les délais de carence et les conditions générales sur le site de "
           "la caisse avant de signer. Données vérifiées le {date} : aucun prix de prime n'est indiqué.")
 
 PROMPT_BESOINS = """Tu identifies les besoins d'assurance complémentaire d'une personne vivant en Suisse.
@@ -91,7 +91,7 @@ Règles strictes :
 - Cite toujours un plafond avec sa période (par séance, par année, sur 3 ans).
 - « Non mentionné » ne veut pas dire « non couvert » : ne transforme jamais un silence en exclusion.
 - Ne tire aucune conclusion du nom d'un produit : seule sa description compte.
-- Tutoie l'utilisateur. Écris en {langue} simple.
+- Vouvoie l'utilisateur. Écris en {langue} simple.
 - Écris 5 à 6 phrases au total, en un seul paragraphe, sans liste ni tableau.
 Contenu : les grandes différences entre les offres (plafonds, taux, périodes), et les
 pièges importants : délais de carence, exclusions, garanties préalables."""
@@ -360,7 +360,7 @@ def afficher_a_verifier(choix):
     """Liste finale des produits à vérifier, affichée par Python (pas par le LLM)."""
     a_verifier = {cle: "; ".join(alertes) for cle, alertes in produits_a_verifier(choix).items()}
     if a_verifier:
-        print("\nProduits à vérifier avant de te décider :")
+        print("\nProduits à vérifier avant de vous décider :")
         for (assureur, produit), alertes in a_verifier.items():
             print(f"  ⚠ {assureur} {produit} : {alertes}")
 
@@ -376,7 +376,7 @@ def filtrer_categories(categories, phrase):
 
 def demander_categories():
     noms = list(CATEGORIES)
-    print("Je n'ai pas identifié ton besoin. Choisis une ou plusieurs catégories :")
+    print("Je n'ai pas identifié votre besoin. Choisissez une ou plusieurs catégories :")
     for i, c in enumerate(noms, 1):
         print(f"  {i}. {CATEGORIES[c]}")
     while True:
@@ -384,7 +384,7 @@ def demander_categories():
                  if 1 <= int(n) <= len(noms)]
         if choix:
             return list(dict.fromkeys(choix))
-        print("  Tape au moins un numéro entre 1 et 4.")
+        print("  Tapez au moins un numéro entre 1 et 4.")
 
 
 def problemes(explication, faits, choix, lamal_interdite):
@@ -393,6 +393,8 @@ def problemes(explication, faits, choix, lamal_interdite):
     trouves = []
     if montants_intrus(texte, faits):
         trouves.append("montant absent des faits")
+    if tutoie(texte):
+        trouves.append("tutoiement (il faut vouvoyer l'utilisateur)")
     noms = set(choix["produit"]) | set(choix["assureur"])
     caisses = set(choix["assureur"])
     if any(re.search(rf"\b{re.escape(n)}\b", texte, 0 if n not in caisses else re.IGNORECASE)
@@ -418,7 +420,7 @@ def expliquer(client, modele, faits, choix, categories, langue="français"):
             return explication
         rappel = (f"\n\nATTENTION : ta réponse précédente enfreignait ces règles : "
                   f"{', '.join(erreurs)}. Respecte strictement les règles.")
-    return "Je n'ai pas pu générer de résumé fiable : réfère-toi à la liste ci-dessus."
+    return "Je n'ai pas pu générer de résumé fiable : référez-vous à la liste ci-dessus."
 
 
 def main():
@@ -426,7 +428,7 @@ def main():
     client = OpenAI(base_url=config["LLM_BASE_URL"], api_key=config["LLM_API_KEY"])
 
     print("=== Orientation assurances complémentaires ===\n")
-    besoin = input("Décris tes besoins (lunettes, dentiste, ostéo, hôpital...) :\n> ")
+    besoin = input("Décrivez vos besoins (lunettes, dentiste, ostéo, hôpital...) :\n> ")
     brut = demander_llm(client, config["LLM_NAME"], PROMPT_BESOINS, besoin)
     categories = (filtrer_categories(extraire_json(brut).get("categories"), besoin)
                   or demander_categories())
