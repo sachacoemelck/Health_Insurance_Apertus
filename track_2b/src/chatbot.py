@@ -47,6 +47,32 @@ MOTIF_FRANCHISE_MIN = re.compile(r"plus\s+basse|\bmin", re.IGNORECASE)
 MOTIF_MONTANT = re.compile(r"franchise\s*(?:de\s*)?\d{3,4}|\d{3,4}\s*(?:CHF|francs|fr\.)",
                            re.IGNORECASE)
 AGE_SANS_EMPLOI = 15  # en dessous, travaille_8h = false sans poser la question
+# Priorité de la personne : prompt séparé (l'ajouter à PROMPT_EXTRACTION dégradait travaille_8h)
+PROMPT_PRIORITE = """Tu identifies la priorité d'une personne qui choisit son assurance maladie de base en Suisse.
+Réponds UNIQUEMENT avec un objet JSON {"priorite": ...}, sans texte autour :
+"prix" si elle veut avant tout payer le moins possible ;
+"medecin_famille" si elle veut passer par un médecin de famille ou une HMO ;
+"libre_choix" si elle veut choisir librement ses médecins ou consulter directement un spécialiste ;
+null si elle n'exprime aucune de ces priorités."""
+
+# Garde-fou : une priorité n'est gardée que si un mot lié figure dans la phrase
+MOTS_PRIORITE = {
+    "prix": r"moins cher|le moins possible|[ée]conomi|budget|pas cher|meilleur prix",
+    "medecin_famille": r"m[ée]decin de famille|m[ée]decin traitant|g[ée]n[ée]raliste|\bhmo\b",
+    "libre_choix": r"libre choix|choisir (?:librement|mes|mon)|directement (?:chez |un |le )?"
+                   r"sp[ée]cialiste|acc[èe]s direct",
+}
+
+PROMPT_INTRO = """Tu présentes à une personne vivant en Suisse trois propositions d'assurance maladie de base (LAMal), affichées juste en dessous de ton texte.
+Règles strictes :
+- Utilise UNIQUEMENT les faits fournis. N'ajoute aucune information extérieure.
+- Ne fais AUCUN calcul. Ne cite AUCUN montant qui n'apparaît pas tel quel dans les faits :
+  recopie les montants exactement (avec les centimes) ou n'en cite pas.
+- Pour un modèle, reprends uniquement sa contrepartie fournie : n'ajoute aucun avantage ni inconvénient.
+- Ne recommande aucune proposition : présente les compromis entre le prix et les contraintes.
+- Si une priorité est indiquée, commence par la proposition qui y correspond.
+- Tutoie l'utilisateur. Écris en {langue} simple.
+- Écris 2 à 3 phrases au total, en un seul paragraphe, sans liste ni tableau."""
 
 PROMPT_EXPLICATION = """Tu aides une personne vivant en Suisse à choisir son assurance maladie de base (LAMal).
 Règles strictes :
@@ -227,6 +253,13 @@ def nettoyer_profil(profil, phrase=""):
     return p
 
 
+def filtrer_priorite(priorite, phrase):
+    """Priorité du LLM, gardée seulement si un mot lié figure dans la phrase (sinon None)."""
+    if priorite in MOTS_PRIORITE and re.search(MOTS_PRIORITE[priorite], phrase or "", re.IGNORECASE):
+        return priorite
+    return None
+
+
 def valider_profil(profil, demander=demander, phrase=""):
     """Vérifie chaque champ extrait par le LLM ; redemande ceux qui manquent ou sont faux."""
     p = nettoyer_profil(profil, phrase)
@@ -320,9 +353,9 @@ def texte_standard(faits):
             + "\n".join(l for l in faits.splitlines() if not l.startswith("Profil")))
 
 
-def expliquer(client, modele, faits, langue="français"):
-    """Demande l'explication au LLM, la vérifie, réessaie une fois, sinon texte standard."""
-    systeme = en_langue(PROMPT_EXPLICATION, langue)
+def expliquer(client, modele, faits, langue="français", prompt=PROMPT_EXPLICATION, secours=None):
+    """Demande l'explication au LLM, la vérifie, réessaie une fois, sinon texte de secours."""
+    systeme = en_langue(prompt, langue)
     explication = demander_llm(client, modele, systeme, faits)
     intrus = montants_intrus(explication, faits)
     if not intrus:
@@ -330,7 +363,26 @@ def expliquer(client, modele, faits, langue="français"):
     rappel = (f"\n\nATTENTION : une réponse précédente citait des montants absents des faits "
               f"({', '.join(f'{n:g}' for n in intrus)}). N'utilise que les montants ci-dessus.")
     explication = demander_llm(client, modele, systeme, faits + rappel)
-    return explication if not montants_intrus(explication, faits) else texte_standard(faits)
+    if not montants_intrus(explication, faits):
+        return explication
+    return secours or texte_standard(faits)
+
+
+NOMS_PRIORITE = {"prix": "le prix le plus bas", "medecin_famille": "passer par un médecin de famille",
+                 "libre_choix": "le libre choix du médecin"}
+
+
+def faits_propositions(propositions, priorite=None):
+    """Faits des 3 propositions pour l'introduction du LLM (montants tels qu'affichés)."""
+    lignes = [f"Priorité de la personne : {NOMS_PRIORITE.get(priorite, 'aucune indiquée')}."]
+    for i, p in enumerate(propositions, 1):
+        ecart = ("c'est la moins chère" if p["ecart_mois"] == 0
+                 else f"{p['ecart_mois']:.2f} CHF de plus par mois que la moins chère")
+        lignes.append(f"Proposition {i} — {p['titre']} : {p['assureur']}, modèle {p['modele']}, "
+                      f"{p['prime_mois']:.2f} CHF par mois, {ecart}. "
+                      f"Contrepartie : {p['contrepartie']}")
+    lignes.append("Source : primes officielles OFSP 2027.")
+    return "\n".join(lignes)
 
 
 def main():

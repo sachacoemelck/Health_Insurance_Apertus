@@ -264,6 +264,88 @@ def faits_pour(besoin, categories, choix):
     return "\n".join(faits)
 
 
+# --- Les 3 produits avec la couverture la plus élevée, par besoin -------------------------
+CRITERE_CLASSEMENT = {
+    "hospitalisation": "classement par type de chambre (privée, puis demi-privée, puis "
+                       "commune), puis remboursement à 100 % indiqué, puis choix fixe de la "
+                       "division (sans participation selon le séjour)",
+    "autres": "classement par plafond annuel (un plafond sur 3 ans compte pour un tiers par "
+              "an ; « sans plafond » en premier ; plafonds par séance ou par traitement "
+              "ensuite), puis par taux de remboursement",
+}
+MOTIF_LIMITE_AGE = re.compile(r"(?<!\()jusqu'à (\d+) ans", re.IGNORECASE)
+MOTIF_LIMITE_SOUSCRIPTION = re.compile(r"souscription jusqu'à (\d+) ans", re.IGNORECASE)
+NIVEAUX_DIVISION = [(3, r"(?<![-\w])priv[ée]e|chambre individuelle|un lit"),
+                    (2, r"(?:demi|mi|semi)-priv|deux lits"),
+                    (1, r"commune")]
+
+
+def accessible(p, age):
+    """Faux si la prestation est réservée à un âge dépassé (ex. orthodontie jusqu'à 20 ans)."""
+    if age is None:
+        return True
+    texte = f"{p['periode']} {p['conditions']}"
+    limites = [int(m) for m in MOTIF_LIMITE_AGE.findall(str(p["periode"]))]
+    limites += [int(m) for m in MOTIF_LIMITE_SOUSCRIPTION.findall(texte)]
+    return all(age <= limite for limite in limites)
+
+
+def plafond_annuel(p):
+    """(groupe, valeur) pour classer : 3 = sans plafond, 2 = plafond annuel (3 ans / 3),
+    1 = par séance, par heure ou pour tout le traitement, 0 = plafond inconnu."""
+    periode = str(p["periode"]).lower()
+    if "sans plafond" in periode:
+        return 3, float("inf")
+    montants = [int(m) for m in re.findall(r"\d+", str(p["plafond_chf"]))]
+    if not montants:
+        return 0, 0
+    valeur = max(montants)  # « 600 à 5000 » : la variante la plus élevée
+    if type_periode(periode) == "par période de 3 ans":
+        return 2, valeur / 3
+    if type_periode(periode) == "par année":
+        return 2, valeur
+    return 1, valeur
+
+
+def taux_pourcent(p):
+    return int(str(p["taux_rembourse"]).rstrip("%")) if pd.notna(p["taux_rembourse"]) else 0
+
+
+def niveau_division(p):
+    """Niveau de chambre le plus élevé accessible : 3 privée, 2 demi-privée, 1 commune, 0 inconnu."""
+    for niveau, motif in NIVEAUX_DIVISION:
+        if re.search(motif, str(p["prestation"]), re.IGNORECASE):
+            return niveau
+    return 2 if "choix de la division" in str(p["prestation"]).lower() else 0
+
+
+def meilleurs_produits(choix, categorie, age=None, n=3):
+    """Les n produits avec la couverture la plus élevée d'une catégorie (une ligne par produit),
+    et le nombre d'autres produits au même niveau que le dernier retenu (ex aequo)."""
+    lignes = choix[choix["categorie"] == categorie]
+    complements = {(p["assureur"], p["produit"]) for _, p in lignes.iterrows() if est_complement(p)}
+    candidats = []
+    for _, p in lignes.iterrows():
+        if ("aucune prestation" in str(p["prestation"]).lower()
+                or (p["assureur"], p["produit"]) in complements or not accessible(p, age)):
+            continue
+        if categorie == "hospitalisation":
+            flex = "choix" in str(p["prestation"]).lower()
+            cle = (niveau_division(p), taux_pourcent(p) == 100, not flex, not avertissements(p))
+        else:
+            cle = (*plafond_annuel(p), taux_pourcent(p))
+        candidats.append((cle, p))
+    candidats.sort(key=lambda c: c[0], reverse=True)  # tri stable : ordre du CSV en cas d'égalité
+    retenus, vus = [], set()
+    for cle, p in candidats:
+        if (p["assureur"], p["produit"]) not in vus:
+            vus.add((p["assureur"], p["produit"]))
+            retenus.append((cle, p))
+    meilleurs = retenus[:n]
+    ex_aequo = sum(1 for cle, _ in retenus[n:] if meilleurs and cle == meilleurs[-1][0])
+    return [p for _, p in meilleurs], ex_aequo
+
+
 def produits_a_verifier(choix):
     """{(caisse, produit): [avertissements]} ; un produit à plusieurs lignes n'apparaît qu'une fois."""
     a_verifier = {}
