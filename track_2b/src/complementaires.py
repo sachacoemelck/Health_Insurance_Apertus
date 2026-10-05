@@ -374,6 +374,34 @@ def filtrer_categories(categories, phrase):
     return list(dict.fromkeys(gardees))
 
 
+# Filet inverse : mots-clés très sûrs qui ajoutent une catégorie oubliée par le LLM
+MOTS_SURS = {
+    "lunettes": r"lunettes?|lentilles?|myope|brille|occhiali",
+    "dentaire": r"dentiste|soins dentaires|d[ée]tartrage|orthodont\w*|zahnarzt|dentista",
+    "medecines_alternatives": r"ost[ée]o\w*|acupuncture|natur+opathe?|hom[ée]opath\w*|osteopat\w*",
+    "hospitalisation": r"chambre priv[ée]e|demi-priv[ée]e?|hospitalis[ée]e?|hospitalisation|"
+                       r"privatzimmer|camera privata",
+}
+NEGATION_PROCHE = re.compile(r"\b(?:pas|plus|sans|aucune?|jamais|kein\w*|nicht|non|senza)\b[^,.;]{0,25}$",
+                             re.IGNORECASE)
+
+
+def categories_sures(phrase):
+    """Catégories dont un mot-clé très sûr figure dans la phrase, sans négation juste avant."""
+    trouvees = []
+    for categorie, motif in MOTS_SURS.items():
+        for m in re.finditer(rf"\b(?:{motif})\b", phrase or "", re.IGNORECASE):
+            if not NEGATION_PROCHE.search(phrase[:m.start()]):
+                trouvees.append(categorie)
+                break
+    return trouvees
+
+
+def categories_finales(categories, phrase):
+    """Catégories du LLM validées par le garde-fou, plus celles des mots-clés très sûrs."""
+    return list(dict.fromkeys(filtrer_categories(categories, phrase) + categories_sures(phrase)))
+
+
 def demander_categories():
     noms = list(CATEGORIES)
     print("Je n'ai pas identifié votre besoin. Choisissez une ou plusieurs catégories :")
@@ -430,7 +458,7 @@ def main():
     print("=== Orientation assurances complémentaires ===\n")
     besoin = input("Décrivez vos besoins (lunettes, dentiste, ostéo, hôpital...) :\n> ")
     brut = demander_llm(client, config["LLM_NAME"], PROMPT_BESOINS, besoin)
-    categories = (filtrer_categories(extraire_json(brut).get("categories"), besoin)
+    categories = (categories_finales(extraire_json(brut).get("categories"), besoin)
                   or demander_categories())
     print(f"\nCatégories retenues : {', '.join(CATEGORIES[c] for c in categories)}")
 
