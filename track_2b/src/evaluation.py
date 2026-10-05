@@ -21,9 +21,11 @@ type_test, note ; colonnes facultatives : plusieurs_personnes (true/false, défa
 vide_apres_controles (champ que Python doit vider, ex. franchise).
 """
 import argparse
+import math
 import sys
 import time
 
+import numpy as np
 import pandas as pd
 from openai import OpenAI
 
@@ -109,6 +111,43 @@ def taux(serie):
     return f"{100 * serie.mean():.0f}% ({int(serie.sum())}/{len(serie)})"
 
 
+def wilson(succes, n, z=1.96):
+    """Intervalle de confiance à 95 % de Wilson pour une proportion (cas indépendants)."""
+    if n == 0:
+        return 0.0, 0.0
+    p = succes / n
+    d = 1 + z * z / n
+    centre = (p + z * z / (2 * n)) / d
+    marge = z * math.sqrt(p * (1 - p) / n + z * z / (4 * n * n)) / d
+    return centre - marge, centre + marge
+
+
+def intervalle(comp, tirages=2000, graine=0):
+    """IC 95 % par bootstrap sur les phrases : on retire les phrases au hasard avec remise, car
+    les champs d'une même phrase ne sont pas indépendants (une phrase mal comprise rate souvent
+    plusieurs champs)."""
+    par_phrase = comp.groupby("id")["ok"].agg(["sum", "count"])
+    sommes, comptes = par_phrase["sum"].to_numpy(), par_phrase["count"].to_numpy()
+    tirage = np.random.default_rng(graine).integers(0, len(sommes), size=(tirages, len(sommes)))
+    scores = sommes[tirage].sum(axis=1) / comptes[tirage].sum(axis=1)
+    return np.percentile(scores, [2.5, 97.5])
+
+
+def taux_ic(comp, par_champ=False):
+    """Taux et IC 95 %. Pour un seul champ, les phrases sont indépendantes : Wilson sur les
+    phrases (une phrase réussit si le champ est juste à chaque passage). Pour le score global :
+    bootstrap sur les phrases, sauf s'il est dégénéré (100 %), où l'on revient à Wilson."""
+    reussite_phrase = comp.groupby("id")["ok"].all()
+    if par_champ:
+        bas, haut = wilson(int(reussite_phrase.sum()), len(reussite_phrase))
+    else:
+        bas, haut = intervalle(comp)
+        if bas == haut == 1:
+            bas, haut = wilson(int(reussite_phrase.sum()), len(reussite_phrase))
+    return (f"{100 * comp['ok'].mean():.1f}%  [IC 95 % : {100 * bas:.1f} – {100 * haut:.1f}]  "
+            f"({int(comp['ok'].sum())}/{len(comp)})")
+
+
 def lire_tests(nom):
     """Phrases de test, avec vérification du format et colonnes facultatives par défaut."""
     chemin = DATA_DIR / nom
@@ -155,12 +194,16 @@ def reponses_llm(args, tests):
 
 
 def afficher_score(nom, comp, nb_passages, details):
-    print(f"\n##### Score {nom} : {taux(comp['ok'])}")
+    print(f"\n##### Score {nom} : {taux_ic(comp)}")
     if nb_passages > 1:
         print("    par passage : " + " | ".join(
             f"{p}: {100 * g['ok'].mean():.0f}%" for p, g in comp.groupby("passage")))
     for champ in CHAMPS:
-        print(f"    {champ:<20} {taux(comp.loc[comp['champ'] == champ, 'ok'])}")
+        print(f"    {champ:<20} {taux_ic(comp[comp['champ'] == champ], par_champ=True)}")
+    entieres = comp.groupby("id")["ok"].all()  # tous les champs justes, à chaque passage
+    bas, haut = wilson(int(entieres.sum()), len(entieres))
+    print(f"    {'phrases entièrement correctes':<20} {100 * entieres.mean():.1f}%  "
+          f"[IC 95 % : {100 * bas:.1f} – {100 * haut:.1f}]  ({int(entieres.sum())}/{len(entieres)})")
     if not details:
         return
     print("\n  Par type de test :")
