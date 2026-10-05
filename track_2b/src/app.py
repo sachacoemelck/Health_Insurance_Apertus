@@ -19,10 +19,11 @@ from openai import OpenAI
 
 import chatbot
 import complementaires as compl
-from chatbot import (FRANCHISES, PROMPT_EXTRACTION, en_langue, extraire_json, lire_config,
-                     localiser, montants_intrus, nettoyer_profil, nom_simple, regles_age,
-                     resumer_faits)
-from comparateur import QUOTE_PART_MAX, classe_age, comparer
+import sante
+from chatbot import (FRANCHISES, NOMS_PRIORITE, PROMPT_EXTRACTION, PROMPT_INTRO, PROMPT_PRIORITE,
+                     en_langue, extraire_json, faits_propositions, filtrer_priorite, lire_config,
+                     localiser, montants_intrus, nettoyer_profil, nom_simple, regles_age)
+from comparateur import QUOTE_PART_MAX, classe_age, propositions, toutes_les_offres
 
 # Langue des explications d'Apertus (paramètre conservé pour ajouter d'autres langues plus tard)
 LANGUE = "français"
@@ -113,7 +114,7 @@ def llm(modele, systeme, message):
 def profil_vide():
     return {"npa": None, "commune_citee": None, "commune": None, "canton": None,
             "region": None, "age": None, "franchise": None, "travaille_8h": None,
-            "plusieurs_personnes": False, "besoins": []}
+            "plusieurs_personnes": False, "priorite": None, "besoins": []}
 
 
 def etat():
@@ -128,6 +129,7 @@ def etat():
         s.choix_communes = None  # communes entre lesquelles choisir
         s.lieu_inconnu = False
         s.textes_besoins = []    # phrases où des besoins ont été exprimés
+        s.sante = []             # éléments de santé classés (en mémoire seulement)
     return s
 
 
@@ -163,7 +165,7 @@ def integrer(texte, champ=None):
         if p["franchise"] not in FRANCHISES[classe_age(p["age"])]:
             p["franchise"] = None
 
-    if champ is None:  # besoins en complémentaires : seulement dans les messages libres
+    if champ is None:  # besoins et priorité : seulement dans les messages libres
         besoins = compl.filtrer_categories(
             extraire_json(llm(cfg["LLM_NAME"], compl.PROMPT_BESOINS, texte)).get("categories"), texte)
         nouveaux = [b for b in besoins if b not in p["besoins"]]
@@ -171,6 +173,15 @@ def integrer(texte, champ=None):
             p["besoins"] += nouveaux
             s.textes_besoins.append(texte)
             change = True
+        priorite = filtrer_priorite(
+            extraire_json(llm(cfg["LLM_NAME"], PROMPT_PRIORITE, texte)).get("priorite"), texte)
+        if priorite and priorite != p["priorite"]:
+            p["priorite"], change = priorite, True
+        # Santé : Apertus classe seulement ; les réponses sont des textes fixes et des calculs
+        for element in sante.classer(texte, lambda systeme, message: llm(cfg["LLM_NAME"], systeme, message)):
+            if element not in s.sante:
+                s.sante.append(element)
+                change = True
     return change
 
 
@@ -264,7 +275,8 @@ def avancer():
         calculer()
     else:
         s.etape, s.attente = "confirmation", "confirmation"
-        s.messages.append({"role": "assistant", "type": "profil", "profil": dict(s.profil)})
+        s.messages.append({"role": "assistant", "type": "profil", "profil": dict(s.profil),
+                           "sante": len(s.sante)})
 
 
 def choisir_commune(c):
@@ -311,23 +323,31 @@ def traiter_message(texte):
 # --------------------------------------------------------------------------------------
 # Calcul : comparateur + explications vérifiées (code existant)
 # --------------------------------------------------------------------------------------
+INTRO_DE_SECOURS = ("Voici trois propositions : la moins chère, la moins chère avec médecin de "
+                    "famille, et la moins chère avec libre choix du médecin. Compare le prix et "
+                    "les contreparties ci-dessous.")
+
+
 def calculer():
+    """3 propositions LAMal (Python), introduction vérifiée (70B), meilleurs produits complémentaires."""
     s, cfg = st.session_state, config()
     p = s.profil
-    lamal = comparer(p["canton"], p["region"], p["age"], p["franchise"],
-                     avec_accident=not p["travaille_8h"])
-    bloc = {"lamal": lamal, "explication": None, "compl": None}
-    if not lamal.empty:
-        faits = resumer_faits(p, lamal)
-        bloc["explication"] = chatbot.expliquer(client(), cfg["LLM_NAME_RESTITUTION"], faits, LANGUE)
+    offres = toutes_les_offres(p["canton"], p["region"], p["age"], p["franchise"],
+                               avec_accident=not p["travaille_8h"])
+    props = propositions(offres, p["priorite"])
+    bloc = {"offres": offres, "propositions": props, "intro": None, "compl": None}
+    if props:
+        bloc["intro"] = chatbot.expliquer(client(), cfg["LLM_NAME_RESTITUTION"],
+                                          faits_propositions(props, p["priorite"]), LANGUE,
+                                          prompt=PROMPT_INTRO, secours=INTRO_DE_SECOURS)
+    if s.sante:
+        reference = (props[0]["assureur"], props[0]["produit"]) if props else None
+        bloc["sante"] = sante.analyser(p, s.sante, reference)
     if p["besoins"]:
         choix = compl.produits_pour(p["besoins"])
-        faits_c = compl.faits_pour(" ".join(s.textes_besoins), p["besoins"], choix)
         bloc["compl"] = {
             "categories": list(p["besoins"]), "choix": choix,
-            "resume": compl.expliquer(client(), cfg["LLM_NAME_RESTITUTION"], faits_c, choix,
-                                      p["besoins"], LANGUE),
-            "a_verifier": compl.produits_a_verifier(choix)}
+            "meilleurs": {c: compl.meilleurs_produits(choix, c, p["age"]) for c in p["besoins"]}}
     s.resultats.append(bloc)
     s.messages.append({"role": "assistant", "type": "resultats", "index": len(s.resultats) - 1})
     s.etape, s.attente = "resultats", None
@@ -336,7 +356,7 @@ def calculer():
 # --------------------------------------------------------------------------------------
 # Affichage
 # --------------------------------------------------------------------------------------
-def afficher_profil(p):
+def afficher_profil(p, nb_sante=0):
     accident = "exclue (assurée par l'employeur)" if p["travaille_8h"] else "incluse"
     besoins = ", ".join(compl.CATEGORIES[b] for b in p["besoins"]) or "aucun"
     commune = p["commune"] + (f" ({p['npa']})" if p["npa"] else "")
@@ -348,53 +368,156 @@ def afficher_profil(p):
         f"- **Région de primes** : {p['region']}",
         f"- **Franchise** : {p['franchise']} CHF",
         f"- **Couverture accident** : {accident}",
+        f"- **Priorité** : {NOMS_PRIORITE.get(p['priorite'], 'aucune indiquée')}",
         f"- **Besoins en complémentaires** : {besoins}",
-    ]))
+    ] + ([f"- **Santé** : {nb_sante} élément(s) pris en compte"] if nb_sante else [])))
+
+
+def chf(montant):
+    return f"{montant:,.2f}".replace(",", "'")
+
+
+def afficher_sante(r):
+    """Section santé : uniquement des textes fixes et des calculs Python (aucun texte du LLM)."""
+    st.markdown("### Ta situation de santé")
+    e = r["existant"]
+    if e:
+        st.markdown("**Pour un problème de santé actuel**")
+        st.write(sante.TEXTE_LAMAL_MALADIE)
+        for c in e["categories"]:
+            if compl.LAMAL_COUVRE.get(c, "A_REMPLIR") != "A_REMPLIR":
+                st.markdown(f"*{compl.CATEGORIES[c]}* : {compl.LAMAL_COUVRE[c]}")
+        exception = e["exception"]
+        texte = sante.AVERTISSEMENT_EXISTANT
+        if exception is not None:
+            texte += (f" Exception connue dans nos données : {exception['assureur']} indique « "
+                      f"{exception['prestation']} » (source : {exception['source_url']}).")
+        st.warning(texte)
+        f = e["franchises"]
+        if f:
+            basse, haute = f
+            meme = basse["produit"] == haute["produit"] and basse["assureur"] == haute["assureur"]
+            st.markdown(("Avec le même produit (" + f"{basse['assureur']}, *{basse['produit']}*), "
+                         if meme else "Avec l'offre la moins chère pour chaque franchise, ")
+                        + "voici ce que tu paierais par an :")
+            st.markdown("\n".join(
+                f"- **Franchise {x['franchise']} CHF** : {chf(x['prime_an'])} CHF de primes ; "
+                f"au maximum {chf(x['cout_max'])} CHF si tes frais médicaux sont élevés "
+                f"(prime + franchise + quote-part maximale)" for x in f))
+            if basse["cout_max"] < haute["cout_max"]:
+                st.markdown(
+                    f"Avec des frais médicaux réguliers, la franchise de {basse['franchise']} CHF "
+                    f"peut coûter jusqu'à {chf(haute['cout_max'] - basse['cout_max'])} CHF de moins "
+                    f"par an au total. Avec très peu de frais, la franchise de {haute['franchise']} "
+                    f"CHF coûte {chf(basse['prime_an'] - haute['prime_an'])} CHF de moins par an en primes.")
+        elif e["categories"]:
+            st.caption("Comparaison des franchises non affichée : ces frais ne sont en général pas "
+                       "remboursés par la LAMal (voir ci-dessus).")
+    for a in r["avenir"]:
+        titre = compl.CATEGORIES.get(a["categorie"], "autre besoin")
+        st.markdown(f"**Pour un projet ou une inquiétude ({titre})**")
+        st.write(sante.TEXTE_AVENIR)
+        if not a["categorie"]:
+            st.write(sante.SANS_CATEGORIE)
+            continue
+        if a["theme"] == "grossesse":
+            st.caption("Les produits dont les conditions excluent la maternité sont retirés de la liste.")
+        for prod, carence in a["produits"]:
+            st.markdown(f"- {texte_produit(prod, avec_conditions=False)}  \n  Délai de carence : "
+                        f"{carence}  \n  *Prix non connu : demande une offre à {prod['assureur']}.*")
+
+
+def texte_produit(prod, avec_conditions=True):
+    """Un produit complémentaire en Markdown : prestation, couverture, conditions, avertissements."""
+    texte = f"**{prod['assureur']}** — *{prod['produit']}* : {prod['prestation']}"
+    if compl.details(prod):
+        texte += f"  \n  Couverture : {compl.details(prod)}"
+    if avec_conditions and isinstance(prod["conditions"], str):
+        texte += f"  \n  Conditions : {prod['conditions']}"
+    for alerte in compl.avertissements(prod):
+        texte += f"  \n  ⚠ {alerte}"
+    return texte
+
+
+def afficher_propositions(bloc):
+    props = bloc["propositions"]
+    if not props:
+        st.write("Aucune prime trouvée pour ce profil.")
+        return
+    st.write(bloc["intro"])
+    for colonne, p in zip(st.columns(len(props)), props):
+        with colonne, st.container(border=True):
+            st.markdown(f"**{p['titre']}**")
+            st.markdown(f"### {p['prime_mois']:.2f} CHF / mois")
+            st.markdown(f"{p['assureur']}  \n*{p['produit']}* — {p['modele']}")
+            st.markdown("La moins chère" if p["ecart_mois"] == 0
+                        else f"+{p['ecart_mois']:.2f} CHF / mois par rapport à la moins chère")
+            st.caption(f"Contrepartie : {p['contrepartie']}")
+    st.caption(RAPPEL_LAMAL)
+
+
+def afficher_meilleurs_complementaires(c):
+    st.markdown("### Assurances complémentaires")
+    st.info("Le prix de ces assurances n'est pas connu : demande une offre à la caisse.", icon="ℹ️")
+    for categorie in c["categories"]:
+        meilleurs, ex_aequo = c["meilleurs"][categorie]
+        st.markdown(f"#### {compl.CATEGORIES[categorie]}")
+        if compl.LAMAL_COUVRE.get(categorie, "A_REMPLIR") != "A_REMPLIR":
+            st.markdown(f"*Ce que couvre déjà la LAMal* : {compl.LAMAL_COUVRE[categorie]}")
+        st.markdown("Les 3 produits avec la couverture la plus élevée :" if meilleurs
+                    else "Aucun produit accessible pour ton âge dans cette catégorie.")
+        for prod in meilleurs:
+            st.markdown(f"- {texte_produit(prod)}  \n  *Prix non connu : demande une offre à "
+                        f"{prod['assureur']}.*")
+        critere = compl.CRITERE_CLASSEMENT["hospitalisation" if categorie == "hospitalisation"
+                                           else "autres"]
+        egalite = (f" {ex_aequo} autre(s) produit(s) au même niveau : voir toutes les offres."
+                   if ex_aequo else "")
+        st.caption(f"Choix : {critere}. Produits réservés à un âge dépassé et compléments à un "
+                   f"autre produit exclus.{egalite}")
+    for _, prod in c["choix"][c["choix"]["categorie"] == "toutes"].iterrows():
+        st.markdown(f"À savoir : {texte_produit(prod)}")
+    a_verifier = compl.produits_a_verifier(
+        compl.produits.loc[[p.name for cat in c["categories"] for p in c["meilleurs"][cat][0]]])
+    if a_verifier:
+        st.markdown("**Parmi ces produits, à vérifier avant de te décider :**")
+        st.markdown("\n".join(f"- ⚠ {assureur} {produit} : {'; '.join(alertes)}"
+                              for (assureur, produit), alertes in a_verifier.items()))
+    st.warning(compl.RAPPEL.format(date=compl.produits["date_verification"].max()))
+
+
+def afficher_toutes_les_offres(bloc):
+    with st.expander("Voir toutes les offres"):
+        offres = bloc["offres"].drop(columns="Tariftyp")
+        if not offres.empty:
+            st.markdown(f"**Assurance de base (LAMal) : {len(offres)} offres, de la moins "
+                        f"chère à la plus chère (CHF)**")
+            montants = offres.select_dtypes("number").columns
+            st.dataframe(offres.style.format({c: "{:.2f}" for c in montants}),
+                         hide_index=True, use_container_width=True)
+        c = bloc["compl"]
+        if c:
+            st.markdown("**Assurances complémentaires : liste complète**")
+            for categorie in c["categories"]:
+                st.markdown(f"*{compl.CATEGORIES[categorie]}*")
+                lignes = c["choix"][c["choix"]["categorie"] == categorie]
+                st.markdown("\n".join(f"- {texte_produit(prod)}" for _, prod in lignes.iterrows()))
+            a_verifier = compl.produits_a_verifier(c["choix"])
+            if a_verifier:
+                st.markdown("*Produits à vérifier :* " + " ; ".join(
+                    f"{assureur} {produit} ({', '.join(alertes)})"
+                    for (assureur, produit), alertes in a_verifier.items()))
 
 
 def afficher_resultats(bloc):
-    lamal = bloc["lamal"]
-    st.markdown("**Les offres LAMal les moins chères (CHF)**")
-    if lamal.empty:
-        st.write("Aucune prime trouvée pour ce profil.")
-    else:
-        montants = lamal.select_dtypes("number").columns
-        st.dataframe(lamal.style.format({c: "{:.2f}" for c in montants}),
-                     hide_index=True, use_container_width=True)
-        st.markdown("**Explication d'Apertus**")
-        st.write(bloc["explication"])
-        st.caption(RAPPEL_LAMAL)
-
-    c = bloc["compl"]
-    if c:
-        st.markdown("### Assurances complémentaires")
-        choix = c["choix"]
-        for categorie in c["categories"] + ["toutes"]:
-            lignes = choix[choix["categorie"] == categorie]
-            if lignes.empty:
-                continue
-            with st.expander(compl.CATEGORIES.get(categorie, "Toutes catégories")):
-                if compl.LAMAL_COUVRE.get(categorie, "A_REMPLIR") != "A_REMPLIR":
-                    st.info(f"**Ce que couvre déjà la LAMal** : {compl.LAMAL_COUVRE[categorie]}")
-                for assureur, offres in lignes.groupby("assureur", sort=False):
-                    st.markdown(f"**{assureur}**")
-                    for _, prod in offres.iterrows():
-                        texte = f"- *{prod['produit']}* — {prod['prestation']}"
-                        if compl.details(prod):
-                            texte += f"  \n  {compl.details(prod)}"
-                        if isinstance(prod["conditions"], str):
-                            texte += f"  \n  Conditions : {prod['conditions']}"
-                        for alerte in compl.avertissements(prod):
-                            texte += f"  \n  ⚠ {alerte}"
-                        st.markdown(texte)
-        st.markdown("**Résumé d'Apertus**")
-        st.write(c["resume"])
-        if c["a_verifier"]:
-            st.markdown("**Produits à vérifier avant de te décider**")
-            st.markdown("\n".join(f"- ⚠ {assureur} {produit} : {'; '.join(alertes)}"
-                                  for (assureur, produit), alertes in c["a_verifier"].items()))
-        st.warning(compl.RAPPEL.format(date=compl.produits["date_verification"].max()))
-    st.caption("Tu peux poser une question de suivi, par exemple « et avec une franchise de 300 ? ».")
+    afficher_propositions(bloc)
+    if bloc.get("sante"):
+        afficher_sante(bloc["sante"])
+    if bloc["compl"]:
+        afficher_meilleurs_complementaires(bloc["compl"])
+    afficher_toutes_les_offres(bloc)
+    st.caption("Tu peux poser une question de suivi, par exemple « et avec une franchise de 300 ? » "
+               "ou « je veux garder le libre choix du médecin ».")
 
 
 def bouton(libelle, action, *args, cle):
@@ -477,6 +600,7 @@ def main():
     st.write("Décris ta situation en quelques mots : je compare les primes officielles de "
              "l'assurance de base (LAMal) 2027 et je t'explique les différences.")
     st.warning(AVERTISSEMENT, icon="⚠️")
+    st.caption("Les informations de santé ne sont pas enregistrées.")
     with st.sidebar:
         st.button("Nouvelle comparaison", on_click=recommencer)
 
@@ -485,7 +609,7 @@ def main():
             if m["type"] == "texte":
                 st.markdown(m["contenu"])
             elif m["type"] == "profil":
-                afficher_profil(m["profil"])
+                afficher_profil(m["profil"], m.get("sante", 0))
             else:
                 afficher_resultats(s.resultats[m["index"]])
     reponses_rapides()
