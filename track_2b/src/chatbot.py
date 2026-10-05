@@ -47,6 +47,38 @@ MOTIF_FRANCHISE_MIN = re.compile(r"plus\s+basse|\bmin", re.IGNORECASE)
 MOTIF_MONTANT = re.compile(r"franchise\s*(?:de\s*)?\d{3,4}|\d{3,4}\s*(?:CHF|francs|fr\.)",
                            re.IGNORECASE)
 AGE_SANS_EMPLOI = 15  # en dessous, travaille_8h = false sans poser la question
+# travaille_8h : un nombre d'heures ou un pourcentage écrit décide toujours ; sinon, si le LLM
+# n'a rien répondu, des mots-clés de statut tranchent (français, allemand, italien)
+MOTIF_HEURES = re.compile(r"(\d{1,2})\s*(?:h\b|heures?|stunden|ore\b)[^,.;]{0,12}?"
+                          r"(?:par semaine|/\s*semaine|hebdo|pro woche|alla settimana)", re.IGNORECASE)
+MOTIF_POURCENT = re.compile(r"(?:à|a|zu)\s*(\d{1,3})\s*%", re.IGNORECASE)
+POURCENT_8H = 20  # 20 % d'un plein temps de 42 h = environ 8 h par semaine
+STATUT_SANS_LAA = re.compile(
+    r"ind[ée]pendant|à mon compte|propre entreprise|ch[ôo]mage|ch[ôo]meur|sans emploi|"
+    r"retrait[ée]|à la retraite|pensionn[ée]|[ée]tudiant|\b[ée]l[èe]ve\b|gymnase|"
+    r"arbeitslos|selbst[äa]ndig|pensioniert|rentner|studiere|student|"
+    r"disoccupat|indipendente|in pensione|pensionat|studente|studentessa", re.IGNORECASE)
+STATUT_AVEC_LAA = re.compile(
+    r"apprenti|apprentissage|\bcfc\b|plein temps|temps complet|salari[ée]|"
+    r"\blehre\b|lehrling|vollzeit|apprendista|tempo pieno", re.IGNORECASE)
+
+
+def travail_par_mots_cles(travaille, phrase):
+    """Garde-fou Python pour travaille_8h (voir MOTIF_HEURES et STATUT_*)."""
+    heures = MOTIF_HEURES.search(phrase or "")
+    if heures:
+        return int(heures.group(1)) >= 8
+    pourcent = MOTIF_POURCENT.search(phrase or "")
+    if pourcent:
+        return int(pourcent.group(1)) >= POURCENT_8H
+    if travaille is not None:
+        return travaille
+    sans, avec = STATUT_SANS_LAA.search(phrase or ""), STATUT_AVEC_LAA.search(phrase or "")
+    if sans and not avec:
+        return False
+    if avec and not sans:
+        return True
+    return None  # rien ou contradictoire : le bot pose la question
 # Priorité de la personne : prompt séparé (l'ajouter à PROMPT_EXTRACTION dégradait travaille_8h)
 PROMPT_PRIORITE = """Tu identifies la priorité d'une personne qui choisit son assurance maladie de base en Suisse.
 Réponds UNIQUEMENT avec un objet JSON {"priorite": ...}, sans texte autour :
@@ -238,6 +270,7 @@ def nettoyer_profil(profil, phrase=""):
          "age": entier(profil.get("age")), "franchise": entier(profil.get("franchise")),
          "travaille_8h": travaille if isinstance(travaille, bool) else None,
          "plusieurs_personnes": profil.get("plusieurs_personnes") is True}
+    p["travaille_8h"] = travail_par_mots_cles(p["travaille_8h"], phrase)
     # Le modèle ne doit jamais deviner un NPA : il n'est gardé que s'il figure dans la phrase
     if phrase and p["npa"] is not None and not re.search(rf"(?<!\d){p['npa']}(?!\d)", phrase):
         p["npa"] = None

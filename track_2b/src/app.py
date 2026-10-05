@@ -169,7 +169,7 @@ def integrer(texte, champ=None):
             p["franchise"] = None
 
     if champ is None:  # besoins et priorité : seulement dans les messages libres
-        besoins = compl.filtrer_categories(
+        besoins = compl.categories_finales(
             extraire_json(llm(cfg["LLM_NAME"], compl.PROMPT_BESOINS, texte)).get("categories"), texte)
         nouveaux = [b for b in besoins if b not in p["besoins"]]
         if nouveaux:

@@ -32,7 +32,7 @@ from openai import OpenAI
 from chatbot import (FRANCHISES, PROMPT_EXTRACTION, classe_age, demander_llm, entier,
                      extraire_json, lire_config, nettoyer_profil)
 from comparateur import DATA_DIR, regions
-from complementaires import CATEGORIES, PROMPT_BESOINS, filtrer_categories
+from complementaires import CATEGORIES, PROMPT_BESOINS, categories_finales
 
 CHAMPS = ["age", "npa", "franchise", "travaille_8h", "plusieurs_personnes", "categories"]
 COLONNES_OBLIGATOIRES = ["id", "phrase", "age", "npa", "franchise", "travaille_8h",
@@ -87,7 +87,7 @@ def controles_actuels(profil, besoins, phrase):
     p = nettoyer_profil(profil, phrase)
     return {"age": p["age"], "npa": p["npa"], "franchise": p["franchise"],
             "travaille_8h": p["travaille_8h"], "plusieurs_personnes": p["plusieurs_personnes"],
-            "categories": frozenset(filtrer_categories(besoins.get("categories"), phrase))}
+            "categories": frozenset(categories_finales(besoins.get("categories"), phrase))}
 
 
 def controles_anciens(profil, besoins, phrase):

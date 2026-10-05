@@ -6,8 +6,10 @@ familier, nombres en lettres, fautes de frappe, quelques phrases en allemand et 
 Certains cas omettent volontairement une information : la réponse attendue est alors vide.
 
 Graine fixe : le même fichier est produit à chaque exécution.
-Usage (depuis track_2b) : python src/generer_eval.py
+Usage (depuis track_2b) : python src/generer_eval.py                    # jeu 2026
+                          python src/generer_eval.py --graine 2027 --sortie eval_synthetique_2027.csv
 """
+import argparse
 import csv
 import random
 import re
@@ -17,7 +19,7 @@ from comparateur import DATA_DIR, classe_age, regions
 
 GRAINE = 2026
 NB_CAS = 300
-SORTIE = DATA_DIR / "eval_synthetique.csv"
+SORTIE = "eval_synthetique.csv"
 COLONNES = ["id", "phrase", "age", "npa", "franchise", "travaille_8h", "categories",
             "type_test", "note", "plusieurs_personnes", "vide_apres_controles"]
 
@@ -221,16 +223,20 @@ def generer_cas(rng, numero, communes):
 
 
 def main():
-    rng = random.Random(GRAINE)
+    parser = argparse.ArgumentParser(description=__doc__.splitlines()[0])
+    parser.add_argument("--graine", type=int, default=GRAINE)
+    parser.add_argument("--sortie", default=SORTIE, help="fichier dans data/")
+    args = parser.parse_args()
+    rng = random.Random(args.graine)
     # NPA réels avec le nom de leur commune (sans le canton ajouté par l'OFSP, ex. « Cugy (VD) »)
     communes = sorted({(int(r.npa), re.sub(r"\s*\([A-Z]{2}\)$", "", r.commune))
                        for r in regions.itertuples()})
     cas = [generer_cas(rng, i, communes) for i in range(1, NB_CAS + 1)]
-    with open(SORTIE, "w", encoding="utf-8", newline="") as f:
+    with open(DATA_DIR / args.sortie, "w", encoding="utf-8", newline="") as f:
         ecrivain = csv.DictWriter(f, fieldnames=COLONNES, lineterminator="\r\n")
         ecrivain.writeheader()
         ecrivain.writerows(cas)
-    print(f"{len(cas)} cas écrits dans {SORTIE}")
+    print(f"{len(cas)} cas (graine {args.graine}) écrits dans data/{args.sortie}")
 
 
 if __name__ == "__main__":
