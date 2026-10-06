@@ -89,7 +89,10 @@ class Profile:
 
     def context(self):
         return {"premium_year": self.premium_year, "reference_date": self.reference_date.isoformat(),
-                "facts": {k: asdict(v) for k, v in self.facts.items()}}
+                # Same key name ("status") as the update schema the model must return:
+                # showing it "state" here made it answer with "state" and the reply was rejected.
+                "facts": {k: {"value": v.value, "status": v.state.value, "previous": v.previous}
+                          for k, v in self.facts.items()}}
 
     def valid(self, name, value):
         if name in BOOL_FIELDS:
@@ -232,21 +235,26 @@ class Profile:
 
 
 def parse_updates(response):
-    """Reject malformed model responses atomically; do not confuse them with missing facts."""
+    """Parse the model's update object. An unreadable reply is rejected as a whole (ValueError);
+    a single malformed field is dropped, so it stays unresolved and is asked again, instead of
+    discarding every other fact of the message. Nothing is ever invented here."""
     try:
         payload = json.loads(response)
-    except (TypeError, ValueError) as error:
-        raise ValueError("Expected a JSON update object") from error
-    if not isinstance(payload, dict) or set(payload) != {"updates"} or not isinstance(payload["updates"], dict):
-        raise ValueError("Expected only an updates object")
+    except (TypeError, ValueError):
+        payload = extraire_json(response)  # tolerate Markdown fences or text around the JSON
+    if not isinstance(payload, dict) or not isinstance(payload.get("updates"), dict):
+        raise ValueError("Expected a JSON object with an updates object")
+    updates = {}
     for name, update in payload["updates"].items():
-        if name not in FIELDS or not isinstance(update, dict) or set(update) != {"value", "status", "correction"}:
-            raise ValueError("Unknown field or invalid update structure")
-        if update["status"] not in ("known", "missing", "ambiguous", "invalid") or type(update["correction"]) is not bool:
-            raise ValueError("Invalid status or correction flag")
-        if update["status"] == "missing" and update["value"] is not None:
-            raise ValueError("A missing field must have null value")
-    return payload["updates"]
+        if name not in FIELDS or not isinstance(update, dict) or "value" not in update:
+            continue
+        status = update.get("status", update.get("state"))  # "state" is a frequent model slip
+        correction = update.get("correction", False)
+        if status not in ("known", "missing", "ambiguous", "invalid") or type(correction) is not bool:
+            continue
+        updates[name] = {"value": None if status == "missing" else update["value"],
+                         "status": status, "correction": correction}
+    return updates
 
 
 PROMPT_PROFILE = """Tu extrais les faits explicitement exprimés par UNE personne pour une comparaison LAMal.
