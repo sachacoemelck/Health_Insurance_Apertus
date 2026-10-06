@@ -24,18 +24,16 @@ regions = (regions[["npa", "canton", "region", "no_ofs", "commune"]]
 # Modèles d'assurance (colonne Tariftyp) : nom affiché et définition factuelle
 MODELES = {
     "BASE": {"nom": "Libre choix",
-             "description": "aucune contrainte, accès direct à n'importe quel médecin "
-                            "ou spécialiste, prime la plus élevée"},
+             "description": "modèle standard sans restriction de choix propre à un réseau ; "
+                            "les règles de prise en charge de la LAMal restent applicables"},
     "PRAXIS": {"nom": "Médecin de famille / HMO",
-               "description": "on passe toujours d'abord par son médecin de famille, qui "
-                              "oriente vers les spécialistes. Suivi coordonné par quelqu'un "
-                              "qui connaît votre historique, prime réduite. Moins adapté si on "
-                              "veut un accès rapide : il faut attendre un rendez-vous selon "
-                              "ses disponibilités. Pas de passage obligatoire en cas d'urgence"},
-    "TEL_DIG": {"nom": "Télémédecine",
-                "description": "appel obligatoire à un centre de conseil avant toute "
-                               "consultation, sauf en cas d'urgence. Prime réduite. "
-                               "Contraignant si on veut voir directement son médecin"},
+               "description": "premier contact auprès du médecin ou du réseau désigné ; "
+                              "vérifier le réseau et les exceptions du produit"},
+    "TEL_DIG": {"nom": "Télémédecine / numérique",
+                "description": "premier contact par téléphone ou service numérique selon le produit ; "
+                               "vérifier les obligations et exceptions"},
+    "PHARM": {"nom": "Pharmacie",
+              "description": "premier contact en pharmacie selon les conditions du produit"},
     "FLEX": {"nom": "Modèle alternatif",
              "description": "règles propres à chaque assureur : vérifier les conditions "
                             "exactes chez l'assureur"},
@@ -57,11 +55,13 @@ def classe_age(age):
 
 COLONNES = ["Assureur", "Modèle", "Produit", "Prime/mois", "Prime/an", "Écart/an", "Coût max/an"]
 
-def _filtrer(canton, region, age, franchise, avec_accident):
+def _filtrer(canton, region, age, franchise, avec_accident, accepted_tariff_types=None, premium_year=2027):
     """Lignes du CSV qui correspondent au profil."""
     lettre = {"AKA_01_KIN": "K", "AKA_02_JUG": "J", "AKA_03_ERW": "E"}[classe_age(age)]
     return df[
-        (df["Kanton"] == canton)
+        (df["Geschäftsjahr"] == premium_year)
+        & (df["Tariftyp"].isin(accepted_tariff_types if accepted_tariff_types is not None else MODELES))
+        & (df["Kanton"] == canton)
         & (df["Region"] == f"PR_REG_{region}")
         & (df["Altersklasse"] == classe_age(age))
         & (df["Unfalleinschluss"] == ("MIT_UNF" if avec_accident else "OHN_UNF"))
@@ -87,18 +87,20 @@ def comparer(canton, region, age, franchise, avec_accident, top=5):
     res = res.sort_values("Prämie").drop_duplicates("Versicherer").head(top)
     return _enrichir(res, age, franchise)[COLONNES].reset_index(drop=True)
 
-def toutes_les_offres(canton, region, age, franchise, avec_accident):
+def toutes_les_offres(canton, region, age, franchise, avec_accident, accepted_tariff_types=None, premium_year=2027):
     """Toutes les offres (une ligne par produit de chaque assureur), de la moins chère à la
     plus chère. Contrairement à comparer(), un assureur peut apparaître plusieurs fois : son
     offre médecin de famille n'est pas perdue si son offre télémédecine est moins chère."""
-    res = _filtrer(canton, region, age, franchise, avec_accident)
+    res = _filtrer(canton, region, age, franchise, avec_accident, accepted_tariff_types, premium_year)
     res = res.sort_values(["Prämie", "Versicherer", "Tarif"], kind="stable")
     res = res.drop_duplicates(["Versicherer", "Tarif"])
-    return _enrichir(res, age, franchise)[COLONNES + ["Tariftyp"]].reset_index(drop=True)
+    enriched = _enrichir(res, age, franchise)[COLONNES + ["Tariftyp"]].reset_index(drop=True)
+    enriched["Franchise"] = franchise
+    return enriched
 
 # Les 3 propositions : clé de priorité -> (titre, modèle imposé ou None pour tous les modèles)
 PROPOSITIONS = {
-    "prix": ("La moins chère, tous modèles confondus", None),
+    "prix": ("La moins chère parmi les catégories acceptées", None),
     "medecin_famille": ("La moins chère avec médecin de famille / HMO", "PRAXIS"),
     "libre_choix": ("La moins chère avec libre choix du médecin", "BASE"),
 }
@@ -110,7 +112,7 @@ def contrepartie(code_modele):
 
 def propositions(offres, priorite=None):
     """Les 3 propositions, calculées sur toutes_les_offres(). La priorité de l'utilisateur
-    passe en premier ; si deux propositions tombent sur la même offre, on prend la suivante."""
+    passe en premier ; chaque carte garde le véritable minimum de sa catégorie."""
     if offres.empty:
         return []
     ordre = list(PROPOSITIONS)
@@ -118,19 +120,19 @@ def propositions(offres, priorite=None):
         ordre.remove(priorite)
         ordre.insert(0, priorite)
     prix_min = offres["Prime/mois"].min()
-    deja_prises, choisies = set(), []
+    choisies = []
     for cle in ordre:
         titre, code = PROPOSITIONS[cle]
         candidates = offres if code is None else offres[offres["Tariftyp"] == code]
-        for _, o in candidates.iterrows():
-            if (o["Assureur"], o["Produit"]) not in deja_prises:
-                deja_prises.add((o["Assureur"], o["Produit"]))
-                choisies.append({"cle": cle, "titre": titre, "assureur": o["Assureur"],
-                                 "modele": o["Modèle"], "produit": o["Produit"],
-                                 "prime_mois": o["Prime/mois"],
-                                 "ecart_mois": round(o["Prime/mois"] - prix_min, 2),
-                                 "contrepartie": contrepartie(o["Tariftyp"])})
-                break
+        if candidates.empty:
+            continue
+        o = candidates.iloc[0]
+        # Keep the true category minimum even when another card has the same offer.
+        choisies.append({"cle": cle, "titre": titre, "assureur": o["Assureur"],
+                         "modele": o["Modèle"], "produit": o["Produit"],
+                         "prime_mois": o["Prime/mois"], "franchise": int(o["Franchise"]),
+                         "ecart_mois": round(o["Prime/mois"] - prix_min, 2),
+                         "contrepartie": contrepartie(o["Tariftyp"])})
     return choisies
 
 if __name__ == "__main__":
