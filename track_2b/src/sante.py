@@ -96,7 +96,9 @@ def comparer_franchises(profil, produit_reference=None):
     lignes = []
     for franchise in (min(franchises), max(franchises)):
         offres = toutes_les_offres(profil["canton"], profil["region"], profil["age"], franchise,
-                                   avec_accident=not profil["travaille_8h"])
+                                   avec_accident=not profil["travaille_8h"],
+                                   accepted_tariff_types=(profil["comparison"].accepted_tariff_types
+                                                         if profil.get("comparison") else None))
         if offres.empty:
             return []
         meme = offres[(offres["Assureur"] == produit_reference[0])
