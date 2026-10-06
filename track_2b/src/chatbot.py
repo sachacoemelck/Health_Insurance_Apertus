@@ -23,7 +23,7 @@ from dotenv import load_dotenv
 from openai import OpenAI
 
 from comparateur import (MODELES, QUOTE_PART_MAX, classe_age, communes_du_npa,
-                         comparer, regions, toutes_les_offres)
+                         comparer, cout_des_preferences, regions, toutes_les_offres)
 
 load_dotenv()
 
@@ -733,6 +733,16 @@ def extraire_mises_a_jour(appeler, message):
             if attempt:
                 raise
             prompt += "\nLa réponse précédente était invalide. Respecte exactement le schéma JSON, sans Markdown."
+
+
+def couts_des_preferences(profile):
+    """Coût des catégories de modèles non acceptées, pour un profil validé. Calculé seulement
+    quand une seule franchise est comparée : sinon l'écart mélangerait modèle et franchise."""
+    if len(profile.deductibles) != 1:
+        return []
+    return cout_des_preferences(profile.canton, profile.region, profile.rating_age,
+                                profile.deductibles[0], profile.include_accident,
+                                profile.accepted_tariff_types, profile.premium_year)
 
 
 def offres_du_profil(profile):

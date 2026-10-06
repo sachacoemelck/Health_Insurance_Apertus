@@ -271,7 +271,8 @@ def calculer():
     p["comparison"] = c
     offres = chatbot.offres_du_profil(c)
     props = propositions(offres, p["priorite"])
-    bloc = {"offres": offres, "propositions": props, "intro": None, "compl": None}
+    bloc = {"offres": offres, "propositions": props, "intro": None, "compl": None,
+            "preferences": chatbot.couts_des_preferences(c)}
     if props:
         bloc["intro"] = chatbot.expliquer(client(), cfg["LLM_NAME_RESTITUTION"],
                                           faits_propositions(props, p["priorite"]), LANGUE,
@@ -459,8 +460,28 @@ def afficher_toutes_les_offres(bloc):
                     for (assureur, produit), alertes in a_verifier.items()))
 
 
+def afficher_preferences(lignes):
+    """Ce que coûtent les préférences : uniquement des montants calculés par Python."""
+    st.markdown("### Ce que coûtent vos préférences")
+    st.write("Pour le même profil, voici l'offre la moins chère de chaque modèle que vous "
+             "n'avez pas retenu, comparée à votre offre la moins chère.")
+    for l in lignes:
+        if l["ecart_an"] < 0:
+            ecart = f"**{chf(-l['ecart_an'])} CHF de moins par an**"
+        elif l["ecart_an"] > 0:
+            ecart = f"**{chf(l['ecart_an'])} CHF de plus par an**"
+        else:
+            ecart = "**même prime annuelle**"
+        st.markdown(f"- **{l['modele']}** : dès {chf(l['prime_mois'])} CHF / mois "
+                    f"({l['assureur']}, *{l['produit']}*), soit {ecart}.")
+    st.caption("Écarts de primes uniquement, source OFSP 2027. Chaque modèle a des contraintes "
+               "propres : vérifiez les conditions du produit avant de changer.")
+
+
 def afficher_resultats(bloc):
     afficher_propositions(bloc)
+    if bloc.get("preferences"):
+        afficher_preferences(bloc["preferences"])
     if bloc.get("sante"):
         afficher_sante(bloc["sante"])
     if bloc["compl"]:

@@ -98,6 +98,30 @@ def toutes_les_offres(canton, region, age, franchise, avec_accident, accepted_ta
     enriched["Franchise"] = franchise
     return enriched
 
+def cout_des_preferences(canton, region, age, franchise, avec_accident, accepted_tariff_types,
+                         premium_year=2027):
+    """Ce que coûte chaque préférence : pour chaque catégorie de modèle NON acceptée, son offre
+    la moins chère et l'écart annuel avec l'offre la moins chère des catégories acceptées
+    (positif = plus cher, négatif = économie). Même profil, mêmes données OFSP ; tout est
+    calculé ici, jamais par le LLM. Liste vide si rien n'est comparable."""
+    toutes = toutes_les_offres(canton, region, age, franchise, avec_accident, None, premium_year)
+    acceptees = toutes[toutes["Tariftyp"].isin(list(accepted_tariff_types))]
+    if acceptees.empty:
+        return []
+    reference = acceptees.iloc[0]
+    lignes = []
+    for code in MODELES:
+        autres = toutes[toutes["Tariftyp"] == code]
+        if code in accepted_tariff_types or autres.empty:
+            continue
+        o = autres.iloc[0]
+        lignes.append({"tariftyp": code, "modele": o["Modèle"], "assureur": o["Assureur"],
+                       "produit": o["Produit"], "prime_mois": float(o["Prime/mois"]),
+                       "prime_an": float(o["Prime/an"]),
+                       "ecart_an": round(float(o["Prime/an"]) - float(reference["Prime/an"]), 2)})
+    return sorted(lignes, key=lambda l: l["ecart_an"])
+
+
 # Les 3 propositions : clé de priorité -> (titre, modèle imposé ou None pour tous les modèles)
 PROPOSITIONS = {
     "prix": ("La moins chère parmi les catégories acceptées", None),
