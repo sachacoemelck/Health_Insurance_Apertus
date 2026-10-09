@@ -29,7 +29,15 @@ _PAS_COUVERT = re.compile(r"\b(?:pas|aucun\w*|ni|plus)\b[^.?!]{0,40}\bcouverte?s
                           r"|\bcouverte?s?\b[^.?!]{0,20}\b(?:aucun\w*|personne)\b[^.?!]{0,40}\baccident"
                           r"|\baccident\w*[^.?!]{0,40}\b(?:pas|aucun\w*)\b[^.?!]{0,15}\bcouvert", re.I)
 _HEURES = re.compile(r"(\d{1,2})\s*(?:h\b|heures?)\s*(?:par|/|a\s+la|à\s+la)\s*semaine", re.I)
-_MEME_EMPLOYEUR = re.compile(r"m[êe]me\s+employeur|un\s+seul\s+employeur", re.I)
+_MEME_EMPLOYEUR = re.compile(r"m[êe]me\s+employeur|un\s+seul\s+employeur|chez\s+(?:un|mon)\s+employeur", re.I)
+_PLUSIEURS_EMPLOYEURS = re.compile(r"autre\s+employeur|chez\s+un\s+autre|(?:deux|trois|plusieurs|\d)\s+employeurs", re.I)
+
+# Un parent qui parle d'un seul enfant (« mon fils a 10 ans ») : la comparaison est pour l'enfant
+_ENFANT = re.compile(r"\b(?:mon|notre)\s+(?:fils|enfant|b[ée]b[ée]|gar[çc]on)\b|\b(?:ma|notre)\s+fille\b", re.I)
+_PLUSIEURS_PERSONNES = re.compile(r"\bet\s+moi\b|\bnous\s+deux\b|\bma\s+femme\b|\bmon\s+mari\b|\bconjoint|"
+                                  r"\bcompagne?\b|\bpartenaire\b|\bmes\s+enfants\b|\bfamille\b|\bjumeaux\b|"
+                                  r"\b(?:deux|trois|2|3)\s+enfants\b", re.I)
+_NAISSANCE_RECENTE = re.compile(r"vient\s+de\s+na[îi]tre|nouveau-n[ée]|est\s+n[ée]e?\s+(?:cette|ce|il\s+y\s+a)", re.I)
 _AGE = re.compile(r"(?<![\d.,])(\d{1,3})\s*ans\b", re.I)
 _PLUSIEURS_AGES = re.compile(r"\d{1,3}\s*(?:et|,)\s*\d{1,3}\s*ans", re.I)
 _NAISSANCE = re.compile(r"\bn[ée]e?s?\s+(?:en\s+)?((?:19|20)\d\d)\b|\bann[ée]e\s+de\s+naissance\D{0,5}((?:19|20)\d\d)", re.I)
@@ -166,7 +174,8 @@ def completer_par_regles(updates, texte, cible=None, suivi=False):
 
     # Heures chez un même employeur : seulement si « même employeur » est écrit
     heures = _HEURES.search(texte)
-    if heures and _MEME_EMPLOYEUR.search(texte) and not _connu(updates, "hours_per_week_one_employer"):
+    if (heures and _MEME_EMPLOYEUR.search(texte) and not _PLUSIEURS_EMPLOYEURS.search(texte)
+            and not _connu(updates, "hours_per_week_one_employer")):
         _mettre(updates, "hours_per_week_one_employer", int(heures.group(1)), texte, cible)
         if not _connu(updates, "employed"):
             _mettre(updates, "employed", True, texte, cible)
@@ -193,6 +202,14 @@ def completer_par_regles(updates, texte, cible=None, suivi=False):
     if (len(set(ages)) == 1 and not _PLUSIEURS_AGES.search(texte)
             and not _connu(updates, "age") and not _connu(updates, "birth_year")):
         _mettre(updates, "age", int(ages[0]), texte, cible)
+
+    # Un parent qui décrit un seul enfant, sans autre âge : la comparaison est pour cet enfant
+    if _ENFANT.search(texte) and not _PLUSIEURS_PERSONNES.search(texte):
+        ages_enfant = set(_AGE.findall(texte))
+        if len(ages_enfant) <= 1 and (ages_enfant or _NAISSANCE_RECENTE.search(texte)):
+            updates["multiple_people"] = {"value": False, "status": "known", "correction": True}
+            if not ages_enfant:
+                _mettre(updates, "age", 0, texte, cible)
 
     # Répondre à « pour qui faisons-nous la comparaison ? » désigne une seule personne
     if cible == "multiple_people":

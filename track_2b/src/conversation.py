@@ -284,6 +284,23 @@ def _intrus(reponse, faits):
     return [n for n in montants_intrus(reponse, faits) if not (n.is_integer() and 1 <= n <= 10)]
 
 
+# Affirmations sur l'emploi de la personne : seulement si son profil le dit. « Si vous êtes salarié… »
+# (conditionnel) reste permis ; « puisque vous êtes salarié… » sans fondement est refusé.
+_AFFIRME_EMPLOI = re.compile(
+    r"(?<!si )\b(?:puisque |comme |étant donné que |car )?vous êtes (?:salarié|employé)e?\b(?! ou)"
+    r"|\bétant (?:salarié|employé)e?\b|\ben tant que (?:salarié|employé)e?\b|\bvotre statut de salarié"
+    r"|(?<!si )\bvotre employeur vous (?:couvre|assure)\b|(?<!si )\bvous travaillez (?:au moins|plus de) 8",
+    re.IGNORECASE)
+
+
+def emploi_non_fonde(reponse, faits):
+    """Vrai si la réponse attribue un emploi salarié (ou 8 heures et plus) que le profil ne contient pas."""
+    if not _AFFIRME_EMPLOI.search(reponse or ""):
+        return False
+    heures = re.search(r"heures par semaine chez un même employeur : (\d+)", faits or "")
+    return not ("emploi salarié : oui" in (faits or "") or (heures and int(heures.group(1)) >= 8))
+
+
 def _probleme(reponse, faits, doit_questionner):
     if not reponse or not reponse.strip():
         return "réponse vide"
@@ -291,6 +308,9 @@ def _probleme(reponse, faits, doit_questionner):
     if intrus:
         return ("une réponse précédente citait des nombres absents des faits ("
                 + ", ".join(f"{n:g}" for n in intrus) + "). N'utilise que les nombres des faits.")
+    if emploi_non_fonde(reponse, faits):
+        return ("n'affirme jamais que la personne est salariée ou couverte par un employeur : son profil ne "
+                "le dit pas.")
     if tutoie(reponse):
         return "vouvoie la personne : jamais « tu », « ton », « ta », « tes »."
     if doit_questionner and "?" not in reponse[-200:]:

@@ -102,6 +102,14 @@ def test_code_postal_jamais_lu_comme_budget():
     assert c.lire_budget("300 par mois", "budget") == ("montant", 300)
 
 
+def test_emploi_invente_refuse():
+    question = "Quels modèles acceptez-vous ?"
+    invente = lambda s, m: "Puisque vous êtes salarié, votre employeur vous couvre."
+    assert c.repondre_tour(invente, "tous ?", [], True, question).startswith("Je ne peux pas répondre")
+    prudent = lambda s, m: "Si vous êtes salarié au moins 8 heures, vous pouvez exclure les accidents."
+    assert c.repondre_tour(prudent, "tous ?", [], True, question).startswith("Si vous êtes salarié")
+
+
 if __name__ == "__main__":
     tests = [f for nom, f in dict(globals()).items() if nom.startswith("test_")]
     for t in tests:
