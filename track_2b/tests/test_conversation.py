@@ -96,6 +96,12 @@ def test_sans_nouvelle_information_pas_d_appel_inutile():
     assert not appels
 
 
+def test_code_postal_jamais_lu_comme_budget():
+    assert c.lire_budget("58 ans, Nyon 1260, avec accidents, pas de budget") == ("aucun", None)
+    assert c.lire_budget("étudiante à Fribourg 1700, petit budget") == ("petit", None)
+    assert c.lire_budget("300 par mois", "budget") == ("montant", 300)
+
+
 if __name__ == "__main__":
     tests = [f for nom, f in dict(globals()).items() if nom.startswith("test_")]
     for t in tests:

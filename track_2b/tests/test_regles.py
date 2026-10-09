@@ -59,6 +59,26 @@ def test_peu_importe_le_modele():
     assert soins.parle_de_soins("je m'en fiche du modèle tant que c'est pas cher")
 
 
+def test_lieu_remplace_en_entier_et_noms_bilingues():
+    from chatbot import localiser
+    u = regles.completer_par_regles({}, "Lausanne", "municipality")
+    assert u["municipality"]["value"] == "Lausanne" and u["postal_code"]["status"] == "missing"
+    assert localiser(2502, "Bienne")[0] == "Biel/Bienne"
+    assert localiser(1205, "Genève 1205")[0] == "Genève"
+    assert regles.completer_par_regles({}, "retraité de 70 ans à Sion", None)["municipality"]["value"] == "Sion"
+
+
+def test_pas_couvert_ne_retire_jamais_les_accidents():
+    lu = {"include_accident": {"value": False, "status": "known", "correction": False}}
+    u = regles.completer_par_regles(lu, "je ne suis couvert par aucun employeur pour les accidents", "include_accident")
+    assert "include_accident" not in u and u["nonoccupational_covered"]["value"] is False
+
+
+def test_reponse_directe_annee_et_age():
+    assert regles.completer_par_regles({}, "2026", "birth_year")["birth_year"]["value"] == 2026
+    assert regles.completer_par_regles({}, "35", "age")["age"]["value"] == 35
+
+
 if __name__ == "__main__":
     tests = [f for nom, f in sorted(globals().items()) if nom.startswith("test_")]
     for test in tests:

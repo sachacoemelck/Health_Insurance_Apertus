@@ -132,7 +132,12 @@ def lire_budget(texte, cible=None):
     """("montant", n) | ("petit", None) | ("aucun", None) | None. Un montant n'est lu que s'il est
     présenté comme un budget, ou en réponse à la question du budget ; jamais un âge ou une franchise."""
     texte = texte or ""
-    propre = re.sub(r"\d+\s*ans\b|franchise\D{0,15}\d+|\b\d{4}\s+[A-ZÀ-Ü][a-zà-ü]", " ", texte, flags=re.IGNORECASE)
+    if re.search(r"pas\s+de\s+(?:limite|budget|maximum)|sans\s+(?:limite|budget)", texte, re.IGNORECASE):
+        return ("aucun", None)
+    # Âges, franchises et codes postaux ne sont jamais un budget ; un montant de 4 chiffres n'est
+    # lu que s'il est suivi d'une monnaie ou de « par mois » (« Nyon 1260 » n'est pas un budget).
+    propre = re.sub(r"\d+\s*ans\b|franchise\D{0,15}\d+|\b\d{4}\b(?!\s*(?:chf|fr\b|fr\.|francs?|\.-|par\s+mois|/\s*mois))",
+                    " ", texte, flags=re.IGNORECASE)
     if cible == "budget" or _MOT_BUDGET.search(propre):
         montants = {int(m) for m in _MONTANT_BUDGET.findall(propre) if 30 <= int(m) <= 2000}
         if len(montants) == 1:

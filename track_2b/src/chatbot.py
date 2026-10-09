@@ -497,7 +497,12 @@ def communes_par_nom(nom):
     """Communes (une ligne par n° OFS) dont le nom correspond à celui donné, sinon vide."""
     if not nom:
         return regions.iloc[0:0]
-    trouvees = regions[regions["commune"].map(nom_simple) == nom_simple(nom)]
+    # « Genève 1205 » ou « 1205 Genève » : le code postal n'appartient pas au nom de la commune
+    cherche = re.sub(r"\s+", " ", re.sub(r"\b\d{4}\b", " ", nom_simple(nom))).strip(" ,")
+    trouvees = regions[regions["commune"].map(nom_simple) == cherche]
+    if trouvees.empty:
+        # Noms bilingues officiels : « Bienne » ou « Biel » désignent « Biel/Bienne »
+        trouvees = regions[regions["commune"].map(lambda c: cherche in [p.strip() for p in nom_simple(c).split("/")])]
     return trouvees.drop_duplicates("no_ofs").reset_index(drop=True)
 
 
@@ -522,7 +527,7 @@ def localiser(npa=None, commune=None):
     else:
         communes = communes_du_npa(npa)
         if commune:
-            citee = communes[communes["commune"].map(nom_simple) == nom_simple(commune)]
+            citee = communes[communes["no_ofs"].isin(communes_par_nom(commune)["no_ofs"])]
             if citee.empty:
                 return None  # Explicit postcode / municipality conflict: ask, never ignore.
             communes = citee

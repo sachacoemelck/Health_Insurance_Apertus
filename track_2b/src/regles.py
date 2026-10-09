@@ -24,13 +24,19 @@ _HESITATION = re.compile(r"h[ée]sit|\bentre\b.{0,30}\bet\b|\bou\s+(?:bien\s+)?(
 _MONTANTS_LEGAUX = (0, 100, 200, 300, 400, 500, 600, 1000, 1500, 2000, 2500)
 _AVEC_ACCIDENT = re.compile(r"\bavec\s+(?:la\s+|les\s+)?(?:couverture\s+)?accidents?\b", re.I)
 _SANS_ACCIDENT = re.compile(r"\bsans\s+(?:la\s+|les\s+)?(?:couverture\s+)?accidents?\b", re.I)
+# « je ne suis couvert par aucun employeur pour les accidents » : jamais une raison d'exclure les accidents
+_PAS_COUVERT = re.compile(r"\b(?:pas|aucun\w*|ni|plus)\b[^.?!]{0,40}\bcouvert\w*[^.?!]{0,40}\baccident"
+                          r"|\bcouvert\w*\b[^.?!]{0,20}\b(?:aucun\w*|personne)\b[^.?!]{0,40}\baccident"
+                          r"|\baccident\w*[^.?!]{0,40}\b(?:pas|aucun\w*)\b[^.?!]{0,15}\bcouvert", re.I)
 _HEURES = re.compile(r"(\d{1,2})\s*(?:h\b|heures?)\s*(?:par|/|a\s+la|à\s+la)\s*semaine", re.I)
 _MEME_EMPLOYEUR = re.compile(r"m[êe]me\s+employeur|un\s+seul\s+employeur", re.I)
 _AGE = re.compile(r"(?<![\d.,])(\d{1,3})\s*ans\b", re.I)
 _PLUSIEURS_AGES = re.compile(r"\d{1,3}\s*(?:et|,)\s*\d{1,3}\s*ans", re.I)
 _NAISSANCE = re.compile(r"\bn[ée]e?s?\s+(?:en\s+)?((?:19|20)\d\d)\b|\bann[ée]e\s+de\s+naissance\D{0,5}((?:19|20)\d\d)", re.I)
 
-_PARLE_DU_LIEU = re.compile(r"\bhabit|\bvi[st]\s+[àa]\b|r[ée]sid|\bcommune\b|domicil|\bwohne|\babito", re.I)
+# « à Sion », « in Bern » : une préposition suivie d'un nom propre (majuscule) annonce souvent le lieu
+_PARLE_DU_LIEU = re.compile(r"\bhabit|\bvi[st]\s+[àa]\b|r[ée]sid|\bcommune\b|domicil|\bwohne|\babito"
+                            r"|(?:\bà|\bin|\ba)\s+(?-i:[A-ZÀ-Ü])", re.I)
 
 # Noms de communes officiels (sans canton ajouté, sans accents), du plus long au plus court
 _COMMUNES = sorted({nom_simple(c) for c in regions["commune"]}, key=len, reverse=True)
@@ -114,10 +120,17 @@ def completer_par_regles(updates, texte, cible=None, suivi=False):
         if commune and not officielle and not communes_par_nom(commune).empty:
             _mettre(updates, "municipality", communes_par_nom(commune).iloc[0]["commune"], texte, cible)
     if lieu_demande:
-        # Répondre à la question du lieu corrige le lieu donné avant (code postal et commune ensemble)
+        # Répondre à la question du lieu corrige le lieu donné avant (code postal et commune ensemble).
+        # Une réponse avec seulement une commune (ou seulement un code postal) efface l'autre moitié
+        # de l'ancien lieu : sinon « Lausanne » resterait en conflit avec l'ancien NPA 1700 sans fin.
         for champ in ("postal_code", "municipality"):
             if champ in updates:
                 updates[champ] = {**updates[champ], "correction": True}
+        commune_donnee, npa_donne = _connu(updates, "municipality"), _connu(updates, "postal_code")
+        if commune_donnee and not npa_donne:
+            updates["postal_code"] = {"value": None, "status": "missing", "correction": True}
+        elif npa_donne and not commune_donnee:
+            updates["municipality"] = {"value": None, "status": "missing", "correction": True}
 
     # Franchise : les formulations explicites l'emportent sur la lecture d'Apertus
     if _FRANCHISE_TOUTES.search(texte):
@@ -143,6 +156,13 @@ def completer_par_regles(updates, texte, cible=None, suivi=False):
         _mettre(updates, "include_accident", True, texte, cible)
     elif _SANS_ACCIDENT.search(texte) and not _AVEC_ACCIDENT.search(texte):
         _mettre(updates, "include_accident", False, texte, cible)
+
+    # Pas de couverture accidents déclarée : les accidents restent inclus, quoi qu'ait lu Apertus
+    if _PAS_COUVERT.search(texte) and not _SANS_ACCIDENT.search(texte):
+        updates["nonoccupational_covered"] = {"value": False, "status": "known",
+                                              "correction": cible == "nonoccupational_covered" or bool(_CORRECTION.search(texte))}
+        if updates.get("include_accident", {}).get("value") is False:
+            updates.pop("include_accident")
 
     # Heures chez un même employeur : seulement si « même employeur » est écrit
     heures = _HEURES.search(texte)
