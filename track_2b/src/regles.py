@@ -67,7 +67,10 @@ _PARLE_DU_LIEU = re.compile(r"\bhabit|\bvi[st]\s+[àa]\b|r[ée]sid|\bcommune\b|d
                             r"|(?:\bà|\bin|\ba)\s+(?-i:[A-ZÀ-Ü])", re.I)
 
 # Noms de communes officiels (sans canton ajouté, sans accents), du plus long au plus court
-_COMMUNES = sorted({nom_simple(c) for c in regions["commune"]} | set(ALIAS_COMMUNES), key=len, reverse=True)
+# Noms officiels, chaque moitié des noms bilingues (« Biel/Bienne » -> « biel », « bienne ») et noms usuels
+_COMMUNES = sorted({nom_simple(c) for c in regions["commune"]}
+                   | {p.strip() for c in regions["commune"] if "/" in str(c) for p in nom_simple(c).split("/")}
+                   | set(ALIAS_COMMUNES), key=len, reverse=True)
 
 
 def _connu(updates, champ):
@@ -120,7 +123,8 @@ def npa_presente(texte, cible=None):
         if communes.empty:
             continue
         autour = _mots(propre[max(0, m.start() - 45): m.end() + 45])
-        noms = {re.sub(r"[^a-z0-9]+", " ", nom_simple(c)).strip() for c in communes["commune"]}
+        noms = {re.sub(r"[^a-z0-9]+", " ", n).strip() for c in communes["commune"]
+                for n in [nom_simple(c)] + nom_simple(c).split("/")}
         noms |= {re.sub(r"[^a-z0-9]+", " ", a).strip() for a, cible_nom in ALIAS_COMMUNES.items()
                  if re.sub(r"[^a-z0-9]+", " ", cible_nom).strip() in noms}
         presente = (cible in ("postal_code", "municipality")
@@ -131,7 +135,7 @@ def npa_presente(texte, cible=None):
     return candidats[0] if len(set(candidats)) == 1 else None
 
 
-def completer_par_regles(updates, texte, cible=None, suivi=False):
+def completer_par_regles(updates, texte, cible=None, suivi=False, question=False):
     """Complète (ou corrige, pour les formulations explicites) les mises à jour d'Apertus.
     `cible` est le champ demandé par la dernière question, s'il y en a une. `suivi` : message écrit
     après les résultats (« et avec une franchise de 300 ? ») ; le montant écrit fait alors foi."""
@@ -162,8 +166,12 @@ def completer_par_regles(updates, texte, cible=None, suivi=False):
         elif npa_donne and not commune_donnee:
             updates["municipality"] = {"value": None, "status": "missing", "correction": True}
 
-    # Franchise : les formulations explicites l'emportent sur la lecture d'Apertus
-    if _FRANCHISE_TOUTES.search(texte):
+    # Franchise : les formulations explicites l'emportent sur la lecture d'Apertus. Dans une question,
+    # « la plus basse / la plus haute / toutes » sont des comparaisons, pas un choix ; seul un montant
+    # écrit avec le mot franchise (« combien pour une franchise de 500 ? ») est retenu.
+    if question and (_FRANCHISE_TOUTES.search(texte) or _FRANCHISE_HAUTE.search(texte) or _FRANCHISE_BASSE.search(texte)):
+        pass
+    elif _FRANCHISE_TOUTES.search(texte):
         _mettre(updates, "deductible", "all", texte, cible)
     elif _FRANCHISE_HAUTE.search(texte) or (cible == "deductible" and re.search(_HAUTE, texte, re.I)):
         _mettre(updates, "deductible", "highest", texte, cible)
@@ -174,7 +182,7 @@ def completer_par_regles(updates, texte, cible=None, suivi=False):
         chiffres = re.sub(r"(?<=\d)[ '’\u00a0\u202f](?=\d{3}\b)", "", texte)
         montants = ({int(m) for m in _FRANCHISE_MONTANT.findall(chiffres) + _MONTANT_FRANCHISE.findall(chiffres)}
                     & set(_MONTANTS_LEGAUX))
-        if not montants and cible == "deductible":
+        if not montants and cible == "deductible" and not question:
             montants = {int(m) for m in re.findall(r"(?<!\d)(\d{1,4})(?!\d)", chiffres)} & set(_MONTANTS_LEGAUX)
         # Plusieurs montants (« j'hésite entre 300 et 2500 ») : la personne n'a pas choisi, on demande
         if len(montants) == 1 and not _HESITATION.search(texte):

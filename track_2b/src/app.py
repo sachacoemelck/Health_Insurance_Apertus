@@ -162,7 +162,7 @@ def integrer(texte, champ=None, question=False, suivi=False):
         # « tous les modèles », « alle Modelle », « all models » : lu par Python si Apertus l'a manqué
         positions = {m: {"stance": "accepted", "condition": None, "evidence": None} for m in soins.NOMS_MODES}
     # Formulations explicites que Python lit lui-même si Apertus les a manquées (module regles)
-    updates = regles.completer_par_regles(updates, texte, champ, suivi=suivi)
+    updates = regles.completer_par_regles(updates, texte, champ, suivi=suivi, question=question and not suivi)
     updates.pop("care_conditions", None)
     if suivi:  # après les résultats, une nouvelle valeur remplace l'ancienne au lieu de créer un conflit
         updates = {k: {**v, "correction": True} for k, v in updates.items()}

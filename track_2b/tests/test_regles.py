@@ -99,6 +99,18 @@ def test_plusieurs_personnes_seulement_si_le_texte_le_montre():
     assert regles.completer_par_regles(dict(lu), "ma femme et moi, 35 et 33 ans", None)["multiple_people"]["value"]
 
 
+def test_question_ne_choisit_pas_la_franchise():
+    q = regles.completer_par_regles({}, "que coûte la plus basse par rapport à la plus haute franchise ?", "deductible",
+                                    question=True)
+    assert "deductible" not in q
+    q = regles.completer_par_regles({}, "combien pour une franchise de 500 ?", None, question=True)
+    assert q["deductible"]["value"] == 500
+
+
+def test_moitie_de_nom_bilingue():
+    assert regles.completer_par_regles({}, "27 Jahre, Biel 2502", None)["postal_code"]["value"] == 2502
+
+
 if __name__ == "__main__":
     tests = [f for nom, f in sorted(globals().items()) if nom.startswith("test_")]
     for test in tests:
