@@ -79,6 +79,20 @@ def test_reponse_directe_annee_et_age():
     assert regles.completer_par_regles({}, "35", "age")["age"]["value"] == 35
 
 
+def test_parent_un_seul_enfant():
+    u = regles.completer_par_regles({}, "mon fils a 10 ans, on habite à Sion 1950", None)
+    assert u["multiple_people"]["value"] is False and u["age"]["value"] == 10
+    assert regles.completer_par_regles({}, "ma fille vient de naître, Lausanne 1005", None)["age"]["value"] == 0
+    assert "multiple_people" not in regles.completer_par_regles({}, "j'ai 40 ans et mon fils a 10 ans", None)
+
+
+def test_heures_chez_un_employeur():
+    u = regles.completer_par_regles({}, "je travaille 6h par semaine chez un employeur", None)
+    assert u["hours_per_week_one_employer"]["value"] == 6
+    assert "hours_per_week_one_employer" not in regles.completer_par_regles(
+        {}, "6h par semaine chez un employeur et 5h chez un autre", None)
+
+
 if __name__ == "__main__":
     tests = [f for nom, f in sorted(globals().items()) if nom.startswith("test_")]
     for test in tests:
