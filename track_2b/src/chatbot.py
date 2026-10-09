@@ -493,6 +493,19 @@ def nom_simple(commune):
     return nom.casefold()
 
 
+# Noms usuels des villes dans les autres langues -> nom officiel simplifié (OFSP)
+ALIAS_COMMUNES = {
+    "geneva": "geneve", "genf": "geneve", "ginevra": "geneve", "berne": "bern", "berna": "bern",
+    "bale": "basel", "basle": "basel", "basilea": "basel", "zurigo": "zurich", "lucerne": "luzern",
+    "lucerna": "luzern", "freiburg": "fribourg", "friburgo": "fribourg", "neuenburg": "neuchatel",
+    "sitten": "sion", "soleure": "solothurn", "soletta": "solothurn", "schaffhouse": "schaffhausen",
+    "sciaffusa": "schaffhausen", "saint-gall": "st. gallen", "st-gall": "st. gallen", "san gallo": "st. gallen",
+    "st gallen": "st. gallen", "sankt gallen": "st. gallen", "coire": "chur", "coira": "chur",
+    "losanna": "lausanne", "bellinzone": "bellinzona", "thoune": "thun", "morat": "murten", "siders": "sierre",
+    "viege": "visp", "delsberg": "delemont", "lauis": "lugano",
+}
+
+
 def communes_par_nom(nom):
     """Communes (une ligne par n° OFS) dont le nom correspond à celui donné, sinon vide."""
     if not nom:
@@ -502,6 +515,7 @@ def communes_par_nom(nom):
     cherche = re.sub(r"\b\d{4}\b|[()\[\],;]", " ", nom_simple(nom))
     cherche = re.sub(r"\s+(?:ag|ai|ar|be|bl|bs|fr|ge|gl|gr|ju|lu|ne|nw|ow|sg|sh|so|sz|tg|ti|ur|vd|vs|zg|zh)$", "",
                      re.sub(r"\s+", " ", cherche).strip(" ,-"))
+    cherche = ALIAS_COMMUNES.get(cherche, cherche)
     trouvees = regions[regions["commune"].map(nom_simple) == cherche]
     if trouvees.empty:
         # Noms bilingues officiels : « Bienne » ou « Biel » désignent « Biel/Bienne »
@@ -690,6 +704,7 @@ def resumer_faits(profil, resultats):
 def nombres(texte):
     """Nombres cités dans un texte ('5 124', "5'124" et '5124.00' donnent 5124)."""
     texte = re.sub(r"(?<=\d)[ '’  ](?=\d{3}\b)", "", texte or "")
+    texte = re.sub(r"(?<=\d),(?=\d{3}(?:\.\d+)?(?!\d))", "", texte)  # séparateur anglais : « 1,539.60 »
     return {float(n.replace(",", ".")) for n in re.findall(r"\d+(?:[.,]\d+)?", texte)}
 
 
