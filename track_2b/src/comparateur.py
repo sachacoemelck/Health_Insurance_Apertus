@@ -55,18 +55,47 @@ def classe_age(age):
 
 COLONNES = ["Assureur", "Modèle", "Produit", "Prime/mois", "Prime/an", "Écart/an", "Coût max/an"]
 
-def _filtrer(canton, region, age, franchise, avec_accident, accepted_tariff_types=None, premium_year=2027):
-    """Lignes du CSV qui correspondent au profil."""
+# Sous-groupe d'âge de base (fichier Tarife 2027 de l'OFSP) : K1 = « prime enfant sans réduction
+# supplémentaire ». K3, K4 et K5 sont des rabais réservés aux familles à partir du 2e ou 3e enfant :
+# les prendre pour un enfant seul sous-estimait sa prime (médiane 52 CHF/mois, mesuré le 9.10.2026).
+SOUS_GROUPE_DE_BASE = {"AKA_01_KIN": "K1", "AKA_02_JUG": "J1", "AKA_03_ERW": "E1"}
+
+# Circonscriptions 2027 (OFSP) : certains modèles ne sont proposés que dans une liste de communes.
+_einzug = pd.read_csv(DATA_DIR / "einzugsgebiete_2027.csv", dtype={"Gemeinden-BFS": str})
+_restreints = _einzug[_einzug["Eingeschränkt"] == "Y"]
+CIRCONSCRIPTIONS = {
+    (int(v), k, r, t): {int(n) for n in str(bfs).split(",") if n.strip().isdigit()}
+    for v, k, r, t, bfs in zip(_restreints["Versicherer"], _restreints["Kanton"], _restreints["Region"],
+                               _restreints["Tarif"], _restreints["Gemeinden-BFS"])
+}
+
+
+def disponible(versicherer, canton, region_code, tarif, no_ofs):
+    """Vrai si l'offre peut être souscrite dans la commune. Pour un modèle réservé à certaines
+    communes, il faut connaître la commune (n° OFS) et qu'elle figure dans la liste ; sinon,
+    l'offre n'est pas affichée : mieux vaut une offre en moins qu'une offre impossible à souscrire."""
+    communes = CIRCONSCRIPTIONS.get((int(versicherer), canton, region_code, tarif))
+    return communes is None or (no_ofs is not None and int(no_ofs) in communes)
+
+
+def _filtrer(canton, region, age, franchise, avec_accident, accepted_tariff_types=None, premium_year=2027,
+             no_ofs=None):
+    """Lignes du CSV qui correspondent au profil et que la personne peut souscrire dans sa commune."""
     lettre = {"AKA_01_KIN": "K", "AKA_02_JUG": "J", "AKA_03_ERW": "E"}[classe_age(age)]
-    return df[
+    res = df[
         (df["Geschäftsjahr"] == premium_year)
         & (df["Tariftyp"].isin(accepted_tariff_types if accepted_tariff_types is not None else MODELES))
         & (df["Kanton"] == canton)
         & (df["Region"] == f"PR_REG_{region}")
         & (df["Altersklasse"] == classe_age(age))
+        & (df["Altersuntergruppe"] == SOUS_GROUPE_DE_BASE[classe_age(age)])
         & (df["Unfalleinschluss"] == ("MIT_UNF" if avec_accident else "OHN_UNF"))
         & (df["Franchise"].str.endswith(f"_{lettre}_{franchise:04d}"))
     ]
+    if CIRCONSCRIPTIONS and not res.empty:
+        res = res[[disponible(v, canton, f"PR_REG_{region}", t, no_ofs)
+                   for v, t in zip(res["Versicherer"], res["Tarif"])]]
+    return res
 
 def _enrichir(res, age, franchise):
     """Colonnes affichées : assureur, modèle, primes mensuelle et annuelle, écart, coût maximal."""
@@ -87,11 +116,12 @@ def comparer(canton, region, age, franchise, avec_accident, top=5):
     res = res.sort_values("Prämie").drop_duplicates("Versicherer").head(top)
     return _enrichir(res, age, franchise)[COLONNES].reset_index(drop=True)
 
-def toutes_les_offres(canton, region, age, franchise, avec_accident, accepted_tariff_types=None, premium_year=2027):
+def toutes_les_offres(canton, region, age, franchise, avec_accident, accepted_tariff_types=None, premium_year=2027,
+                      no_ofs=None):
     """Toutes les offres (une ligne par produit de chaque assureur), de la moins chère à la
     plus chère. Contrairement à comparer(), un assureur peut apparaître plusieurs fois : son
     offre médecin de famille n'est pas perdue si son offre télémédecine est moins chère."""
-    res = _filtrer(canton, region, age, franchise, avec_accident, accepted_tariff_types, premium_year)
+    res = _filtrer(canton, region, age, franchise, avec_accident, accepted_tariff_types, premium_year, no_ofs)
     res = res.sort_values(["Prämie", "Versicherer", "Tarif"], kind="stable")
     res = res.drop_duplicates(["Versicherer", "Tarif"])
     enriched = _enrichir(res, age, franchise)[COLONNES + ["Tariftyp"]].reset_index(drop=True)
@@ -99,12 +129,12 @@ def toutes_les_offres(canton, region, age, franchise, avec_accident, accepted_ta
     return enriched
 
 def cout_des_preferences(canton, region, age, franchise, avec_accident, accepted_tariff_types,
-                         premium_year=2027):
+                         premium_year=2027, no_ofs=None):
     """Ce que coûte chaque préférence : pour chaque catégorie de modèle NON acceptée, son offre
     la moins chère et l'écart annuel avec l'offre la moins chère des catégories acceptées
     (positif = plus cher, négatif = économie). Même profil, mêmes données OFSP ; tout est
     calculé ici, jamais par le LLM. Liste vide si rien n'est comparable."""
-    toutes = toutes_les_offres(canton, region, age, franchise, avec_accident, None, premium_year)
+    toutes = toutes_les_offres(canton, region, age, franchise, avec_accident, None, premium_year, no_ofs)
     acceptees = toutes[toutes["Tariftyp"].isin(list(accepted_tariff_types))]
     if acceptees.empty:
         return []

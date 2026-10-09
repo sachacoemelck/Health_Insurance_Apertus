@@ -754,6 +754,14 @@ def extraire_mises_a_jour(appeler, message):
             prompt += "\nLa réponse précédente était invalide. Respecte exactement le schéma JSON, sans Markdown."
 
 
+def no_ofs_de(municipality, canton):
+    """N° OFS de la commune retenue, ou None si elle n'est pas connue avec certitude (par exemple
+    « Nyon / Prangins » quand un code postal couvre plusieurs communes de la même région)."""
+    communes = communes_par_nom(municipality)
+    communes = communes[communes["canton"] == canton] if not communes.empty else communes
+    return int(communes.iloc[0]["no_ofs"]) if len(communes) == 1 else None
+
+
 def couts_des_preferences(profile):
     """Coût des catégories de modèles non acceptées, pour un profil validé. Calculé seulement
     quand une seule franchise est comparée : sinon l'écart mélangerait modèle et franchise."""
@@ -761,13 +769,15 @@ def couts_des_preferences(profile):
         return []
     return cout_des_preferences(profile.canton, profile.region, profile.rating_age,
                                 profile.deductibles[0], profile.include_accident,
-                                profile.accepted_tariff_types, profile.premium_year)
+                                profile.accepted_tariff_types, profile.premium_year,
+                                no_ofs_de(profile.municipality, profile.canton))
 
 
 def offres_du_profil(profile):
+    no_ofs = no_ofs_de(profile.municipality, profile.canton)
     frames = [toutes_les_offres(profile.canton, profile.region, profile.rating_age, deductible,
                                profile.include_accident, profile.accepted_tariff_types,
-                               profile.premium_year) for deductible in profile.deductibles]
+                               profile.premium_year, no_ofs) for deductible in profile.deductibles]
     offers = pd.concat(frames, ignore_index=True).sort_values("Prime/mois", kind="stable")
     offers["Écart/an"] = (offers["Prime/an"] - offers["Prime/an"].min()).round(2)
     return offers.reset_index(drop=True)
