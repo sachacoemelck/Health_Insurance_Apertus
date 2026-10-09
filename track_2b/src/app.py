@@ -131,8 +131,10 @@ def integrer(texte, champ=None, question=False, suivi=False):
     try:
         updates = chatbot.extraire_mises_a_jour(
             lambda prompt, message: llm(cfg["LLM_NAME"], prompt, message), message)
-    except ValueError as error:
-        raise ErreurLLM("Réponse structurée invalide après deux essais") from error
+    except ValueError:
+        # Lecture d'Apertus illisible deux fois (fréquent en allemand ou en anglais) : on continue avec
+        # les règles Python, qui lisent les formulations explicites, au lieu d'afficher une erreur.
+        updates = {}
     updates = conversation.mises_a_jour_hors_question(updates, champ, question)
     budget = conversation.lire_budget(texte, champ)
     if budget and not (budget[0] == "petit" and p["budget"] and p["budget"][0] == "montant"):
@@ -371,7 +373,9 @@ def avancer(tour=None):
     else:
         apres = faits_connus()
         notes = [f"{k} : {v}" for k, v in apres.items() if tour["avant"].get(k) != v]
-        parle_franchise = champ == "deductible" or re.search(r"franchise", tour["texte"], re.I)
+        # Chiffres de franchise et de budget dès que la personne en parle ou pose une question
+        parle_franchise = (champ == "deductible" or question_posee
+                           or re.search(r"franchise|budget|prime|co[uû]t|cher|payer|possible", tour["texte"], re.I))
         dire(conversation.repondre_tour(
             appeler_70b, tour["texte"], notes, question_posee, question,
             chiffres=chiffres_franchise() if parle_franchise else "",

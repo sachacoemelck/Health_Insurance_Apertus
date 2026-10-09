@@ -203,6 +203,14 @@ def completer_par_regles(updates, texte, cible=None, suivi=False):
             and not _connu(updates, "age") and not _connu(updates, "birth_year")):
         _mettre(updates, "age", int(ages[0]), texte, cible)
 
+    # « Plusieurs personnes » seulement si le texte le montre (deux âges, « ma femme et moi »…) :
+    # Apertus 8B le coche parfois pour une seule personne (« infirmière, 33 ans »).
+    if (updates.get("multiple_people", {}).get("value") is True and not _PLUSIEURS_PERSONNES.search(texte)
+            and len(set(_AGE.findall(texte))) <= 1 and not _PLUSIEURS_AGES.search(texte)
+            and not re.search(r"\b(?:nous|on)\s+(?:sommes|est)\s+(?:deux|trois|quatre|\d)|\bmon\s+fr[èe]re|\bma\s+s[œo]e?ur|"
+                              r"\bmes\s+parents|\bmon\s+p[èe]re|\bma\s+m[èe]re", texte, re.I)):
+        updates.pop("multiple_people")
+
     # Un parent qui décrit un seul enfant, sans autre âge : la comparaison est pour cet enfant
     if _ENFANT.search(texte) and not _PLUSIEURS_PERSONNES.search(texte):
         ages_enfant = set(_AGE.findall(texte))

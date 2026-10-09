@@ -93,6 +93,12 @@ def test_heures_chez_un_employeur():
         {}, "6h par semaine chez un employeur et 5h chez un autre", None)
 
 
+def test_plusieurs_personnes_seulement_si_le_texte_le_montre():
+    lu = {"multiple_people": {"value": True, "status": "known", "correction": False}}
+    assert "multiple_people" not in regles.completer_par_regles(dict(lu), "je suis infirmière, 33 ans, Lancy 1212", None)
+    assert regles.completer_par_regles(dict(lu), "ma femme et moi, 35 et 33 ans", None)["multiple_people"]["value"]
+
+
 if __name__ == "__main__":
     tests = [f for nom, f in sorted(globals().items()) if nom.startswith("test_")]
     for test in tests:
