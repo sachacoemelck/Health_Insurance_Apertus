@@ -95,9 +95,10 @@ def npa_presente(texte, cible=None):
     return candidats[0] if len(set(candidats)) == 1 else None
 
 
-def completer_par_regles(updates, texte, cible=None):
+def completer_par_regles(updates, texte, cible=None, suivi=False):
     """Complète (ou corrige, pour les formulations explicites) les mises à jour d'Apertus.
-    `cible` est le champ demandé par la dernière question, s'il y en a une."""
+    `cible` est le champ demandé par la dernière question, s'il y en a une. `suivi` : message écrit
+    après les résultats (« et avec une franchise de 300 ? ») ; le montant écrit fait alors foi."""
     updates = dict(updates)
     texte = texte or ""
 
@@ -133,7 +134,8 @@ def completer_par_regles(updates, texte, cible=None):
             montants = {int(m) for m in re.findall(r"(?<!\d)(\d{1,4})(?!\d)", chiffres)} & set(_MONTANTS_LEGAUX)
         # Plusieurs montants (« j'hésite entre 300 et 2500 ») : la personne n'a pas choisi, on demande
         if len(montants) == 1 and not _HESITATION.search(texte):
-            if not _connu(updates, "deductible") or _CORRECTION.search(texte) or cible == "deductible":
+            if (not _connu(updates, "deductible") or _CORRECTION.search(texte) or cible == "deductible"
+                    or suivi):
                 _mettre(updates, "deductible", montants.pop(), texte, cible)
 
     # Accidents : choix explicite de comparaison

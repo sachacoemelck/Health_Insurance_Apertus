@@ -149,7 +149,7 @@ def integrer(texte, champ=None, question=False, suivi=False):
         positions = soins.extraire_soins(
             lambda systeme, message: llm_json(cfg["LLM_NAME"], systeme, message), texte)
     # Formulations explicites que Python lit lui-même si Apertus les a manquées (module regles)
-    updates = regles.completer_par_regles(updates, texte, champ)
+    updates = regles.completer_par_regles(updates, texte, champ, suivi=suivi)
     updates.pop("care_conditions", None)
     if suivi:  # après les résultats, une nouvelle valeur remplace l'ancienne au lieu de créer un conflit
         updates = {k: {**v, "correction": True} for k, v in updates.items()}
