@@ -153,6 +153,15 @@ def completer_par_regles(updates, texte, cible=None):
     naissance = _NAISSANCE.search(texte)
     if naissance and not _connu(updates, "birth_year"):
         _mettre(updates, "birth_year", int(naissance.group(1) or naissance.group(2)), texte, cible)
+    # Réponse directe à la question posée : « 2026 » pour l'année de naissance, « 35 » pour l'âge
+    if cible == "birth_year" and not _connu(updates, "birth_year"):
+        annees = set(re.findall(r"(?<!\d)((?:19|20)\d\d)(?!\d)", texte))
+        if len(annees) == 1:
+            _mettre(updates, "birth_year", int(annees.pop()), texte, cible)
+    if cible == "age" and not _connu(updates, "age") and not _connu(updates, "birth_year"):
+        nombres = set(re.findall(r"(?<![\d.,])(\d{1,3})(?![\d.,])", texte))
+        if len(nombres) == 1 and int(next(iter(nombres))) <= 120:
+            _mettre(updates, "age", int(nombres.pop()), texte, cible)
     ages = _AGE.findall(texte)
     if (len(set(ages)) == 1 and not _PLUSIEURS_AGES.search(texte)
             and not _connu(updates, "age") and not _connu(updates, "birth_year")):
