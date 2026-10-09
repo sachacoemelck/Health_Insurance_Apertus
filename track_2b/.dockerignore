@@ -22,3 +22,6 @@ data/eval_*.csv
 .DS_Store
 .idea/
 .vscode/
+
+# Expérience d'entraînement : jamais dans l'image Docker
+finetuning/
