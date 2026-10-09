@@ -339,6 +339,9 @@ def _probleme(reponse, faits, doit_questionner, code="fr"):
     if emploi_non_fonde(reponse, faits):
         return ("n'affirme jamais que la personne est salariée ou couverte par un employeur : son profil ne "
                 "le dit pas.")
+    vue = langues.detecter(reponse)
+    if vue and vue != code:
+        return f"réponds uniquement en {langues.NOMS_POUR_APERTUS[code]}, pas en {langues.NOMS_POUR_APERTUS[vue]}."
     if langues.tutoie(reponse, code):
         return "vouvoie la personne : jamais « tu », « ton », « ta », « tes »."
     if doit_questionner and "?" not in reponse[-200:]:

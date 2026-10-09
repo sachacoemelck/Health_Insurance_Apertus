@@ -67,6 +67,15 @@ def test_controles_dans_les_quatre_langues():
     assert chatbot.montants_intrus("CHF 1,539.60 per year", "1539.60 CHF par an") == []
 
 
+def test_reponse_dans_la_mauvaise_langue_refusee():
+    question = "Which models do you accept?"
+    en_francais = lambda s, m: "Vous avez choisi d'inclure la couverture accidents."
+    assert conversation.repondre_tour(en_francais, "with accidents", ["accidents : oui"], False, question,
+                                      code="en") == question
+    assert langues.detecter("48 anni, Lugano 6900") == "it" and langues.detecter("I'm 26, Basel 4051") == "en"
+    assert regles.completer_par_regles({}, "Und mit 300 Franchise?", None, suivi=True)["deductible"]["value"] == 300
+
+
 if __name__ == "__main__":
     tests = [f for nom, f in dict(globals()).items() if nom.startswith("test_")]
     for t in tests:
