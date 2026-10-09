@@ -262,6 +262,12 @@ def preparer_question(champ, question_posee=False):
             question = "Cette valeur n'est pas valide. " + question
         elif fact.state == State.AMBIGUOUS:
             question = "Cette information reste incertaine. " + question
+        elif (champ == "deductible" and fact.state == State.KNOWN and isinstance(fact.value, int)
+              and p["contract"].rating_age() is not None):
+            # Montant légal en soi, mais pas pour cet âge (ex. 0 CHF pour un adulte) : on dit pourquoi
+            permises = FRANCHISES[classe_age(p["contract"].rating_age())]
+            question = (f"Une franchise de {fact.value} CHF n'existe pas pour votre âge : les franchises "
+                        f"possibles sont {', '.join(map(str, permises))} CHF. " + question)
     if s.lieu_inconnu and champ in ("postal_code", "municipality"):
         question = "Le lieu est inconnu ou le code postal et la commune ne correspondent pas. " + question
         s.lieu_inconnu = False
@@ -282,7 +288,8 @@ def preparer_question(champ, question_posee=False):
              "et je vous montre ensuite ce que coûteraient les autres. Vous pourrez préciser après.")
         s.repetitions = {}
         return None
-    if repetitions[champ] >= 2 and champ in EXEMPLES_REPONSE and not question_posee:
+    if (repetitions[champ] >= 2 and champ in EXEMPLES_REPONSE and not question_posee
+            and "n'existe pas pour votre âge" not in question):
         question = ("Je n'ai pas compris votre réponse. " + question
                     + f" Par exemple : « {EXEMPLES_REPONSE[champ]} ».")
     s.question, s.attente = question, champ
