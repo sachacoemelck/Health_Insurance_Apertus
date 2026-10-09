@@ -483,6 +483,13 @@ def faits_resultats(bloc):
     for l in bloc.get("preferences") or []:
         lignes.append(f"Modèle non retenu {l['modele']} : dès {l['prime_mois']:.2f} CHF par mois "
                       f"({l['assureur']}), écart de {l['ecart_an']:.2f} CHF par an avec l'offre retenue.")
+    if not bloc["offres"].empty:
+        o = bloc["offres"].iloc[0]
+        qp = int(o["Coût max/an"] - o["Prime/an"] - o["Franchise"])
+        lignes.append(f"Au pire (frais médicaux élevés), l'offre la moins chère ({o['Assureur']}, franchise "
+                      f"{int(o['Franchise'])} CHF) coûte au maximum {o['Coût max/an']:.2f} CHF dans l'année : "
+                      f"{o['Prime/an']:.2f} CHF de primes + {int(o['Franchise'])} CHF de franchise + {qp} CHF de "
+                      f"quote-part maximale (plus 15 CHF par jour d'hôpital pour un adulte).")
     resume = resume_budget(bloc)
     if resume:
         lignes.append(resume)

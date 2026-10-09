@@ -25,8 +25,8 @@ _MONTANTS_LEGAUX = (0, 100, 200, 300, 400, 500, 600, 1000, 1500, 2000, 2500)
 _AVEC_ACCIDENT = re.compile(r"\bavec\s+(?:la\s+|les\s+)?(?:couverture\s+)?accidents?\b", re.I)
 _SANS_ACCIDENT = re.compile(r"\bsans\s+(?:la\s+|les\s+)?(?:couverture\s+)?accidents?\b", re.I)
 # « je ne suis couvert par aucun employeur pour les accidents » : jamais une raison d'exclure les accidents
-_PAS_COUVERT = re.compile(r"\b(?:pas|aucun\w*|ni|plus)\b[^.?!]{0,40}\bcouvert\w*[^.?!]{0,40}\baccident"
-                          r"|\bcouvert\w*\b[^.?!]{0,20}\b(?:aucun\w*|personne)\b[^.?!]{0,40}\baccident"
+_PAS_COUVERT = re.compile(r"\b(?:pas|aucun\w*|ni|plus)\b[^.?!]{0,40}\bcouverte?s?\b[^.?!]{0,40}\baccident"
+                          r"|\bcouverte?s?\b[^.?!]{0,20}\b(?:aucun\w*|personne)\b[^.?!]{0,40}\baccident"
                           r"|\baccident\w*[^.?!]{0,40}\b(?:pas|aucun\w*)\b[^.?!]{0,15}\bcouvert", re.I)
 _HEURES = re.compile(r"(\d{1,2})\s*(?:h\b|heures?)\s*(?:par|/|a\s+la|à\s+la)\s*semaine", re.I)
 _MEME_EMPLOYEUR = re.compile(r"m[êe]me\s+employeur|un\s+seul\s+employeur", re.I)
@@ -170,6 +170,11 @@ def completer_par_regles(updates, texte, cible=None, suivi=False):
         _mettre(updates, "hours_per_week_one_employer", int(heures.group(1)), texte, cible)
         if not _connu(updates, "employed"):
             _mettre(updates, "employed", True, texte, cible)
+
+    # Un âge lu comme une année de naissance (« 50 ans » -> 50) n'est pas une année : on l'écarte
+    an = updates.get("birth_year", {}).get("value")
+    if isinstance(an, int) and an < 1900:
+        updates.pop("birth_year")
 
     # Âge et année de naissance : un seul nombre explicite, jamais quand plusieurs âges sont donnés
     naissance = _NAISSANCE.search(texte)

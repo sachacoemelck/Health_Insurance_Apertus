@@ -272,6 +272,7 @@ def nettoyer(reponse, garder_questions=False):
     """Retire un « Bonjour » de politesse répété et, pendant l'entretien, les questions qu'Apertus
     poserait lui-même (la question de l'application est ajoutée ensuite par Python)."""
     texte = re.sub(r"^\s*(?:bonjour|salut|bonsoir)\s*[!,.]?\s*", "", reponse or "", flags=re.IGNORECASE).strip()
+    texte = re.sub(r"\bÀ RETENIR\s*:\s*", "", texte, flags=re.IGNORECASE).strip()  # étiquette des faits recopiée
     if not garder_questions:
         phrases = re.split(r"(?<=[.!?…])\s+", texte)
         texte = " ".join(p for p in phrases if not p.rstrip().endswith("?")).strip()
@@ -347,6 +348,13 @@ def repondre_tour(appeler, texte, notes, question_posee, prochaine_question, chi
             reaction = nettoyer(brut) if brut else None
         except Exception:
             reaction = None
+    if reaction:
+        phrases = re.split(r"(?<=[.!…])\s+", reaction)
+        # Pas de bout de la question de l'application recopié (elle est ajoutée juste après)
+        phrases = [p for p in phrases if p.strip() and p.strip().rstrip(".") not in (prochaine_question or "")]
+        if not question_posee:
+            phrases = phrases[:1]  # sans question de la personne : une seule phrase de réaction
+        reaction = " ".join(phrases).strip() or None
     if not reaction and question_posee:
         reaction = "Je ne peux pas répondre à cette question de façon fiable ici ; vous pouvez vérifier sur priminfo.admin.ch."
     fin = prochaine_question or "Voici ce que j'ai compris :"

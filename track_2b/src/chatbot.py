@@ -498,7 +498,10 @@ def communes_par_nom(nom):
     if not nom:
         return regions.iloc[0:0]
     # « Genève 1205 » ou « 1205 Genève » : le code postal n'appartient pas au nom de la commune
-    cherche = re.sub(r"\s+", " ", re.sub(r"\b\d{4}\b", " ", nom_simple(nom))).strip(" ,")
+    # « Lausanne VD » ou « Lausanne (1003) » : canton et code postal ne font pas partie du nom
+    cherche = re.sub(r"\b\d{4}\b|[()\[\],;]", " ", nom_simple(nom))
+    cherche = re.sub(r"\s+(?:ag|ai|ar|be|bl|bs|fr|ge|gl|gr|ju|lu|ne|nw|ow|sg|sh|so|sz|tg|ti|ur|vd|vs|zg|zh)$", "",
+                     re.sub(r"\s+", " ", cherche).strip(" ,-"))
     trouvees = regions[regions["commune"].map(nom_simple) == cherche]
     if trouvees.empty:
         # Noms bilingues officiels : « Bienne » ou « Biel » désignent « Biel/Bienne »
@@ -527,10 +530,13 @@ def localiser(npa=None, commune=None):
     else:
         communes = communes_du_npa(npa)
         if commune:
-            citee = communes[communes["no_ofs"].isin(communes_par_nom(commune)["no_ofs"])]
-            if citee.empty:
+            connues = communes_par_nom(commune)
+            citee = communes[communes["no_ofs"].isin(connues["no_ofs"])]
+            if citee.empty and not connues.empty:
                 return None  # Explicit postcode / municipality conflict: ask, never ignore.
-            communes = citee
+            # Un nom qui n'est pas une commune officielle (« Lausanne-Ouchy », faute de lecture)
+            # ne contredit pas le code postal : c'est le code postal qui fait foi.
+            communes = citee if not citee.empty else communes
         if not communes.empty and len(communes[["canton", "region"]].drop_duplicates()) == 1:
             # Une seule région possible pour ce NPA : inutile de demander la commune
             c = communes.iloc[0]
