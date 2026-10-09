@@ -13,7 +13,9 @@ import unicodedata
 
 from chatbot import ALIAS_COMMUNES, FIELDS, MOTIF_MONTANT, communes_du_npa, communes_par_nom, nom_simple, regions
 
-_CORRECTION = re.compile(r"\ben fait\b|\bfinalement\b|\bplut[ôo]t\b|\bcorrect|\bje me suis tromp|\bpas\s+\d", re.I)
+_CORRECTION = re.compile(r"\ben fait\b|\bfinalement\b|\bplut[ôo]t\b|\bcorrect|\bje me suis tromp|\bpas\s+\d"
+                         r"|\bpardon\b|\bd[ée]m[ée]nag|\bmaintenant\b|\bsorry\b|\bactually\b|\beigentlich\b"
+                         r"|\bumgezogen\b|\bscusi\b|\bin realt[àa]\b", re.I)
 # Français, allemand, italien, anglais
 _MOT_FRANCHISE = r"(?:franchise|d[ée]ductible|franchigia|selbstbehalt)"
 _HAUTE = r"(?:plus\s+(?:haute|[ée]lev[ée]e)|h[öo]e?chste\w*|pi[ùu]\s+alt[ao]|highest|\bmax\w*)"
@@ -23,6 +25,8 @@ _FRANCHISE_BASSE = re.compile(_MOT_FRANCHISE + r"\D{0,25}" + _BASSE + "|" + _BAS
 _FRANCHISE_TOUTES = re.compile(r"toutes\s+les\s+franchises|comparer\s+toutes|alle\s+franchisen|"
                                r"tutte\s+le\s+franchigie|all\s+(?:the\s+)?deductibles", re.I)
 _FRANCHISE_MONTANT = re.compile(_MOT_FRANCHISE + r"\D{0,15}?(\d{1,4})(?!\d)", re.I)
+# « 300 Franchise », « 500 di franchigia » : le montant avant le mot (cherché séparément)
+_MONTANT_FRANCHISE = re.compile(r"(?<![\d'’])(\d{1,4})\s*(?:chf\s*|fr\.?\s*)?(?:(?:de|di)\s+)?" + _MOT_FRANCHISE, re.I)
 _HESITATION = re.compile(r"h[ée]sit|\bentre\b.{0,30}\bet\b|\bou\s+(?:bien\s+)?(?:une\s+)?(?:franchise\s+)?(?:de\s+)?\d", re.I)
 _MONTANTS_LEGAUX = (0, 100, 200, 300, 400, 500, 600, 1000, 1500, 2000, 2500)
 _AVEC_ACCIDENT = re.compile(r"\bavec\s+(?:la\s+|les\s+)?(?:couverture\s+)?accidents?\b|\bmit\s+(?:der\s+)?unfall\w*"
@@ -168,7 +172,8 @@ def completer_par_regles(updates, texte, cible=None, suivi=False):
     else:
         # « 1'500 », « 2 500 » ou « 2’500 » : séparateurs de milliers suisses retirés avant de lire
         chiffres = re.sub(r"(?<=\d)[ '’\u00a0\u202f](?=\d{3}\b)", "", texte)
-        montants = {int(m) for m in _FRANCHISE_MONTANT.findall(chiffres)} & set(_MONTANTS_LEGAUX)
+        montants = ({int(m) for m in _FRANCHISE_MONTANT.findall(chiffres) + _MONTANT_FRANCHISE.findall(chiffres)}
+                    & set(_MONTANTS_LEGAUX))
         if not montants and cible == "deductible":
             montants = {int(m) for m in re.findall(r"(?<!\d)(\d{1,4})(?!\d)", chiffres)} & set(_MONTANTS_LEGAUX)
         # Plusieurs montants (« j'hésite entre 300 et 2500 ») : la personne n'a pas choisi, on demande

@@ -12,28 +12,35 @@ CODES = ("fr", "de", "it", "en")
 NOMS_POUR_APERTUS = {"fr": "français", "de": "allemand (Hochdeutsch, vouvoiement « Sie »)",
                      "it": "italien (vouvoiement « Lei »)", "en": "anglais"}
 
+# Mots propres à chaque langue (les mots partagés comme « a », « e », « i », « no », « con » sont exclus)
 _MOTS = {
-    "fr": "je j' suis ai habite vis ans franchise avec sans le la les des une un est et pour mon ma mes "
-          "quoi quel quelle c'est pas oui non bonjour salut merci comment combien pourquoi assurance",
-    "de": "ich bin habe wohne jahre jahr alt mit ohne der die das und ist nicht ja nein ein eine mein "
-          "meine was wie warum wieviel welche franchise versicherung grüezi hallo danke unfall bitte",
-    "it": "sono ho abito vivo anni anno con senza il lo la gli le è e non sì si no un una mio mia "
-          "cosa come perché quanto quale franchigia assicurazione buongiorno ciao grazie infortuni",
-    "en": "i i'm am have live years year old with without the and is not yes no a an my what how why "
-          "which much insurance deductible hello hi thanks please accident cover",
+    "fr": "je j' suis ai habite vis ans avec sans les des une est et pour mon ma mes quoi quel quelle c' "
+          "maintenant pardon d' qu' "
+          "pas oui bonjour salut merci comment combien pourquoi assurance travaille vous votre vos avez êtes "
+          "être nous dans sur aussi couverture souhaitez choisi prime primes",
+    "de": "ich bin habe wohne jahre jahr alt mit ohne der die das und ist nicht ja nein ein eine mein meine "
+          "was wie warum wieviel welche versicherung grüezi hallo danke unfall bitte arbeite geboren sie ihr "
+          "ihre ihnen sind wir auch für prämie",
+    "it": "sono ho abito vivo anni anno senza il lo gli è sì una mio mia cosa come perché quanto "
+          "quale franchigia assicurazione buongiorno ciao grazie infortuni lavoro nato nata lei suo sua "
+          "della delle anche premio",
+    "en": "i' i'm am have live living years year old with without the and is not yes my what how why which "
+          "much insurance deductible hello hi thanks please accident cover born work you your are "
+          "we also premium",
 }
 _ENS = {k: set(v.split()) for k, v in _MOTS.items()}
 
 
 def detecter(texte):
-    """Code de langue du message, ou None s'il est trop court ou ambigu (« 2500 », « Lausanne »)."""
-    mots = re.findall(r"[a-zà-ÿ']+", (texte or "").lower())
-    if len(mots) < 2:
-        return None
+    """Code de langue du message, ou None s'il est ambigu ou sans mot reconnaissable (« 2500 », « Lausanne »)."""
+    mots = re.findall(r"[a-zà-ÿ]+'|[a-zà-ÿ]+", (texte or "").lower().replace("’", "'"))
     scores = {code: sum(m in _ENS[code] for m in mots) for code in CODES}
     meilleur = max(scores, key=scores.get)
     second = sorted(scores.values())[-2]
-    return meilleur if scores[meilleur] >= 2 and scores[meilleur] > second else None
+    if scores[meilleur] >= 2 and scores[meilleur] > second:
+        return meilleur
+    # Un seul mot reconnu suffit pour un message court (« 48 anni, Lugano ») mais pas pour une phrase
+    return meilleur if scores[meilleur] == 1 and second == 0 and len(mots) <= 4 else None
 
 
 _TUTOIEMENT = {
