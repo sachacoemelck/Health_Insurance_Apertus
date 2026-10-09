@@ -25,6 +25,15 @@ FICHE_LAMAL = [
     ("prestations", "Les prestations de l'assurance de base sont les mêmes chez tous les assureurs : la loi "
                     "fixe la liste. Seuls la prime, le modèle d'assurance et le service changent.",
      "LAMal art. 34"),
+    ("difference entre assureurs", "Pour les mêmes prestations, les primes diffèrent d'un assureur à "
+                                   "l'autre parce que chaque assureur fixe ses primes selon ses propres coûts, "
+                                   "ses réserves et ses assurés ; l'OFSP les vérifie et les approuve chaque année. "
+                                   "Le choix de la franchise et du modèle change aussi la prime, mais n'explique "
+                                   "pas l'écart entre deux assureurs pour un même choix.", "LSAMal art. 16"),
+    ("accidents couverts", "La LAMal couvre aussi les accidents, sauf si la personne les exclut parce qu'elle "
+                           "est déjà assurée par son employeur (au moins 8 heures par semaine chez le même "
+                           "employeur, LAA). Les autres personnes gardent les accidents dans leur LAMal.",
+     "LAMal art. 1a et 8"),
     ("admission", "Pour l'assurance de base, chaque assureur doit accepter toute personne, sans "
                   "questionnaire de santé. Les assurances complémentaires, elles, peuvent refuser.",
      "LAMal art. 4"),
@@ -50,8 +59,10 @@ FICHE_LAMAL = [
      "LAMal art. 8 ; LAA art. 1a et 8"),
     ("modeles", "Modèles d'assurance : le libre choix (aucune restriction propre à un réseau) ; médecin "
                 "de famille ou HMO (premier contact chez le médecin ou le réseau désigné) ; télémédecine "
-                "(premier contact par téléphone ou service numérique) ; pharmacie ; modèles alternatifs "
-                "(règles propres à l'assureur). Les modèles avec restriction ont des primes plus basses.",
+                "(premier contact par téléphone ou service numérique) ; pharmacie (premier contact pour un "
+                "conseil dans une pharmacie partenaire, qui oriente ensuite vers un médecin si nécessaire) ; "
+                "modèles alternatifs (règles propres à l'assureur). Les modèles avec restriction ont des primes "
+                "plus basses.",
      "OAMal art. 99 à 101"),
     ("changement", "Pour changer d'assureur de base au 1er janvier, la lettre de résiliation doit arriver "
                    "chez l'assureur au plus tard le dernier jour ouvrable de novembre. Avec la franchise "
@@ -246,6 +257,8 @@ Règles strictes :
 - Sinon : une seule phrase courte et naturelle qui réagit à ce que la personne vient de dire.
 - N'attribue JAMAIS à la personne une situation qu'elle n'a pas dite (emploi, santé, revenu…) :
   seul le « Profil connu » compte. Les connaissances générales ne décrivent pas la personne.
+- Si la personne dit avoir beaucoup de frais médicaux, commence par ce que le seuil signifie pour des
+  frais élevés (une franchise basse devient alors plus avantageuse au-delà du seuil).
 - Ne répète pas ce que tu as déjà dit dans les échanges précédents. Pas de « Bonjour ».
 - Ne cite AUCUN nombre absent des faits : recopie les montants exactement, ou n'en cite pas.
   Ne fais aucun calcul. Ne recommande aucun assureur ; la décision reste à la personne.
@@ -273,6 +286,8 @@ def nettoyer(reponse, garder_questions=False):
     poserait lui-même (la question de l'application est ajoutée ensuite par Python)."""
     texte = re.sub(r"^\s*(?:bonjour|salut|bonsoir)\s*[!,.]?\s*", "", reponse or "", flags=re.IGNORECASE).strip()
     texte = re.sub(r"\bÀ RETENIR\s*:\s*", "", texte, flags=re.IGNORECASE).strip()  # étiquette des faits recopiée
+    texte = re.sub(r"^(?:mesdames,? messieurs|madame,? monsieur|cher(?:e)? (?:client|assuré)e?)\s*,?\s*", "", texte,
+                   flags=re.IGNORECASE).strip()  # formule de lettre
     if not garder_questions:
         phrases = re.split(r"(?<=[.!?…])\s+", texte)
         texte = " ".join(p for p in phrases if not p.rstrip().endswith("?")).strip()
