@@ -22,6 +22,8 @@ from openai import OpenAI
 import chatbot
 import complementaires as compl
 import sante
+import regles
+import soins
 from chatbot import (Profile, State, CARE_TYPES, CARE_LABELS, QUESTIONS,
                      FRANCHISES, NOMS_PRIORITE, PROMPT_INTRO, extraire_json,
                      faits_propositions, lire_config, localiser, nom_simple)
@@ -67,13 +69,20 @@ def llm(modele, systeme, message):
         raise ErreurLLM(str(erreur)) from erreur
 
 
+def llm_json(modele, systeme, message):
+    try:
+        return chatbot.demander_llm_json(client(), modele, systeme, message)
+    except Exception as erreur:
+        raise ErreurLLM(str(erreur)) from erreur
+
+
 # --------------------------------------------------------------------------------------
 # État de la session (en mémoire seulement)
 # --------------------------------------------------------------------------------------
 def profil_vide():
     return {"contract": Profile(), "comparison": None, "npa": None, "commune_citee": None, "commune": None, "canton": None,
             "region": None, "age": None, "franchise": None, "travaille_8h": None,
-            "plusieurs_personnes": False, "priorite": None, "besoins": []}
+            "plusieurs_personnes": False, "priorite": None, "besoins": [], "soins": {}}
 
 
 def etat():
@@ -114,9 +123,28 @@ def integrer(texte, champ=None):
     selecting_person = (contract.known("multiple_people") is True
                         and updates.get("multiple_people", {}).get("value") is False
                         and updates.get("multiple_people", {}).get("status") == "known")
+    # Préférences de soins : positions d'Apertus contrôlées par Python (module soins). Une
+    # condition ou une hésitation ne suspend plus la comparaison : elle est chiffrée à part.
+    positions = {}
+    if champ == "care_access" or soins.parle_de_soins(texte):
+        positions = soins.extraire_soins(
+            lambda systeme, message: llm_json(cfg["LLM_NAME"], systeme, message), texte)
+    # Formulations explicites que Python lit lui-même si Apertus les a manquées (module regles)
+    updates = regles.completer_par_regles(updates, texte, champ)
+    updates.pop("care_conditions", None)
+    if positions or champ != "care_access":
+        # Sans position contrôlée, seule une réponse directe à la question des modèles peut
+        # encore renseigner les catégories par l'ancienne extraction.
+        updates.pop("care_access", None)
     change = contract.apply(updates, resolving=champ)
     if selecting_person:
-        p["besoins"], s.textes_besoins, s.sante = [], [], []
+        p["besoins"], s.textes_besoins, s.sante, p["soins"] = [], [], [], {}
+    if positions:
+        p["soins"] = soins.fusionner_soins(p["soins"], positions)
+        acceptes = soins.modeles_acceptes(p["soins"])
+        if acceptes != contract.known("care_access"):
+            contract.set("care_access", acceptes)
+        change = True
     if change:
         synchroniser_profil()
 
@@ -182,6 +210,15 @@ def libelle_commune(c):
     return c["commune"] if c["commune"].endswith(f"({c['canton']})") else f"{c['commune']} ({c['canton']})"
 
 
+EXEMPLES_REPONSE = {
+    "postal_code": "1003 Lausanne", "municipality": "Lausanne", "birth_year": "je suis né en 1990",
+    "age": "j'ai 35 ans", "deductible": "2500, ou la plus haute", "include_accident": "avec accidents",
+    "care_access": "tous les modèles me conviennent", "multiple_people": "seulement moi, 35 ans",
+    "hours_per_week_one_employer": "42 heures par semaine chez le même employeur",
+    "employed": "oui, je suis salarié", "nonoccupational_covered": "oui, c'est confirmé par mon employeur",
+}
+
+
 def poser_question(champ):
     """Ask the single unresolved question selected by the deterministic contract."""
     s = st.session_state
@@ -201,6 +238,22 @@ def poser_question(champ):
     if s.lieu_inconnu and champ in ("postal_code", "municipality"):
         question = "Le lieu est inconnu ou le code postal et la commune ne correspondent pas. " + question
         s.lieu_inconnu = False
+    repetitions = s.get("repetitions", {})
+    repetitions = {champ: repetitions.get(champ, 0) + 1}
+    s.repetitions = repetitions
+    if champ == "care_access" and repetitions[champ] >= 3:
+        # Sans réponse comprise, jamais de restriction acceptée à la place de la personne : on compare
+        # le modèle standard, et les autres modèles sont chiffrés dans « Ce que coûtent vos préférences ».
+        p["contract"].set("care_access", ["unrestricted"])
+        synchroniser_profil()
+        dire("Je n'ai pas compris quels modèles vous acceptez : je compare le modèle standard (libre choix) "
+             "et je vous montre ensuite ce que coûteraient les autres. Vous pourrez préciser après.")
+        s.repetitions = {}
+        avancer()
+        return
+    if repetitions[champ] >= 2 and champ in EXEMPLES_REPONSE:
+        question = ("Je n'ai pas compris votre réponse. " + question
+                    + f" Par exemple : « {EXEMPLES_REPONSE[champ]} ».")
     s.question, s.attente = question, champ
     dire(question)
 
@@ -272,7 +325,7 @@ def calculer():
     offres = chatbot.offres_du_profil(c)
     props = propositions(offres, p["priorite"])
     bloc = {"offres": offres, "propositions": props, "intro": None, "compl": None,
-            "preferences": chatbot.couts_des_preferences(c)}
+            "preferences": chatbot.couts_des_preferences(c), "soins": dict(p["soins"])}
     if props:
         bloc["intro"] = chatbot.expliquer(client(), cfg["LLM_NAME_RESTITUTION"],
                                           faits_propositions(props, p["priorite"]), LANGUE,
@@ -306,6 +359,12 @@ def afficher_profil(p, nb_sante=0):
                  else f"Âge déclaré : {c.known('age')} ans")
     franchises = ", ".join(map(str, c.deductibles()))
     care = ", ".join(CARE_LABELS[k] for k in c.known("care_access"))
+    positions_soins = []
+    for position, titre in (("rejected", "Refusé"), ("conditional", "Selon le prix"), ("unsure", "Incertain")):
+        modes = soins.par_position(p.get("soins", {}), position)
+        if modes:
+            positions_soins.append(f"- **{titre}** : " + ", ".join(
+                nom + (f" (« {citation} »)" if citation else "") for nom, citation in modes))
     besoins = ", ".join(compl.CATEGORIES[b] for b in p["besoins"]) or "aucun"
     commune = p["commune"] + (f" ({p['npa']})" if p["npa"] else "")
     st.markdown("**Voici ce que j'ai compris. Est-ce correct ?**")
@@ -316,6 +375,7 @@ def afficher_profil(p, nb_sante=0):
         f"- **Région de primes** : {p['region']}",
         f"- **Franchise(s)** : {franchises} CHF",
         f"- **Modèles acceptés** : {care}",
+    ] + positions_soins + [
         f"- **Couverture accident** : {accident}",
         f"- **Priorité** : {NOMS_PRIORITE.get(p['priorite'], 'aucune indiquée')}",
         f"- **Besoins en complémentaires** : {besoins}",
@@ -460,7 +520,7 @@ def afficher_toutes_les_offres(bloc):
                     for (assureur, produit), alertes in a_verifier.items()))
 
 
-def afficher_preferences(lignes):
+def afficher_preferences(lignes, positions=None):
     """Ce que coûtent les préférences : uniquement des montants calculés par Python."""
     st.markdown("### Ce que coûtent vos préférences")
     st.write("Pour le même profil, voici l'offre la moins chère de chaque modèle que vous "
@@ -472,7 +532,9 @@ def afficher_preferences(lignes):
             ecart = f"**{chf(l['ecart_an'])} CHF de plus par an**"
         else:
             ecart = "**même prime annuelle**"
-        st.markdown(f"- **{l['modele']}** : dès {chf(l['prime_mois'])} CHF / mois "
+        raison = soins.raison_non_retenu(l["tariftyp"], positions or {})
+        st.markdown(f"- **{l['modele']}**" + (f" ({raison})" if raison else "")
+                    + f" : dès {chf(l['prime_mois'])} CHF / mois "
                     f"({l['assureur']}, *{l['produit']}*), soit {ecart}.")
     st.caption("Écarts de primes uniquement, source OFSP 2027. Chaque modèle a des contraintes "
                "propres : vérifiez les conditions du produit avant de changer.")
@@ -481,7 +543,7 @@ def afficher_preferences(lignes):
 def afficher_resultats(bloc):
     afficher_propositions(bloc)
     if bloc.get("preferences"):
-        afficher_preferences(bloc["preferences"])
+        afficher_preferences(bloc["preferences"], bloc.get("soins"))
     if bloc.get("sante"):
         afficher_sante(bloc["sante"])
     if bloc["compl"]:
@@ -505,6 +567,8 @@ def repondre_bouton(texte_affiche, champ, valeur):
     s = st.session_state
     s.messages.append({"role": "user", "type": "texte", "contenu": texte_affiche})
     s.profil["contract"].set(champ, valeur)
+    if champ == "care_access":
+        s.profil["soins"] = {}  # un choix par bouton remplace les positions dites en texte
     synchroniser_profil()
     avancer()
 

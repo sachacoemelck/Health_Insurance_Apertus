@@ -433,6 +433,25 @@ def demander_llm(client, modele, systeme, message):
     return reponse.choices[0].message.content
 
 
+_JSON_FORCE = True  # passe à False si l'endpoint ne connaît pas response_format
+
+
+def demander_llm_json(client, modele, systeme, message):
+    """Comme demander_llm, en demandant à l'API un objet JSON valide quand elle le permet
+    (sinon appel normal : le texte reste de toute façon relu et contrôlé par Python)."""
+    global _JSON_FORCE
+    if _JSON_FORCE:
+        try:
+            reponse = client.chat.completions.create(
+                model=modele, temperature=0, response_format={"type": "json_object"},
+                messages=[{"role": "system", "content": systeme},
+                          {"role": "user", "content": message}])
+            return reponse.choices[0].message.content
+        except Exception:
+            _JSON_FORCE = False
+    return demander_llm(client, modele, systeme, message)
+
+
 def extraire_json(texte):
     """Récupère le premier objet JSON de la réponse du LLM (vide si illisible)."""
     trouve = re.search(r"\{.*\}", texte or "", re.DOTALL)
