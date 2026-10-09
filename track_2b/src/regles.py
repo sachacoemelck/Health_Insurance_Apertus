@@ -11,25 +11,34 @@ règles, 2/17 conversations aboutissaient au bon profil.
 import re
 import unicodedata
 
-from chatbot import FIELDS, MOTIF_MONTANT, communes_du_npa, communes_par_nom, nom_simple, regions
+from chatbot import ALIAS_COMMUNES, FIELDS, MOTIF_MONTANT, communes_du_npa, communes_par_nom, nom_simple, regions
 
 _CORRECTION = re.compile(r"\ben fait\b|\bfinalement\b|\bplut[ôo]t\b|\bcorrect|\bje me suis tromp|\bpas\s+\d", re.I)
-_FRANCHISE_HAUTE = re.compile(r"(?:franchise|d[ée]ductible)\D{0,25}(?:plus\s+(?:haute|[ée]lev[ée]e)|\bmax)"
-                              r"|(?:plus\s+(?:haute|[ée]lev[ée]e)|\bmax\w*)\D{0,12}franchise", re.I)
-_FRANCHISE_BASSE = re.compile(r"(?:franchise|d[ée]ductible)\D{0,25}(?:plus\s+basse|\bmin)"
-                              r"|(?:plus\s+basse|\bmin\w*)\D{0,12}franchise", re.I)
-_FRANCHISE_TOUTES = re.compile(r"toutes\s+les\s+franchises|comparer\s+toutes", re.I)
-_FRANCHISE_MONTANT = re.compile(r"franchise\D{0,15}?(\d{1,4})(?!\d)", re.I)
+# Français, allemand, italien, anglais
+_MOT_FRANCHISE = r"(?:franchise|d[ée]ductible|franchigia|selbstbehalt)"
+_HAUTE = r"(?:plus\s+(?:haute|[ée]lev[ée]e)|h[öo]e?chste\w*|pi[ùu]\s+alt[ao]|highest|\bmax\w*)"
+_BASSE = r"(?:plus\s+basse|tiefste\w*|niedrigste\w*|pi[ùu]\s+bass[ao]|lowest|\bmin\w*)"
+_FRANCHISE_HAUTE = re.compile(_MOT_FRANCHISE + r"\D{0,25}" + _HAUTE + "|" + _HAUTE + r"\D{0,12}" + _MOT_FRANCHISE, re.I)
+_FRANCHISE_BASSE = re.compile(_MOT_FRANCHISE + r"\D{0,25}" + _BASSE + "|" + _BASSE + r"\D{0,12}" + _MOT_FRANCHISE, re.I)
+_FRANCHISE_TOUTES = re.compile(r"toutes\s+les\s+franchises|comparer\s+toutes|alle\s+franchisen|"
+                               r"tutte\s+le\s+franchigie|all\s+(?:the\s+)?deductibles", re.I)
+_FRANCHISE_MONTANT = re.compile(_MOT_FRANCHISE + r"\D{0,15}?(\d{1,4})(?!\d)", re.I)
 _HESITATION = re.compile(r"h[ée]sit|\bentre\b.{0,30}\bet\b|\bou\s+(?:bien\s+)?(?:une\s+)?(?:franchise\s+)?(?:de\s+)?\d", re.I)
 _MONTANTS_LEGAUX = (0, 100, 200, 300, 400, 500, 600, 1000, 1500, 2000, 2500)
-_AVEC_ACCIDENT = re.compile(r"\bavec\s+(?:la\s+|les\s+)?(?:couverture\s+)?accidents?\b", re.I)
-_SANS_ACCIDENT = re.compile(r"\bsans\s+(?:la\s+|les\s+)?(?:couverture\s+)?accidents?\b", re.I)
+_AVEC_ACCIDENT = re.compile(r"\bavec\s+(?:la\s+|les\s+)?(?:couverture\s+)?accidents?\b|\bmit\s+(?:der\s+)?unfall\w*"
+                            r"|\bcon\s+(?:gli\s+|l')?infortuni|\bwith\s+(?:the\s+)?accidents?\b"
+                            r"|\baccidents?\s+included\b", re.I)
+_SANS_ACCIDENT = re.compile(r"\bsans\s+(?:la\s+|les\s+)?(?:couverture\s+)?accidents?\b|\bohne\s+(?:die\s+)?unfall\w*"
+                            r"|\bsenza\s+(?:gli\s+)?infortuni|\bwithout\s+(?:the\s+)?accidents?\b", re.I)
 # « je ne suis couvert par aucun employeur pour les accidents » : jamais une raison d'exclure les accidents
 _PAS_COUVERT = re.compile(r"\b(?:pas|aucun\w*|ni|plus)\b[^.?!]{0,40}\bcouverte?s?\b[^.?!]{0,40}\baccident"
                           r"|\bcouverte?s?\b[^.?!]{0,20}\b(?:aucun\w*|personne)\b[^.?!]{0,40}\baccident"
                           r"|\baccident\w*[^.?!]{0,40}\b(?:pas|aucun\w*)\b[^.?!]{0,15}\bcouvert", re.I)
-_HEURES = re.compile(r"(\d{1,2})\s*(?:h\b|heures?)\s*(?:par|/|a\s+la|à\s+la)\s*semaine", re.I)
-_MEME_EMPLOYEUR = re.compile(r"m[êe]me\s+employeur|un\s+seul\s+employeur|chez\s+(?:un|mon)\s+employeur", re.I)
+_HEURES = re.compile(r"(\d{1,2})\s*(?:h\b|heures?|std\.?|stunden|ore|hours?)\s*(?:par|/|a\s+la|à\s+la|pro|in\s+der|"
+                     r"alla|a|per|a)\s*(?:semaine|woche|settimana|week)", re.I)
+_MEME_EMPLOYEUR = re.compile(r"m[êe]me\s+employeur|un\s+seul\s+employeur|chez\s+(?:un|mon)\s+employeur"
+                             r"|gleichen\s+arbeitgeber|einem\s+arbeitgeber|stesso\s+datore|same\s+employer"
+                             r"|one\s+employer", re.I)
 _PLUSIEURS_EMPLOYEURS = re.compile(r"autre\s+employeur|chez\s+un\s+autre|(?:deux|trois|plusieurs|\d)\s+employeurs", re.I)
 
 # Un parent qui parle d'un seul enfant (« mon fils a 10 ans ») : la comparaison est pour l'enfant
@@ -38,16 +47,23 @@ _PLUSIEURS_PERSONNES = re.compile(r"\bet\s+moi\b|\bnous\s+deux\b|\bma\s+femme\b|
                                   r"\bcompagne?\b|\bpartenaire\b|\bmes\s+enfants\b|\bfamille\b|\bjumeaux\b|"
                                   r"\b(?:deux|trois|2|3)\s+enfants\b", re.I)
 _NAISSANCE_RECENTE = re.compile(r"vient\s+de\s+na[îi]tre|nouveau-n[ée]|est\s+n[ée]e?\s+(?:cette|ce|il\s+y\s+a)", re.I)
-_AGE = re.compile(r"(?<![\d.,])(\d{1,3})\s*ans\b", re.I)
-_PLUSIEURS_AGES = re.compile(r"\d{1,3}\s*(?:et|,)\s*\d{1,3}\s*ans", re.I)
-_NAISSANCE = re.compile(r"\bn[ée]e?s?\s+(?:en\s+)?((?:19|20)\d\d)\b|\bann[ée]e\s+de\s+naissance\D{0,5}((?:19|20)\d\d)", re.I)
+_AGE = re.compile(r"(?<![\d.,])(\d{1,3})\s*(?:ans|jahre?|anni|years?)\b|\bI(?:'m|\s+am)\s+(\d{1,3})\b", re.I)
+_PLUSIEURS_AGES = re.compile(r"\d{1,3}\s*(?:et|,|und|e|and)\s*\d{1,3}\s*(?:ans|jahre?|anni|years?)", re.I)
+_NAISSANCE = re.compile(r"\bn[ée]e?s?\s+(?:en\s+)?((?:19|20)\d\d)\b|\bann[ée]e\s+de\s+naissance\D{0,5}((?:19|20)\d\d)"
+                        r"|\bgeboren\s+(?:im\s+(?:jahr\s+)?)?((?:19|20)\d\d)\b|\b((?:19|20)\d\d)\s+geboren\b"
+                        r"|\bnat[oa]\s+nel\s+((?:19|20)\d\d)\b|\bborn\s+in\s+((?:19|20)\d\d)\b", re.I)
+
+
+def _ages(texte):
+    """Âges écrits dans le texte (« 35 ans », « 35 Jahre », « 35 anni », « I'm 35 »)."""
+    return [a or b for a, b in _AGE.findall(texte)]
 
 # « à Sion », « in Bern » : une préposition suivie d'un nom propre (majuscule) annonce souvent le lieu
 _PARLE_DU_LIEU = re.compile(r"\bhabit|\bvi[st]\s+[àa]\b|r[ée]sid|\bcommune\b|domicil|\bwohne|\babito"
                             r"|(?:\bà|\bin|\ba)\s+(?-i:[A-ZÀ-Ü])", re.I)
 
 # Noms de communes officiels (sans canton ajouté, sans accents), du plus long au plus court
-_COMMUNES = sorted({nom_simple(c) for c in regions["commune"]}, key=len, reverse=True)
+_COMMUNES = sorted({nom_simple(c) for c in regions["commune"]} | set(ALIAS_COMMUNES), key=len, reverse=True)
 
 
 def _connu(updates, champ):
@@ -101,6 +117,8 @@ def npa_presente(texte, cible=None):
             continue
         autour = _mots(propre[max(0, m.start() - 45): m.end() + 45])
         noms = {re.sub(r"[^a-z0-9]+", " ", nom_simple(c)).strip() for c in communes["commune"]}
+        noms |= {re.sub(r"[^a-z0-9]+", " ", a).strip() for a, cible_nom in ALIAS_COMMUNES.items()
+                 if re.sub(r"[^a-z0-9]+", " ", cible_nom).strip() in noms}
         presente = (cible in ("postal_code", "municipality")
                     or re.search(r"(?:code\s+postal|\bnpa\b|\bcp\b|\bplz\b)\W{0,3}$", propre[:m.start()], re.I)
                     or any(f" {n} " in autour for n in noms if n))
@@ -143,9 +161,9 @@ def completer_par_regles(updates, texte, cible=None, suivi=False):
     # Franchise : les formulations explicites l'emportent sur la lecture d'Apertus
     if _FRANCHISE_TOUTES.search(texte):
         _mettre(updates, "deductible", "all", texte, cible)
-    elif _FRANCHISE_HAUTE.search(texte) or (cible == "deductible" and re.search(r"plus\s+haute|\bmax", texte, re.I)):
+    elif _FRANCHISE_HAUTE.search(texte) or (cible == "deductible" and re.search(_HAUTE, texte, re.I)):
         _mettre(updates, "deductible", "highest", texte, cible)
-    elif _FRANCHISE_BASSE.search(texte) or (cible == "deductible" and re.search(r"plus\s+basse|\bmin", texte, re.I)):
+    elif _FRANCHISE_BASSE.search(texte) or (cible == "deductible" and re.search(_BASSE, texte, re.I)):
         _mettre(updates, "deductible", "lowest", texte, cible)
     else:
         # « 1'500 », « 2 500 » ou « 2’500 » : séparateurs de milliers suisses retirés avant de lire
@@ -188,7 +206,7 @@ def completer_par_regles(updates, texte, cible=None, suivi=False):
     # Âge et année de naissance : un seul nombre explicite, jamais quand plusieurs âges sont donnés
     naissance = _NAISSANCE.search(texte)
     if naissance and not _connu(updates, "birth_year"):
-        _mettre(updates, "birth_year", int(naissance.group(1) or naissance.group(2)), texte, cible)
+        _mettre(updates, "birth_year", int(next(g for g in naissance.groups() if g)), texte, cible)
     # Réponse directe à la question posée : « 2026 » pour l'année de naissance, « 35 » pour l'âge
     if cible == "birth_year" and not _connu(updates, "birth_year"):
         annees = set(re.findall(r"(?<!\d)((?:19|20)\d\d)(?!\d)", texte))
@@ -198,7 +216,7 @@ def completer_par_regles(updates, texte, cible=None, suivi=False):
         nombres = set(re.findall(r"(?<![\d.,])(\d{1,3})(?![\d.,])", texte))
         if len(nombres) == 1 and int(next(iter(nombres))) <= 120:
             _mettre(updates, "age", int(nombres.pop()), texte, cible)
-    ages = _AGE.findall(texte)
+    ages = _ages(texte)
     if (len(set(ages)) == 1 and not _PLUSIEURS_AGES.search(texte)
             and not _connu(updates, "age") and not _connu(updates, "birth_year")):
         _mettre(updates, "age", int(ages[0]), texte, cible)
@@ -206,14 +224,14 @@ def completer_par_regles(updates, texte, cible=None, suivi=False):
     # « Plusieurs personnes » seulement si le texte le montre (deux âges, « ma femme et moi »…) :
     # Apertus 8B le coche parfois pour une seule personne (« infirmière, 33 ans »).
     if (updates.get("multiple_people", {}).get("value") is True and not _PLUSIEURS_PERSONNES.search(texte)
-            and len(set(_AGE.findall(texte))) <= 1 and not _PLUSIEURS_AGES.search(texte)
+            and len(set(_ages(texte))) <= 1 and not _PLUSIEURS_AGES.search(texte)
             and not re.search(r"\b(?:nous|on)\s+(?:sommes|est)\s+(?:deux|trois|quatre|\d)|\bmon\s+fr[èe]re|\bma\s+s[œo]e?ur|"
                               r"\bmes\s+parents|\bmon\s+p[èe]re|\bma\s+m[èe]re", texte, re.I)):
         updates.pop("multiple_people")
 
     # Un parent qui décrit un seul enfant, sans autre âge : la comparaison est pour cet enfant
     if _ENFANT.search(texte) and not _PLUSIEURS_PERSONNES.search(texte):
-        ages_enfant = set(_AGE.findall(texte))
+        ages_enfant = set(_ages(texte))
         if len(ages_enfant) <= 1 and (ages_enfant or _NAISSANCE_RECENTE.search(texte)):
             updates["multiple_people"] = {"value": False, "status": "known", "correction": True}
             if not ages_enfant:

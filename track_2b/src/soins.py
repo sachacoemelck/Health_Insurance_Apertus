@@ -89,7 +89,8 @@ MOTS_SOINS = {
     PHARMACIE: r"pharma|apothek|farmac",
 }
 # « tous les modèles », « peu importe le modèle », « any model », « welches Modell ist mir egal »
-MOTIF_TOUT = (r"(tous|toutes|n'importe quel|peu importe|any|qualsiasi|welches|jedes|fiche|fous|egal).{0,12}mod"
+MOTIF_TOUT = (r"(tous|toutes|n'importe quel|peu importe|any|all|every|qualsiasi|tutti|tutte|welches|jedes|alle"
+              r"|fiche|fous|egal).{0,12}mod"
               r"|mod\w*.{0,20}(egal|indifferent|fiche|importe)")
 
 
@@ -100,6 +101,16 @@ def _norm(texte):
 
 def _sans_accents(texte):
     return unicodedata.normalize("NFD", _norm(texte)).encode("ascii", "ignore").decode()
+
+
+_NEGATION = r"\b(?:pas|sauf|sans|ni|aucun|nicht|kein\w*|ausser|ausser|non|tranne|senza|nessun\w*|not|except|no)\b"
+
+
+def accepte_tout(texte):
+    """Vrai pour « tous les modèles me vont », « alle Modelle », « tutti i modelli », « all models »,
+    sans négation ni exception dans la phrase."""
+    p = _sans_accents(texte)
+    return bool(re.search(MOTIF_TOUT, p)) and not re.search(_NEGATION, p)
 
 
 def parle_de_soins(texte):

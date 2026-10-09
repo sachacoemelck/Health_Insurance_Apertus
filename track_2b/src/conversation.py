@@ -11,6 +11,9 @@ remplit pas la franchise à sa place.
 """
 import re
 
+import langues
+from langues import tr
+
 from chatbot import CARE_TYPES, FRANCHISES, montants_intrus, nombres, tutoie
 from comparateur import QUOTE_PART_MAX, classe_age, toutes_les_offres
 
@@ -131,19 +134,23 @@ def mises_a_jour_hors_question(updates, champ, question):
 # --------------------------------------------------------------------------------------
 _PETIT_BUDGET = re.compile(r"petit\s+budget|budget\s+(?:serr|limit|r[ée]duit|faible)|peu\s+d['’]?argent|"
                            r"pas\s+(?:beaucoup\s+)?d['’]?argent|peu\s+de\s+moyens|ne\s+gagne\s+(?:pas|rien)|"
-                           r"sans\s+revenu|fin\s+de\s+mois\s+difficile", re.IGNORECASE)
+                           r"sans\s+revenu|fin\s+de\s+mois\s+difficile|wenig\s+geld|kleine[sn]?\s+budget|"
+                           r"knapp\w*\s+budget|poc[oh]i\s+soldi|budget\s+ridotto|little\s+money|tight\s+budget|"
+                           r"small\s+budget|low\s+income", re.IGNORECASE)
 _SANS_LIMITE = re.compile(r"pas\s+de\s+(?:limite|budget|maximum|max)|aucun|peu\s+importe|pas\s+d['’]?importance|"
                           r"\bnon\b|je\s+(?:ne\s+)?sais\s+pas|pas\s+sp[ée]cialement|indiff[ée]rent", re.IGNORECASE)
 _MONTANT_BUDGET = re.compile(r"(?<![\d'’.])(\d{2,4})(?![\d'’])\s*(?:chf|fr\.?|francs?|\.-)?\s*(?:(?:par|/|le|chaque)\s*mois)?",
                              re.IGNORECASE)
-_MOT_BUDGET = re.compile(r"budget|maximum|\bmax\b|pas\s+plus\s+de|au\s+plus|(?:par|/)\s*mois", re.IGNORECASE)
+_MOT_BUDGET = re.compile(r"budget|maximum|\bmax\b|pas\s+plus\s+de|au\s+plus|(?:par|/)\s*mois|pro\s+monat|"
+                         r"im\s+monat|al\s+mese|per\s+month|a\s+month|höchstens|al\s+massimo|at\s+most", re.IGNORECASE)
 
 
 def lire_budget(texte, cible=None):
     """("montant", n) | ("petit", None) | ("aucun", None) | None. Un montant n'est lu que s'il est
     présenté comme un budget, ou en réponse à la question du budget ; jamais un âge ou une franchise."""
     texte = texte or ""
-    if re.search(r"pas\s+de\s+(?:limite|budget|maximum)|sans\s+(?:limite|budget)", texte, re.IGNORECASE):
+    if re.search(r"pas\s+de\s+(?:limite|budget|maximum)|sans\s+(?:limite|budget)|kein\w*\s+(?:limit|budget|grenze)"
+                 r"|nessun\s+limite|senza\s+limit|no\s+(?:limit|budget|maximum)", texte, re.IGNORECASE):
         return ("aucun", None)
     # Âges, franchises et codes postaux ne sont jamais un budget ; un montant de 4 chiffres n'est
     # lu que s'il est suivi d'une monnaie ou de « par mois » (« Nyon 1260 » n'est pas un budget).
@@ -284,7 +291,8 @@ Règles strictes :
 def nettoyer(reponse, garder_questions=False):
     """Retire un « Bonjour » de politesse répété et, pendant l'entretien, les questions qu'Apertus
     poserait lui-même (la question de l'application est ajoutée ensuite par Python)."""
-    texte = re.sub(r"^\s*(?:bonjour|salut|bonsoir)\s*[!,.]?\s*", "", reponse or "", flags=re.IGNORECASE).strip()
+    texte = re.sub(r"^\s*(?:bonjour|salut|bonsoir|grüezi|grüss gott|hallo|guten tag|buongiorno|buonasera|ciao|"
+                   r"salve|hello|hi)\s*[!,.]?\s*", "", reponse or "", flags=re.IGNORECASE).strip()
     texte = re.sub(r"\bÀ RETENIR\s*:\s*", "", texte, flags=re.IGNORECASE).strip()  # étiquette des faits recopiée
     texte = re.sub(r"^(?:mesdames,? messieurs|madame,? monsieur|cher(?:e)? (?:client|assuré)e?)\s*,?\s*", "", texte,
                    flags=re.IGNORECASE).strip()  # formule de lettre
@@ -304,7 +312,12 @@ def _intrus(reponse, faits):
 _AFFIRME_EMPLOI = re.compile(
     r"(?<!si )\b(?:puisque |comme |étant donné que |car )?vous êtes (?:salarié|employé)e?\b(?! ou)"
     r"|\bétant (?:salarié|employé)e?\b|\ben tant que (?:salarié|employé)e?\b|\bvotre statut de salarié"
-    r"|(?<!si )\bvotre employeur vous (?:couvre|assure)\b|(?<!si )\bvous travaillez (?:au moins|plus de) 8",
+    r"|(?<!si )\bvotre employeur vous (?:couvre|assure)\b|(?<!si )\bvous travaillez (?:au moins|plus de) 8"
+    # allemand, italien, anglais
+    r"|(?<!wenn )\bSie sind (?:angestellt|erwerbstätig)\b|\bda Sie (?:angestellt|erwerbstätig)\b"
+    r"|(?<!wenn )\bIhr Arbeitgeber versichert Sie\b"
+    r"|(?<!se )\b(?:Lei )?è (?:dipendente|salariat[oa])\b|(?<!se )\bil suo datore di lavoro la (?:assicura|copre)\b"
+    r"|(?<!if )\byou are (?:employed|an employee)\b|\bas an employee\b|(?<!if )\byour employer (?:covers|insures) you\b",
     re.IGNORECASE)
 
 
@@ -316,7 +329,7 @@ def emploi_non_fonde(reponse, faits):
     return not ("emploi salarié : oui" in (faits or "") or (heures and int(heures.group(1)) >= 8))
 
 
-def _probleme(reponse, faits, doit_questionner):
+def _probleme(reponse, faits, doit_questionner, code="fr"):
     if not reponse or not reponse.strip():
         return "réponse vide"
     intrus = _intrus(reponse, faits)
@@ -326,21 +339,21 @@ def _probleme(reponse, faits, doit_questionner):
     if emploi_non_fonde(reponse, faits):
         return ("n'affirme jamais que la personne est salariée ou couverte par un employeur : son profil ne "
                 "le dit pas.")
-    if tutoie(reponse):
+    if langues.tutoie(reponse, code):
         return "vouvoie la personne : jamais « tu », « ton », « ta », « tes »."
     if doit_questionner and "?" not in reponse[-200:]:
         return "termine par la question à poser."
     return None
 
 
-def demander_verifie(appeler, systeme, faits, doit_questionner):
+def demander_verifie(appeler, systeme, faits, doit_questionner, code="fr"):
     """Réponse d'Apertus si elle passe les contrôles (un nouvel essai avec rappel), sinon None."""
     reponse = appeler(systeme, faits)
-    probleme = _probleme(reponse, faits, doit_questionner)
+    probleme = _probleme(reponse, faits, doit_questionner, code)
     if probleme is None:
         return reponse.strip()
     reponse = appeler(systeme, faits + "\n\nATTENTION : " + probleme)
-    return reponse.strip() if _probleme(reponse, faits, doit_questionner) is None else None
+    return reponse.strip() if _probleme(reponse, faits, doit_questionner, code) is None else None
 
 
 def historique(messages, n=4):
@@ -370,7 +383,7 @@ def faits_tour(texte, notes, question_posee, prochaine_question, chiffres="", co
 
 
 def repondre_tour(appeler, texte, notes, question_posee, prochaine_question, chiffres="", contexte="",
-                  passe="", langue="français"):
+                  passe="", langue="français", code="fr"):
     """Message affiché pendant l'entretien : la réaction ou la réponse d'Apertus (vérifiée), suivie
     de la question choisie par Python, posée telle quelle pour qu'elle ne change jamais de sens.
     Sans réponse fiable d'Apertus : la question seule, ou une phrase honnête si on a posé une question."""
@@ -379,7 +392,7 @@ def repondre_tour(appeler, texte, notes, question_posee, prochaine_question, chi
         faits = faits_tour(texte, notes, question_posee, prochaine_question, chiffres, contexte, passe)
         try:
             brut = demander_verifie(lambda s, m: appeler(s, m), PROMPT_TOUR.replace("{langue}", langue),
-                                    faits, doit_questionner=False)
+                                    faits, doit_questionner=False, code=code)
             reaction = nettoyer(brut) if brut else None
         except Exception:
             reaction = None
@@ -391,12 +404,13 @@ def repondre_tour(appeler, texte, notes, question_posee, prochaine_question, chi
             phrases = phrases[:1]  # sans question de la personne : une seule phrase de réaction
         reaction = " ".join(phrases).strip() or None
     if not reaction and question_posee:
-        reaction = "Je ne peux pas répondre à cette question de façon fiable ici ; vous pouvez vérifier sur priminfo.admin.ch."
-    fin = prochaine_question or "Voici ce que j'ai compris :"
+        reaction = tr("Je ne peux pas répondre à cette question de façon fiable ici ; vous pouvez vérifier sur "
+                      "priminfo.admin.ch.", code)
+    fin = prochaine_question or tr("Voici ce que j'ai compris :", code)
     return f"{reaction} {fin}" if reaction else fin
 
 
-def repondre_libre(appeler, texte, faits_resultats, chiffres="", passe="", langue="français"):
+def repondre_libre(appeler, texte, faits_resultats, chiffres="", passe="", langue="français", code="fr"):
     """Réponse à une question après les résultats ; None si Apertus ne donne rien de fiable."""
     faits = "\n".join(x for x in [f"Question de la personne : « {texte} »",
                                   ("Échanges précédents (contexte seulement) :\n" + passe) if passe else "",
@@ -404,7 +418,7 @@ def repondre_libre(appeler, texte, faits_resultats, chiffres="", passe="", langu
                                   "Connaissances LAMal autorisées :\n" + texte_fiche()] if x)
     try:
         reponse = demander_verifie(lambda s, m: appeler(s, m), PROMPT_LIBRE.replace("{langue}", langue),
-                                   faits, doit_questionner=False)
+                                   faits, doit_questionner=False, code=code)
         return nettoyer(reponse, garder_questions=True) if reponse else None
     except Exception:
         return None
