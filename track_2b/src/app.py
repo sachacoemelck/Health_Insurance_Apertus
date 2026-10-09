@@ -47,7 +47,9 @@ class ErreurLLM(Exception):
 # --------------------------------------------------------------------------------------
 @st.cache_resource
 def client_llm(base_url, api_key):
-    return OpenAI(base_url=base_url, api_key=api_key)
+    # Délai maximal par appel : si Apertus ne répond pas, la personne voit un message au lieu
+    # d'attendre indéfiniment (par défaut, la bibliothèque attend 10 minutes et réessaie 2 fois).
+    return OpenAI(base_url=base_url, api_key=api_key, timeout=60, max_retries=1)
 
 
 def config():

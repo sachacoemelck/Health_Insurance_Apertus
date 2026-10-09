@@ -448,7 +448,9 @@ def demander_llm_json(client, modele, systeme, message):
                 messages=[{"role": "system", "content": systeme},
                           {"role": "user", "content": message}])
             return reponse.choices[0].message.content
-        except Exception:
+        except Exception as erreur:
+            if "timeout" in type(erreur).__name__.lower() or "connection" in type(erreur).__name__.lower():
+                raise  # serveur lent ou injoignable : ce n'est pas un refus du format JSON
             _JSON_FORCE = False
     return demander_llm(client, modele, systeme, message)
 
