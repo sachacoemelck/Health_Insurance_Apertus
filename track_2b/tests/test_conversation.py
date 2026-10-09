@@ -73,6 +73,29 @@ def test_tutoiement_et_panne_refuses():
     assert c.repondre_tour(panne, "salut", [], False, question) == question
 
 
+def test_question_de_l_application_jamais_reformulee():
+    # Apertus pose sa propre question (au sens différent) : elle est retirée, celle de Python reste
+    question = "Je compare une personne à la fois. Pour qui faisons-nous la comparaison ?"
+    bavard = lambda s, m: "Bonjour ! Je comprends. Pourriez-vous confirmer votre commune ?"
+    rep = c.repondre_tour(bavard, "je dois inclure les accidents ?", [], True, question)
+    assert rep == "Je comprends. " + question, rep
+    assert rep.count("?") == 1
+
+
+def test_question_ne_remplit_aucun_choix():
+    lu = {"multiple_people": {"value": True}, "include_accident": {"value": True},
+          "deductible": {"value": "all"}, "employed": {"value": False}}
+    assert c.mises_a_jour_hors_question(lu, "include_accident", True) == {"employed": {"value": False}}
+    assert c.mises_a_jour_hors_question(lu, "include_accident", False) == lu
+
+
+def test_sans_nouvelle_information_pas_d_appel_inutile():
+    appels = []
+    question = "Quel est votre âge ?"
+    assert c.repondre_tour(lambda s, m: appels.append(1) or "ok", "hmm", [], False, question) == question
+    assert not appels
+
+
 if __name__ == "__main__":
     tests = [f for nom, f in dict(globals()).items() if nom.startswith("test_")]
     for t in tests:
