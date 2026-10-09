@@ -209,8 +209,6 @@ class Profile:
             return "birth_year"
         if self.rating_age() is None:
             return "birth_year"
-        if not self.deductibles():
-            return "deductible"
         if self.accident() is None:
             return "include_accident"
         hours = self.known("hours_per_week_one_employer")
@@ -223,6 +221,9 @@ class Profile:
             return "care_conditions"
         if self.known("care_access") is None:
             return "care_access"
+        # La franchise en dernier : le conseil de franchise peut alors utiliser les modèles acceptés
+        if not self.deductibles():
+            return "deductible"
         return None
 
     def comparison(self, location):
