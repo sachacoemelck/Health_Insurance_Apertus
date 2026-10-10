@@ -14,6 +14,8 @@ Le parcours partage le contrat de profil de chatbot.py avec la CLI :
 """
 import re
 import json
+import time
+from concurrent.futures import ThreadPoolExecutor
 from copy import deepcopy
 
 import streamlit as st
@@ -54,9 +56,40 @@ class ErreurLLM(Exception):
 # --------------------------------------------------------------------------------------
 @st.cache_resource
 def client_llm(base_url, api_key):
-    # Délai maximal par appel : si Apertus ne répond pas, la personne voit un message au lieu
-    # d'attendre indéfiniment (par défaut, la bibliothèque attend 10 minutes et réessaie 2 fois).
-    return OpenAI(base_url=base_url, api_key=api_key, timeout=60, max_retries=1)
+    # Pas de nouvel essai automatique de la bibliothèque (il doublait l'attente quand le serveur est lent) :
+    # chaque appel a son propre délai (DELAI_8B, DELAI_70B) et l'application sait continuer sans réponse.
+    return OpenAI(base_url=base_url, api_key=api_key, timeout=60, max_retries=0)
+
+
+# Délais : lecture d'un message par Apertus 8B, rédaction par Apertus 70B, et durée maximale d'un tour.
+# Au-delà de LIMITE_TOUR, Apertus 70B n'est plus appelé : la personne reçoit la question sans attendre.
+DELAI_8B, DELAI_70B, LIMITE_TOUR = 20, 25, 45
+
+
+def appel(fonction, modele, delai):
+    """Fonction (systeme, message) -> texte, pour un modèle et un délai donnés. Préparée dans le fil
+    principal : elle peut ensuite être utilisée en parallèle (sans accès à l'état Streamlit)."""
+    c = client().with_options(timeout=delai)
+
+    def appeler(systeme, message):
+        try:
+            return getattr(chatbot, fonction)(c, modele, systeme, message)
+        except Exception as erreur:
+            raise ErreurLLM(str(erreur)) from erreur
+    return appeler
+
+
+def en_parallele(**taches):
+    """Lance les lectures d'Apertus en même temps ; une lecture en échec ou trop lente vaut None."""
+    with ThreadPoolExecutor(max_workers=max(1, len(taches))) as pool:
+        futurs = {nom: pool.submit(f) for nom, f in taches.items()}
+        resultats = {}
+        for nom, futur in futurs.items():
+            try:
+                resultats[nom] = futur.result()
+            except Exception:
+                resultats[nom] = None
+        return resultats
 
 
 def config():
@@ -70,20 +103,6 @@ def config():
 def client():
     cfg = config()
     return client_llm(cfg["LLM_BASE_URL"], cfg["LLM_API_KEY"])
-
-
-def llm(modele, systeme, message):
-    try:
-        return chatbot.demander_llm(client(), modele, systeme, message)
-    except Exception as erreur:
-        raise ErreurLLM(str(erreur)) from erreur
-
-
-def llm_json(modele, systeme, message):
-    try:
-        return chatbot.demander_llm_json(client(), modele, systeme, message)
-    except Exception as erreur:
-        raise ErreurLLM(str(erreur)) from erreur
 
 
 # --------------------------------------------------------------------------------------
@@ -136,13 +155,21 @@ def integrer(texte, champ=None, question=False, suivi=False):
     contract = p["contract"]
     message = json.dumps({"profile": contract.context(), "question": s.question if champ else None,
                           "target": champ, "user_message": texte}, ensure_ascii=False)
-    try:
-        updates = chatbot.extraire_mises_a_jour(
-            lambda prompt, message: llm(cfg["LLM_NAME"], prompt, message), message)
-    except ValueError:
-        # Lecture d'Apertus illisible deux fois (fréquent en allemand ou en anglais) : on continue avec
-        # les règles Python, qui lisent les formulations explicites, au lieu d'afficher une erreur.
-        updates = {}
+    # Toutes les lectures d'Apertus 8B partent en même temps (profil, soins, besoins, santé) : la personne
+    # attend la plus lente, pas la somme. Une lecture qui échoue ou dépasse son délai est simplement
+    # ignorée : les règles Python lisent alors les formulations explicites, sans message d'erreur.
+    lire = appel("demander_llm", cfg["LLM_NAME"], DELAI_8B)
+    lire_json = appel("demander_llm_json", cfg["LLM_NAME"], DELAI_8B)
+    taches = {"profil": lambda: chatbot.extraire_mises_a_jour(lire, message)}
+    if not question and (champ == "care_access" or soins.parle_de_soins(texte)):
+        taches["soins"] = lambda: soins.extraire_soins(lire_json, texte)
+    libre = champ is None and not question  # besoins et santé : seulement dans les descriptions libres
+    if libre:
+        taches["besoins"] = lambda: compl.categories_finales(
+            extraire_json(lire(compl.PROMPT_BESOINS, texte)).get("categories"), texte)
+        taches["sante"] = lambda: sante.classer(texte, lire)
+    lu = en_parallele(**taches)
+    updates = lu["profil"] or {}
     updates = conversation.mises_a_jour_hors_question(updates, champ, question)
     budget = conversation.lire_budget(texte, champ)
     if budget and not (budget[0] == "petit" and p["budget"] and p["budget"][0] == "montant"):
@@ -154,10 +181,7 @@ def integrer(texte, champ=None, question=False, suivi=False):
                         and updates.get("multiple_people", {}).get("status") == "known")
     # Préférences de soins : positions d'Apertus contrôlées par Python (module soins). Une
     # condition ou une hésitation ne suspend plus la comparaison : elle est chiffrée à part.
-    positions = {}
-    if not question and (champ == "care_access" or soins.parle_de_soins(texte)):
-        positions = soins.extraire_soins(
-            lambda systeme, message: llm_json(cfg["LLM_NAME"], systeme, message), texte)
+    positions = lu.get("soins") or {}
     if champ in (None, "care_access") and not question and not positions and soins.accepte_tout(texte):
         # « tous les modèles », « alle Modelle », « all models » : lu par Python si Apertus l'a manqué
         positions = {m: {"stance": "accepted", "condition": None, "evidence": None} for m in soins.NOMS_MODES}
@@ -182,16 +206,15 @@ def integrer(texte, champ=None, question=False, suivi=False):
     if change:
         synchroniser_profil()
 
-    if champ is None and not question:  # besoins et santé : seulement dans les descriptions libres
-        besoins = compl.categories_finales(
-            extraire_json(llm(cfg["LLM_NAME"], compl.PROMPT_BESOINS, texte)).get("categories"), texte)
+    if libre:
+        besoins = lu.get("besoins") or []
         nouveaux = [b for b in besoins if b not in p["besoins"]]
         if nouveaux:
             p["besoins"] += nouveaux
             s.textes_besoins.append(texte)
             change = True
         # Santé : Apertus classe seulement ; les réponses sont des textes fixes et des calculs
-        for element in sante.classer(texte, lambda systeme, message: llm(cfg["LLM_NAME"], systeme, message)):
+        for element in lu.get("sante") or []:
             if element not in s.sante:
                 s.sante.append(element)
                 change = True
@@ -361,7 +384,10 @@ def chiffres_franchise():
 
 
 def appeler_70b(systeme, message):
-    return llm(config()["LLM_NAME_RESTITUTION"], systeme, message)
+    """Rédaction par Apertus 70B, seulement s'il reste du temps dans ce tour (sinon : question seule)."""
+    if time.time() > st.session_state.get("echeance", float("inf")):
+        raise ErreurLLM("délai du tour dépassé")
+    return appel("demander_llm", config()["LLM_NAME_RESTITUTION"], DELAI_70B)(systeme, message)
 
 
 def avancer(tour=None):
@@ -420,6 +446,7 @@ def choisir_commune_texte(texte):
 
 def traiter_message(texte):
     s = st.session_state
+    s.echeance = time.time() + LIMITE_TOUR
     s.messages.append({"role": "user", "type": "texte", "contenu": texte})
     detectee = langues.detecter(texte)
     if detectee:
@@ -475,7 +502,7 @@ def calculer():
     bloc = {"offres": offres, "propositions": props, "intro": None, "compl": None,
             "preferences": chatbot.couts_des_preferences(c), "soins": dict(p["soins"])}
     if props:
-        bloc["intro"] = chatbot.expliquer(client(), cfg["LLM_NAME_RESTITUTION"],
+        bloc["intro"] = chatbot.expliquer(client().with_options(timeout=DELAI_70B), cfg["LLM_NAME_RESTITUTION"],
                                           faits_propositions(props, p["priorite"]), nom_langue(),
                                           prompt=PROMPT_INTRO, secours=tr(INTRO_DE_SECOURS, L()))
     if s.sante and p["franchise"] is not None:
