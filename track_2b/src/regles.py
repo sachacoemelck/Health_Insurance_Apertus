@@ -17,7 +17,7 @@ _CORRECTION = re.compile(r"\ben fait\b|\bfinalement\b|\bplut[ôo]t\b|\bcorrect|\
                          r"|\bpardon\b|\bd[ée]m[ée]nag|\bmaintenant\b|\bsorry\b|\bactually\b|\beigentlich\b"
                          r"|\bumgezogen\b|\bscusi\b|\bin realt[àa]\b", re.I)
 # Français, allemand, italien, anglais
-_MOT_FRANCHISE = r"(?:franchise|d[ée]ductible|franchigia|selbstbehalt)"
+_MOT_FRANCHISE = r"(?:franchise|d[ée]ductible|franchigia|franchisa|selbstbehalt)"
 _HAUTE = r"(?:plus\s+(?:haute|[ée]lev[ée]e)|h[öo]e?chste\w*|pi[ùu]\s+alt[ao]|highest|\bmax\w*)"
 _BASSE = r"(?:plus\s+basse|tiefste\w*|niedrigste\w*|pi[ùu]\s+bass[ao]|lowest|\bmin\w*)"
 _FRANCHISE_HAUTE = re.compile(_MOT_FRANCHISE + r"\D{0,25}" + _HAUTE + "|" + _HAUTE + r"\D{0,12}" + _MOT_FRANCHISE, re.I)
@@ -31,9 +31,10 @@ _HESITATION = re.compile(r"h[ée]sit|\bentre\b.{0,30}\bet\b|\bou\s+(?:bien\s+)?(
 _MONTANTS_LEGAUX = (0, 100, 200, 300, 400, 500, 600, 1000, 1500, 2000, 2500)
 _AVEC_ACCIDENT = re.compile(r"\bavec\s+(?:la\s+|les\s+)?(?:couverture\s+)?accidents?\b|\bmit\s+(?:der\s+)?unfall\w*"
                             r"|\bcon\s+(?:gli\s+|l')?infortuni|\bwith\s+(?:the\s+)?accidents?\b"
-                            r"|\baccidents?\s+included\b", re.I)
+                            r"|\baccidents?\s+included\b|\bcun\s+(?:ils\s+)?accidents\b|\bunfall\s+(?:inkl|inbegriffen|dabei)", re.I)
 _SANS_ACCIDENT = re.compile(r"\bsans\s+(?:la\s+|les\s+)?(?:couverture\s+)?accidents?\b|\bohne\s+(?:die\s+)?unfall\w*"
-                            r"|\bsenza\s+(?:gli\s+)?infortuni|\bwithout\s+(?:the\s+)?accidents?\b", re.I)
+                            r"|\bsenza\s+(?:gli\s+)?(?:infortuni|accidents)|\bwithout\s+(?:the\s+)?accidents?\b"
+                            r"|\bohni\s+(?:dr\s+|de\s+)?unfall\w*", re.I)
 # « je ne suis couvert par aucun employeur pour les accidents » : jamais une raison d'exclure les accidents
 _PAS_COUVERT = re.compile(r"\b(?:pas|aucun\w*|ni|plus)\b[^.?!]{0,40}\bcouverte?s?\b[^.?!]{0,40}\baccident"
                           r"|\bcouverte?s?\b[^.?!]{0,20}\b(?:aucun\w*|personne)\b[^.?!]{0,40}\baccident"
@@ -46,12 +47,20 @@ _MEME_EMPLOYEUR = re.compile(r"m[êe]me\s+employeur|un\s+seul\s+employeur|chez\s
 _PLUSIEURS_EMPLOYEURS = re.compile(r"autre\s+employeur|chez\s+un\s+autre|(?:deux|trois|plusieurs|\d)\s+employeurs", re.I)
 
 # Un parent qui parle d'un seul enfant (« mon fils a 10 ans ») : la comparaison est pour l'enfant
-_ENFANT = re.compile(r"\b(?:mon|notre)\s+(?:fils|enfant|b[ée]b[ée]|gar[çc]on)\b|\b(?:ma|notre)\s+fille\b", re.I)
+_ENFANT = re.compile(r"\b(?:mon|notre)\s+(?:fils|enfant|b[ée]b[ée]|gar[çc]on)\b|\b(?:ma|notre)\s+fille\b"
+                     r"|\b(?:mein(?:en)?|unser(?:en)?)\s+(?:sohn|kind|bub)\b|\b(?:meine|mini|unsere)\s+tochter\b"
+                     r"|\b(?:mio|nostro)\s+figlio\b|\b(?:mia|nostra)\s+figlia\b|\bmy\s+(?:son|daughter|child|kid|baby)\b",
+                     re.I)
 _PLUSIEURS_PERSONNES = re.compile(r"\bet\s+moi\b|\bnous\s+deux\b|\bma\s+femme\b|\bmon\s+mari\b|\bconjoint|"
                                   r"\bcompagne?\b|\bpartenaire\b|\bmes\s+enfants\b|\bfamille\b|\bjumeaux\b|"
                                   r"\b(?:deux|trois|2|3)\s+enfants\b", re.I)
 _NAISSANCE_RECENTE = re.compile(r"vient\s+de\s+na[îi]tre|nouveau-n[ée]|est\s+n[ée]e?\s+(?:cette|ce|il\s+y\s+a)", re.I)
-_AGE = re.compile(r"(?<![\d.,])(\d{1,3})\s*(?:ans|jahre?|anni|years?)\b|\bI(?:'m|\s+am)\s+(\d{1,3})\b", re.I)
+_AGE = re.compile(r"(?<![\d.,])(\d{1,3})\s*(?:ans|jahre?|j[oa]hr|anni|onns|years?)\b"
+                  r"|\b(?:I'm|I\s+am|he\s+is|she\s+is|(?:ich\s+)?bin|ich\s+bi|i\s+bi|er\s+isch?t?|sie\s+isch?t?|jau\s+hai|"
+                  r"el\s+ha|ella\s+ha|(?:ich|i)\s+bin\s+(?:jetzt\s+)?)\s+(\d{1,3})(?:i|gi|ni)?\b"
+                  r"(?!\s*(?:chf|fr\b|franken|francs|h\b|stunden|std|heures|ore|hours|%|kg|geboren))"
+                  r"|(?:^|[,;:!]\s*)(\d{2})\s*,\s*(?=[A-ZÀ-Ü])"
+                  r"|(?<![\d'’.,])\b(\d{2})(?:i|gi)\b", re.I)  # suisse-allemand : « 22i », « 52gi »
 _PLUSIEURS_AGES = re.compile(r"\d{1,3}\s*(?:et|,|und|e|and)\s*\d{1,3}\s*(?:ans|jahre?|anni|years?)", re.I)
 _NAISSANCE = re.compile(r"\bn[ée]e?s?\s+(?:en\s+)?((?:19|20)\d\d)\b|\bann[ée]e\s+de\s+naissance\D{0,5}((?:19|20)\d\d)"
                         r"|\bgeboren\s+(?:im\s+(?:jahr\s+)?)?((?:19|20)\d\d)\b|\b((?:19|20)\d\d)\s+geboren\b"
@@ -60,7 +69,7 @@ _NAISSANCE = re.compile(r"\bn[ée]e?s?\s+(?:en\s+)?((?:19|20)\d\d)\b|\bann[ée]e
 
 def _ages(texte):
     """Âges écrits dans le texte (« 35 ans », « 35 Jahre », « 35 anni », « I'm 35 »)."""
-    return [a or b for a, b in _AGE.findall(texte)]
+    return [next(g for g in groupes if g) for groupes in _AGE.findall(texte)]
 
 # « à Sion », « in Bern » : une préposition suivie d'un nom propre (majuscule) annonce souvent le lieu
 _PARLE_DU_LIEU = re.compile(r"\bhabit|\bvi[st]\s+[àa]\b|r[ée]sid|\bcommune\b|domicil|\bwohne|\babito"
@@ -129,6 +138,9 @@ def npa_presente(texte, cible=None):
                  if re.sub(r"[^a-z0-9]+", " ", cible_nom).strip() in noms}
         presente = (cible in ("postal_code", "municipality")
                     or re.search(r"(?:code\s+postal|\bnpa\b|\bcp\b|\bplz\b)\W{0,3}$", propre[:m.start()], re.I)
+                    # « wohn z'Bärn, 3011 », « abitesch a Cuira 7000 » : verbe d'habitation juste avant
+                    or re.search(r"\b(?:wohne?n?|wohnt|lebe|abit\w*|vivo|vivono|live|living|habite\w*|vis|vit|vivons|"
+                                 r"r[ée]side\w*)\b\W+(?:\S+\W+){0,3}$", propre[max(0, m.start() - 40):m.start()], re.I)
                     or any(f" {n} " in autour for n in noms if n))
         if presente:
             candidats.append(npa)
@@ -141,6 +153,14 @@ def completer_par_regles(updates, texte, cible=None, suivi=False, question=False
     après les résultats (« et avec une franchise de 300 ? ») ; le montant écrit fait alors foi."""
     updates = dict(updates)
     texte = texte or ""
+
+    # Une franchise lue par Apertus sans aucun mot de franchise dans le message (« au maximum 300 francs
+    # par mois » est un budget) est écartée, sauf en réponse à la question de la franchise ou après
+    # les résultats (« et avec 300 ? »).
+    if ("deductible" in updates and cible != "deductible" and not suivi
+            and not re.search(_MOT_FRANCHISE, texte, re.I)
+            and not _FRANCHISE_TOUTES.search(texte)):
+        updates.pop("deductible")
 
     # Lieu : un code postal suisse existant, écrit en chiffres, hors montants de franchise
     npa = npa_presente(texte, cible)

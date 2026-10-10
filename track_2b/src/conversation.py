@@ -150,7 +150,8 @@ def lire_budget(texte, cible=None):
     présenté comme un budget, ou en réponse à la question du budget ; jamais un âge ou une franchise."""
     texte = texte or ""
     if re.search(r"pas\s+de\s+(?:limite|budget|maximum)|sans\s+(?:limite|budget)|kein\w*\s+(?:limit|budget|grenze)"
-                 r"|nessun\s+limite|senza\s+limit|no\s+(?:limit|budget|maximum)", texte, re.IGNORECASE):
+                 r"|nessun\s+limite|senza\s+limit|no\s+(?:limit|budget|maximum)|kei\s+(?:limit|budget)|nagin\s+limit",
+                 texte, re.IGNORECASE):
         return ("aucun", None)
     # Âges, franchises et codes postaux ne sont jamais un budget ; un montant de 4 chiffres n'est
     # lu que s'il est suivi d'une monnaie ou de « par mois » (« Nyon 1260 » n'est pas un budget).

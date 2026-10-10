@@ -76,6 +76,18 @@ def test_reponse_dans_la_mauvaise_langue_refusee():
     assert regles.completer_par_regles({}, "Und mit 300 Franchise?", None, suivi=True)["deductible"]["value"] == 300
 
 
+def test_suisse_allemand_romanche_et_ages_simples():
+    lu = lambda t: {k: v["value"] for k, v in regles.completer_par_regles({}, t, None).items()}
+    assert lu("Grüezi, ich bi 35i und wohn z'Bärn, 3011. Mit Unfall")["age"] == 35
+    assert lu("Hoi, bin 28 Jahr alt, wohne in Züri 8004, ohni Unfall")["include_accident"] is False
+    assert lu("Mini Tochter isch 8 Johr alt, mir wohne in Luzärn 6003")["age"] == 8
+    assert lu("Jau hai 33 onns, abitesch a Glion 7130, senza accidents, franchisa 1500")["deductible"] == 1500
+    assert lu("Ich bin 50, wohne in Baden 5400")["age"] == 50 and lu("Hello, 29, Geneva 1205")["age"] == 29
+    assert lu("I need insurance for my son, he is 5.")["age"] == 5
+    lu_8b = {"deductible": {"value": 300, "status": "known", "correction": False}}
+    assert "deductible" not in regles.completer_par_regles(lu_8b, "max 320 CHF per month", None)
+
+
 if __name__ == "__main__":
     tests = [f for nom, f in dict(globals()).items() if nom.startswith("test_")]
     for t in tests:
