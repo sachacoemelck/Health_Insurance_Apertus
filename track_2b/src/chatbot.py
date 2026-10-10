@@ -503,6 +503,9 @@ ALIAS_COMMUNES = {
     "st gallen": "st. gallen", "sankt gallen": "st. gallen", "coire": "chur", "coira": "chur",
     "losanna": "lausanne", "bellinzone": "bellinzona", "thoune": "thun", "morat": "murten", "siders": "sierre",
     "viege": "visp", "delsberg": "delemont", "lauis": "lugano",
+    # Suisse-allemand et romanche usuels
+    "barn": "bern", "zuri": "zurich", "luzarn": "luzern", "st. galla": "st. gallen", "sanggalle": "st. gallen",
+    "basel-stadt": "basel", "cuira": "chur", "glion": "ilanz/glion",
 }
 
 

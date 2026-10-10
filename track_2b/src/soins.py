@@ -89,7 +89,7 @@ MOTS_SOINS = {
     PHARMACIE: r"pharma|apothek|farmac",
 }
 # « tous les modèles », « peu importe le modèle », « any model », « welches Modell ist mir egal »
-MOTIF_TOUT = (r"(tous|toutes|n'importe quel|peu importe|any|all|every|qualsiasi|tutti|tutte|welches|jedes|alle"
+MOTIF_TOUT = (r"(tous|toutes|n'importe quel|peu importe|any|all|every|qualsiasi|tutti|tutte|welches|jedes|alle|alli|tut"
               r"|fiche|fous|egal).{0,12}mod"
               r"|mod\w*.{0,20}(egal|indifferent|fiche|importe)")
 
