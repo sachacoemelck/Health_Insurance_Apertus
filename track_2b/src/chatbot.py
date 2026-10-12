@@ -328,7 +328,7 @@ Recopie les nombres tels qu'ils sont écrits, même s'ils te semblent impossible
 MOTIF_FRANCHISE_MAX = re.compile(r"plus\s+(?:haute|élevée)|\bmax", re.IGNORECASE)
 MOTIF_FRANCHISE_MIN = re.compile(r"plus\s+basse|\bmin", re.IGNORECASE)
 # Montants à écarter avant de chercher un NPA dans la phrase (1000, 2000, 2500 sont aussi des NPA)
-MOTIF_MONTANT = re.compile(r"franchise\s*(?:de\s*)?\d{3,4}|\d{3,4}\s*(?:CHF|francs|fr\.)",
+MOTIF_MONTANT = re.compile(r"(?:franchise|franchigia)\s*(?:de\s*|di\s*)?\d{3,4}|\d{3,4}\s*(?:CHF|francs|fr\.)",
                            re.IGNORECASE)
 AGE_SANS_EMPLOI = 15  # en dessous, travaille_8h = false sans poser la question
 # travaille_8h : un nombre d'heures ou un pourcentage écrit décide toujours ; sinon, si le LLM
@@ -734,6 +734,129 @@ def faits_propositions(propositions, priorite=None):
     return "\n".join(lignes)
 
 
+# Nombres en lettres (âges, franchises légales) : utilisés par generer_eval.py et par les
+# garde-fous ci-dessous, qui relisent « soixante-sept ans » ou « franchise deux mille »
+UNITES = ["zéro", "un", "deux", "trois", "quatre", "cinq", "six", "sept", "huit", "neuf", "dix",
+          "onze", "douze", "treize", "quatorze", "quinze", "seize"]
+DIZAINES = {20: "vingt", 30: "trente", 40: "quarante", 50: "cinquante", 60: "soixante"}
+
+
+def en_lettres(n):
+    if n <= 16:
+        return UNITES[n]
+    if n < 20:
+        return "dix-" + UNITES[n - 10]
+    if n < 70:
+        d, u = n // 10 * 10, n % 10
+        return DIZAINES[d] + ("" if u == 0 else " et un" if u == 1 else "-" + UNITES[u])
+    if n < 80:
+        return "soixante" + (" et onze" if n == 71 else "-" + en_lettres(n - 60))
+    if n < 100:
+        return "quatre-vingts" if n == 80 else "quatre-vingt-" + en_lettres(n - 80)
+    if n < 1000:
+        c, reste = n // 100, n % 100
+        tete = "cent" if c == 1 else UNITES[c] + (" cents" if reste == 0 else " cent")
+        return tete + ("" if reste == 0 else " " + en_lettres(reste))
+    m, reste = n // 1000, n % 1000
+    return ("mille" if m == 1 else UNITES[m] + " mille") + ("" if reste == 0 else " " + en_lettres(reste))
+
+
+
+# Garde-fous Python après l'extraction (voir completer_mises_a_jour)
+FRANCHISES_LEGALES = sorted(set().union(*FRANCHISES.values()))
+MOTIF_FRANCHISE_CHIFFRE = re.compile(r"(?:franchise|franchigia)\D{0,15}?(\d{1,4})(?!\d)", re.IGNORECASE)
+MOTIF_MOT_FRANCHISE = re.compile(r"franchise|franchigia", re.IGNORECASE)
+# Mêmes protections que regles.py (qui importe ce module, d'où la copie) : une hésitation
+# entre deux franchises ou plusieurs âges dans la phrase ne doivent pas être tranchés ici
+MOTIF_HESITATION = re.compile(r"h[ée]sit|\bentre\b.{0,30}\bet\b|\bou\s+(?:bien\s+)?(?:une\s+)?"
+                              r"(?:franchise\s+)?(?:de\s+)?\d", re.IGNORECASE)
+MOTIF_PLUSIEURS_AGES = re.compile(r"(?<!\d)\d{1,3}\s*(?:et|,)\s*\d{1,3}\s*ans", re.IGNORECASE)
+MOTIF_TOUS_MODELES = re.compile(r"tous les mod[èe]les|n'importe quel mod[èe]le|peu importe (?:le )?mod[èe]le|"
+                                r"alle modelle|tutti i modelli|all models", re.IGNORECASE)
+MOTIF_PLUSIEURS = re.compile(
+    r"\b(?:ma femme|mon mari|ma compagne|mon compagnon|mon conjoint|ma conjointe|mon épouse|"
+    r"mon époux|nous deux|tous les deux|toutes les deux|et moi|mes enfants|nos enfants|"
+    r"deux enfants|ma famille|notre famille|meine frau|mein mann|wir beide|meine kinder|"
+    r"mia moglie|mio marito|noi due|i miei figli|my wife|my husband|both of us)\b", re.IGNORECASE)
+
+
+# « soixante-sept » -> 67, « deux mille cinq cents » -> 2500 (âges 0-120 et franchises légales)
+NOMBRES_EN_LETTRES = {en_lettres(n): n for n in list(range(0, 121)) + FRANCHISES_LEGALES}
+_NOMBRE = r"\d{1,3}|" + "|".join(re.escape(m) for m in sorted(NOMBRES_EN_LETTRES, key=len, reverse=True))
+MOTIF_AGE = re.compile(rf"(?<![\w-])({_NOMBRE})\s+(?:ans|jahre|anni)\b", re.IGNORECASE)
+MOTIF_DUREE = re.compile(r"(?:depuis|il y a|pendant|tous les|toutes les|seit|vor|da|ogni)\s*$", re.IGNORECASE)
+MOTIF_FRANCHISE_LETTRES = re.compile(rf"(?:franchise|franchigia)\D{{0,15}}?(?<![\w-])({_NOMBRE})(?![\w-])",
+                                     re.IGNORECASE)
+
+
+def _nombre(texte):
+    return int(texte) if texte.isdigit() else NOMBRES_EN_LETTRES.get(texte.lower())
+
+
+def age_dans_phrase(texte):
+    """Le seul âge de la phrase (« j'ai 30 ans », « a 8 ans », « soixante-sept ans »,
+    « 45 Jahre »), en écartant les durées (« depuis 3 ans ») ; None s'il y en a zéro ou plusieurs."""
+    ages = {_nombre(m.group(1)) for m in MOTIF_AGE.finditer(texte or "")
+            if not MOTIF_DUREE.search(texte[:m.start()][-15:])}
+    ages.discard(None)
+    return ages.pop() if len(ages) == 1 else None
+
+
+def _connu(valeur):
+    return {"value": valeur, "status": "known", "correction": False}
+
+
+def completer_mises_a_jour(updates, user_message, target=None):
+    """Garde-fous Python : complète ce que le 8B a raté, sans jamais contredire une valeur
+    qu'il a bien comprise. Mesuré : le 8B range souvent le NPA dans « municipality », oublie
+    la franchise, et prend « Mon fils a 8 ans » pour plusieurs personnes."""
+    texte = user_message or ""
+    # Commune : retirer un NPA collé au nom (« 1003 Lausanne », « Genève 1205 », « 1260 »)
+    commune = updates.get("municipality", {})
+    if isinstance(commune.get("value"), str) and re.search(r"\d", commune["value"]):
+        nom = re.sub(r"[\d()]+", " ", commune["value"]).strip(" ,")
+        if nom:
+            updates["municipality"] = {**commune, "value": re.sub(r"\s+", " ", nom)}
+        else:
+            del updates["municipality"]
+    # NPA : s'il manque, le seul nombre de la phrase qui est un vrai NPA (montants écartés)
+    if updates.get("postal_code", {}).get("status") != "known":
+        npa = npa_dans_phrase(texte)
+        if npa is not None:
+            updates["postal_code"] = _connu(npa)
+    # Franchise : « franchise 300 », « la plus haute », ou un nombre seul en réponse à la question
+    if updates.get("deductible", {}).get("status") != "known" and not MOTIF_HESITATION.search(texte):
+        chiffre = MOTIF_FRANCHISE_CHIFFRE.search(texte) or MOTIF_FRANCHISE_LETTRES.search(texte)
+        if not chiffre and target == "deductible":
+            chiffre = re.search(rf"(?<![\w-])({_NOMBRE})(?![\w-])", texte, re.IGNORECASE)
+        parle_franchise = MOTIF_MOT_FRANCHISE.search(texte) or target == "deductible"
+        if chiffre and _nombre(chiffre.group(1)) in FRANCHISES_LEGALES:
+            updates["deductible"] = _connu(_nombre(chiffre.group(1)))
+        elif parle_franchise and MOTIF_FRANCHISE_MAX.search(texte):
+            updates["deductible"] = _connu("highest")
+        elif parle_franchise and MOTIF_FRANCHISE_MIN.search(texte):
+            updates["deductible"] = _connu("lowest")
+    # Modèles acceptés : « j'accepte tous les modèles » (souvent manqué par le 8B)
+    if (updates.get("care_access", {}).get("status") != "known"
+            and (MOTIF_TOUS_MODELES.search(texte)
+                 or (target == "care_access" and re.fullmatch(r"\s*(?:tous|toutes|peu importe|n'importe)\W*", texte,
+                                                             re.IGNORECASE)))):
+        updates["care_access"] = _connu(list(CARE_TYPES))
+    # Plusieurs personnes : seulement avec un vrai indice (« ma femme », « nous deux »…)
+    plusieurs = updates.get("multiple_people", {})
+    if plusieurs.get("value") is True and not MOTIF_PLUSIEURS.search(texte):
+        del updates["multiple_people"]
+    # Âge : s'il manque (le 8B l'oublie souvent), le seul âge écrit dans la phrase ; jamais
+    # quand plusieurs personnes sont décrites (« j'ai 30 ans et ma femme 29 »)
+    if (updates.get("age", {}).get("status") != "known"
+            and updates.get("birth_year", {}).get("status") != "known"
+            and not MOTIF_PLUSIEURS.search(texte) and not MOTIF_PLUSIEURS_AGES.search(texte)):
+        age = age_dans_phrase(texte)
+        if age is not None:
+            updates["age"] = _connu(age)
+    return updates
+
+
 def extraire_mises_a_jour(appeler, message):
     """A malformed model response gets one retry; no partial mutation or invented facts."""
     prompt = PROMPT_PROFILE
@@ -747,9 +870,17 @@ def extraire_mises_a_jour(appeler, message):
                     and not re.search(rf"(?<!\d){value}(?!\d)", context.get("user_message", ""))):
                 # Preserve the original safeguard: never accept a postcode invented from a town.
                 updates["postal_code"] = {"value": None, "status": "ambiguous", "correction": False}
-            return updates
+            return completer_mises_a_jour(updates, context.get("user_message", ""),
+                                          context.get("target"))
         except ValueError:
             if attempt:
+                # Deux réponses illisibles : on garde au moins ce que Python lit dans la phrase
+                # (NPA, âge, franchise), plutôt que d'afficher « Apertus ne répond pas ».
+                context = json.loads(message)
+                secours = completer_mises_a_jour({}, context.get("user_message", ""),
+                                                 context.get("target"))
+                if secours:
+                    return secours
                 raise
             prompt += "\nLa réponse précédente était invalide. Respecte exactement le schéma JSON, sans Markdown."
 

@@ -25,8 +25,8 @@ Liste vide si la personne ne parle pas de sa santé."""
 MOTIF_SANTE = re.compile(
     r"malad|traitement|chroniq|m[ée]dic|m[ée]decin|sp[ée]cialiste|pneumo|cardio|dermato|psy|"
     r"asthm|diab[èe]t|allerg|cancer|douleur|\bmal\s+(?:aux?|à)\b|op[ée]r|chirurg|h[ôo]pita|"
-    r"hospitalis|enfant|b[ée]b[ée]|grossesse|enceinte|accouch|sport|\bski|moto|\bdents?\b|"
-    r"dentiste|lunette|\bvue\b|sant[ée]|peur|inqui[èe]t", re.IGNORECASE)
+    r"hospitalis|enfant|b[ée]b[ée]|grossesse|enceinte|accouch|sport|\bski|moto|"
+    r"sant[ée]|peur|inqui[èe]t", re.IGNORECASE)  # lunettes, dentiste : besoins, pas santé
 # Garde-fou 2 : une catégorie n'est gardée que si un mot lié figure dans la phrase
 MOTS_CATEGORIE = {
     "lunettes": compl.MOTS_BESOINS["lunettes"] + r"|\byeux\b|\b[œo]il\b",

@@ -14,7 +14,7 @@ import csv
 import random
 import re
 
-from chatbot import FRANCHISES
+from chatbot import FRANCHISES, en_lettres
 from comparateur import DATA_DIR, classe_age, regions
 
 GRAINE = 2026
@@ -22,32 +22,6 @@ NB_CAS = 300
 SORTIE = "eval_synthetique.csv"
 COLONNES = ["id", "phrase", "age", "npa", "franchise", "travaille_8h", "categories",
             "type_test", "note", "plusieurs_personnes", "vide_apres_controles"]
-
-# --- Nombres en lettres (âges de 0 à 90, franchises légales) ------------------------------
-UNITES = ["zéro", "un", "deux", "trois", "quatre", "cinq", "six", "sept", "huit", "neuf", "dix",
-          "onze", "douze", "treize", "quatorze", "quinze", "seize"]
-DIZAINES = {20: "vingt", 30: "trente", 40: "quarante", 50: "cinquante", 60: "soixante"}
-
-
-def en_lettres(n):
-    if n <= 16:
-        return UNITES[n]
-    if n < 20:
-        return "dix-" + UNITES[n - 10]
-    if n < 70:
-        d, u = n // 10 * 10, n % 10
-        return DIZAINES[d] + ("" if u == 0 else " et un" if u == 1 else "-" + UNITES[u])
-    if n < 80:
-        return "soixante" + (" et onze" if n == 71 else "-" + en_lettres(n - 60))
-    if n < 100:
-        return "quatre-vingts" if n == 80 else "quatre-vingt-" + en_lettres(n - 80)
-    if n < 1000:
-        c, reste = n // 100, n % 100
-        tete = "cent" if c == 1 else UNITES[c] + (" cents" if reste == 0 else " cent")
-        return tete + ("" if reste == 0 else " " + en_lettres(reste))
-    m, reste = n // 1000, n % 1000
-    return ("mille" if m == 1 else UNITES[m] + " mille") + ("" if reste == 0 else " " + en_lettres(reste))
-
 
 # --- Morceaux de phrase -------------------------------------------------------------------
 STATUTS = {  # statut -> (travaille_8h attendu, formulations FR)

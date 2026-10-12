@@ -377,7 +377,6 @@ def afficher_profil(p, nb_sante=0):
         f"- **Modèles acceptés** : {care}",
     ] + positions_soins + [
         f"- **Couverture accident** : {accident}",
-        f"- **Priorité** : {NOMS_PRIORITE.get(p['priorite'], 'aucune indiquée')}",
         f"- **Besoins en complémentaires** : {besoins}",
     ] + ([f"- **Santé** : {nb_sante} élément(s) pris en compte"] if nb_sante else [])))
 
@@ -448,6 +447,14 @@ def texte_produit(prod, avec_conditions=True):
     return texte
 
 
+def nom_court(assureur):
+    """« Atupri Gesundheitsversicherung AG » -> « Atupri », « Assura-Basis SA » -> « Assura »
+    (pour les cartes ; le nom officiel reste dans le tableau complet)."""
+    nom = re.sub(r"[- ](?:Basis|Gesundheitsversicherung|Krankenversicherung|Kranken-?\s*versicherung)\b.*$",
+                 "", assureur, flags=re.IGNORECASE)
+    return re.sub(r"\s+(?:AG|SA)$", "", nom).strip() or assureur
+
+
 def afficher_propositions(bloc):
     props = bloc["propositions"]
     if not props:
@@ -456,12 +463,15 @@ def afficher_propositions(bloc):
     st.write(bloc["intro"])
     for colonne, p in zip(st.columns(len(props)), props):
         with colonne, st.container(border=True):
-            st.markdown(f"**{p['titre']}**")
-            st.markdown(f"### {p['prime_mois']:.2f} CHF / mois")
-            st.markdown(f"{p['assureur']}  \n*{p['produit']}* — {p['modele']}")
-            st.markdown("La moins chère" if p["ecart_mois"] == 0
-                        else f"+{p['ecart_mois']:.2f} CHF / mois par rapport à la moins chère")
-            st.caption(f"Franchise : {p['franchise']} CHF. Contrepartie : {p['contrepartie']}")
+            st.caption(p["titre"])
+            ecart = p["ecart_mois"]
+            st.metric(label=f"{nom_court(p['assureur'])} · {p['modele']}",
+                      value=f"CHF {p['prime_mois']:.2f}",
+                      delta=None if ecart == 0 else f"+{ecart:.2f} CHF / mois",
+                      delta_color="inverse")
+            st.markdown("⭐ **La moins chère**" if ecart == 0 else "par mois, par rapport à la moins chère")
+            st.caption(f"Soit CHF {chf(p['prime_mois'] * 12)} par an · franchise {p['franchise']} CHF  \n"
+                       f"*{p['produit']}* — {p['contrepartie']}")
     st.caption("Compatibilité par catégorie seulement : réseau de médecins, application et conditions du produit à vérifier. " + RAPPEL_LAMAL)
     if bloc["offres"]["Franchise"].nunique() > 1:
         st.caption("Plusieurs franchises sont comparées : la prime la plus basse ne signifie pas le coût total de soins le plus bas.")
@@ -498,7 +508,7 @@ def afficher_meilleurs_complementaires(c):
 
 
 def afficher_toutes_les_offres(bloc):
-    with st.expander("Voir toutes les offres"):
+    with st.container():
         offres = bloc["offres"].drop(columns="Tariftyp")
         if not offres.empty:
             st.markdown(f"**Assurance de base (LAMal) : {len(offres)} offres, de la moins "
@@ -541,14 +551,22 @@ def afficher_preferences(lignes, positions=None):
 
 
 def afficher_resultats(bloc):
-    afficher_propositions(bloc)
-    if bloc.get("preferences"):
-        afficher_preferences(bloc["preferences"], bloc.get("soins"))
-    if bloc.get("sante"):
-        afficher_sante(bloc["sante"])
+    """Résultats en onglets : l'essentiel d'abord, le détail à un clic."""
+    onglets = ["Assurance de base"] + (["Complémentaires"] if bloc["compl"] else []) \
+        + (["Votre santé"] if bloc.get("sante") else []) + ["Toutes les offres"]
+    zones = dict(zip(onglets, st.tabs(onglets)))
+    with zones["Assurance de base"]:
+        afficher_propositions(bloc)
+        if bloc.get("preferences"):
+            afficher_preferences(bloc["preferences"], bloc.get("soins"))
     if bloc["compl"]:
-        afficher_meilleurs_complementaires(bloc["compl"])
-    afficher_toutes_les_offres(bloc)
+        with zones["Complémentaires"]:
+            afficher_meilleurs_complementaires(bloc["compl"])
+    if bloc.get("sante"):
+        with zones["Votre santé"]:
+            afficher_sante(bloc["sante"])
+    with zones["Toutes les offres"]:
+        afficher_toutes_les_offres(bloc)
     st.caption("Vous pouvez poser une question de suivi, par exemple « et avec une franchise de 300 ? » "
                "ou « je veux garder le libre choix du médecin ».")
 
