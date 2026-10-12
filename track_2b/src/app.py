@@ -31,6 +31,7 @@ import lois
 from langues import tr
 import regles
 import soins
+import subsides
 from chatbot import (Profile, State, CARE_TYPES, CARE_LABELS, QUESTIONS,
                      FRANCHISES, NOMS_PRIORITE, PROMPT_INTRO, extraire_json,
                      faits_propositions, lire_config, localiser, nom_simple)
@@ -461,8 +462,8 @@ def traiter_message(texte):
     tour = {"texte": texte, "question": question, "avant": faits_connus()}
     if s.attente == "commune" and choisir_commune_texte(texte):
         avancer()
-    elif s.etape == "resultats" and s.attente in ("caisse", "caisse_choix") and not question \
-            and traiter_caisse(texte):
+    elif s.etape == "resultats" and not question and (
+            s.attente in ("caisse", "caisse_choix") or changement.trouver_caisses(texte)) and traiter_caisse(texte):
         pass
     elif s.etape == "resultats" and s.attente == "lettre" and (_OUI.search(texte) or _NON.search(texte)):
         repondre_lettre_texte(bool(_OUI.search(texte)))
@@ -477,6 +478,9 @@ def traiter_message(texte):
             avancer(tour)  # une information change : nouveau résumé à confirmer, puis nouveau calcul
         else:
             repondre_apres_resultats(texte)
+            ligne = subsides.office(s.profil["canton"], L()) if subsides.PARLE_DE_SUBSIDE.search(texte) else None
+            if ligne:  # question sur les subsides : l'office de son canton, lien officiel (liste OFSP)
+                dire(ligne)
     else:
         integrer(texte, champ=s.attente if s.attente not in (None, "confirmation") else None,
                  question=question)
@@ -556,6 +560,7 @@ def calculer():
             "categories": list(p["besoins"]), "choix": choix,
             "meilleurs": {c: compl.meilleurs_produits(choix, c, p["age"]) for c in p["besoins"]}}
     bloc["budget"] = p["budget"]
+    bloc["canton"] = p["canton"]
     bloc["faits"] = faits_resultats(bloc)
     bloc["chiffres_franchise"] = chiffres_franchise()
     s.resultats.append(bloc)
@@ -930,7 +935,8 @@ def afficher_resultats(bloc):
     hors_budget = (b and b[0] == "montant" and not bloc["offres"].empty
                    and bloc["offres"]["Prime/mois"].min() > b[1])
     if b and (b[0] == "petit" or hors_budget):
-        st.info(tr(conversation.TEXTE_SUBSIDES, L()), icon="💡")
+        ligne = subsides.office(bloc.get("canton") or st.session_state.profil.get("canton"), L())
+        st.info(tr(conversation.TEXTE_SUBSIDES, L()) + (f"\n\n{ligne}" if ligne else ""), icon="💡")
     if bloc.get("preferences"):
         afficher_preferences(bloc["preferences"], bloc.get("soins"))
     if bloc.get("sante"):

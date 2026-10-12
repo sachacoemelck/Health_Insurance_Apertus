@@ -67,9 +67,15 @@ _NAISSANCE = re.compile(r"\bn[ée]e?s?\s+(?:en\s+)?((?:19|20)\d\d)\b|\bann[ée]e
                         r"|\bnat[oa]\s+nel\s+((?:19|20)\d\d)\b|\bborn\s+in\s+((?:19|20)\d\d)\b", re.I)
 
 
+# Une durée n'est pas un âge : « chez Helsana depuis 10 ans », « seit 10 Jahren », « da 10 anni »
+_DUREE = re.compile(r"\b(?:depuis|pendant|durant|il y a|seit|vor|während|da|per|for|since)\s+"
+                    r"(?:plus de\s+|über\s+|oltre\s+|over\s+|presque\s+|fast\s+|quasi\s+|almost\s+)?"
+                    r"\d{1,3}\s*(?:ans|jahren?|j[oa]hr|anni|years?)\b|\b\d{1,3}\s*years?\s+ago\b", re.I)
+
+
 def _ages(texte):
     """Âges écrits dans le texte (« 35 ans », « 35 Jahre », « 35 anni », « I'm 35 »)."""
-    return [next(g for g in groupes if g) for groupes in _AGE.findall(texte)]
+    return [next(g for g in groupes if g) for groupes in _AGE.findall(_DUREE.sub(" ", texte or ""))]
 
 # « à Sion », « in Bern » : une préposition suivie d'un nom propre (majuscule) annonce souvent le lieu
 _PARLE_DU_LIEU = re.compile(r"\bhabit|\bvi[st]\s+[àa]\b|r[ée]sid|\bcommune\b|domicil|\bwohne|\babito"
@@ -230,6 +236,12 @@ def completer_par_regles(updates, texte, cible=None, suivi=False, question=False
         _mettre(updates, "hours_per_week_one_employer", int(heures.group(1)), texte, cible)
         if not _connu(updates, "employed"):
             _mettre(updates, "employed", True, texte, cible)
+
+    # Une durée lue comme un âge par Apertus (« chez Helsana depuis 10 ans » -> 10 ans) : on l'écarte
+    age_lu = updates.get("age", {}).get("value")
+    if age_lu is not None and str(age_lu) not in _ages(texte) and any(
+            re.search(rf"\b{age_lu}\b", d.group(0)) for d in _DUREE.finditer(texte)):
+        updates.pop("age")
 
     # Un âge lu comme une année de naissance (« 50 ans » -> 50) n'est pas une année : on l'écarte
     an = updates.get("birth_year", {}).get("value")

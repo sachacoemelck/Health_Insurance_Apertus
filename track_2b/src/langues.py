@@ -556,4 +556,12 @@ _("Avant d'envoyer : 1) inscrivez-vous d'abord auprès de la nouvelle caisse (vo
   "insurer confirms your cover, KVG/LAMal art. 7 para. 5); 2) send the letter by registered mail: it must "
   "ARRIVE at your insurer by {limite} at the latest; 3) fill in the fields in square brackets and sign.")
 
+_("Dans votre canton ({canton}), la demande se fait auprès de : [{office}]({url}). Liste officielle de tous les "
+  "cantons : [OFSP]({source}).",
+  "In Ihrem Kanton ({canton}) stellen Sie den Antrag bei: [{office}]({url}). Offizielle Liste aller Kantone: "
+  "[BAG]({source}).",
+  "Nel suo cantone ({canton}) la domanda si presenta a: [{office}]({url}). Lista ufficiale di tutti i cantoni: "
+  "[UFSP]({source}).",
+  "In your canton ({canton}), you apply to: [{office}]({url}). Official list for all cantons: [FOPH]({source}).")
+
 TRAD = {fr: dict(zip(("de", "it", "en"), v)) for fr, v in T.items()}

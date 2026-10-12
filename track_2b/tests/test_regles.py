@@ -111,6 +111,13 @@ def test_moitie_de_nom_bilingue():
     assert regles.completer_par_regles({}, "27 Jahre, Biel 2502", None)["postal_code"]["value"] == 2502
 
 
+def test_une_duree_n_est_pas_un_age():
+    lu_8b = {"age": {"value": 10, "status": "known", "correction": False}}
+    assert "age" not in regles.completer_par_regles(lu_8b, "Je suis chez Helsana depuis 10 ans", None, suivi=True)
+    assert regles._ages("seit 10 Jahren bei der CSS, ich bin 40") == ["40"]
+    assert regles._ages("sono con la Swica da 10 anni") == []
+
+
 if __name__ == "__main__":
     tests = [f for nom, f in sorted(globals().items()) if nom.startswith("test_")]
     for test in tests:

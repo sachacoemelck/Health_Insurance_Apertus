@@ -67,6 +67,16 @@ def test_lettre_verifiee():
     assert "30.11.2026" in c.conseils_envoi("fr", 2027)
 
 
+def test_office_des_subsides_par_canton():
+    import subsides
+    assert len(subsides.OFFICES) == 26                      # les 26 cantons de la liste OFSP
+    assert all(url.startswith("https://") for _, url in subsides.OFFICES.values())
+    assert "[SVA Zürich](https://svazurich.ch)" in subsides.office("ZH", "de")
+    assert "Office vaudois" in subsides.office("VD") and subsides.office(None) is None
+    assert subsides.PARLE_DE_SUBSIDE.search("Ai-je droit à un subside ?")
+    assert subsides.PARLE_DE_SUBSIDE.search("Habe ich Anspruch auf Prämienverbilligung?")
+
+
 if __name__ == "__main__":
     tests = [f for nom, f in dict(globals()).items() if nom.startswith("test_")]
     for t in tests:
