@@ -88,6 +88,14 @@ def test_numeros_groupes_et_dans_la_phrase():
     assert "erhebt" in c and "[L" not in c.split("\n")[0], c
     assert conversation.numeros_inconnus("ok [L1, L9]", "[L1] x") == ["L9"]
     assert conversation.raccourcir("Un. Deux. Trois. Quatre. Cinq. Six. Sept.", 5) == "Un. Deux. Trois. Quatre. Cinq."
+    # 2e test réel (60 questions) : numéros au milieu d'une phrase, plages, formules de lettre
+    d = conversation.citer("Les articles [L1] et [L2] précisent que rien n'est dû.", "fr", passages)
+    assert d.startswith("Les articles LAMal art.") and "précisent" in d, d
+    e = conversation.citer("Rien à payer [L1] mais la franchise reste [L2].", "fr", passages)
+    assert e.startswith("Rien à payer mais la franchise reste."), e
+    assert "[L" not in conversation.citer("Die Prämie hängt vom Kanton ab [L1–L2].", "de", passages)
+    assert conversation.nettoyer("Ma chère personne,  La LAMal paie.", True) == "La LAMal paie."
+    assert conversation.nettoyer("Sehr geehrte Person, gemäss KVG.", True) == "Gemäss KVG."
 
 
 if __name__ == "__main__":

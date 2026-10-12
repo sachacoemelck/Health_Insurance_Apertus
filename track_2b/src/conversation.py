@@ -147,14 +147,17 @@ def source_liee(numero, code="fr"):
 _GROUPE = re.compile(r"[\[(]\s*((?:[FL]\d+\s*(?:,|;|/|et|und|e|and)\s*)*[FL]\d+)\s*[\])]")
 # « selon [L2] », « gemäss [L1] und [L3] » : le numéro fait partie de la phrase, on le remplace par la
 # référence lisible (sinon il resterait « selon , … » après avoir retiré le numéro).
-_INTRODUIT = re.compile(r"\b(selon(?: les articles| l'article)?|conformément à|d'après|voir|gemäss|gemäß|nach|"
+_INTRODUIT = re.compile(r"\b(selon(?: les articles| l'article)?|conformément à|d'après|voir|gemäss|gemäß|nach|as per|per|"
                         r"siehe|laut|secondo|vedi|according to|under|see|in)\s+"
                         r"(\[[FL]\d+\](?:\s*(?:,|\bet\b|\bund\b|\be\b|\band\b)?\s*\[[FL]\d+\])*)", re.IGNORECASE)
 
 
 def normaliser_numeros(reponse):
-    """« [F6, L2] », « (L1, L3) », « (L2) » -> « [F6] [L2] » : la forme que Python sait vérifier."""
-    return _GROUPE.sub(lambda m: " ".join(f"[{n}]" for n in re.findall(r"[FL]\d+", m.group(1))), reponse or "")
+    """« [F6, L2] », « (L1, L3) », « (L2) », « [L1–L3] » -> « [F6] [L2] » : la forme que Python sait vérifier."""
+    texte = re.sub(r"\[([FL])(\d+)\s*[–-]\s*(?:[FL])?(\d+)\]",
+                   lambda m: " ".join(f"[{m.group(1)}{n}]" for n in range(int(m.group(2)), int(m.group(3)) + 1)),
+                   reponse or "")
+    return _GROUPE.sub(lambda m: " ".join(f"[{n}]" for n in re.findall(r"[FL]\d+", m.group(1))), texte)
 
 
 def _reference(genre, n, code, passages):
@@ -174,20 +177,30 @@ def citer(reponse, code="fr", passages=()):
     liens = []
     for genre, n in re.findall(r"\[([FL])(\d+)\]", reponse):
         liens += [lien for lien in _reference(genre, int(n), code, passages)[1] if lien not in liens]
+    et = {"de": " und ", "it": " e ", "en": " and "}.get(code, " et ")
 
-    def lisible(m):
-        noms = [_reference(g, int(n), code, passages)[0] for g, n in re.findall(r"\[([FL])(\d+)\]", m.group(2))]
-        noms = [x for x in noms if x]
-        et = {"de": " und ", "it": " e ", "en": " and "}.get(code, " et ")
+    def noms(groupe):  # « [L1] et [L2] » -> « LAMal art. 64 al. 7 et OAMal art. 105 al. 1 »
+        trouves = [_reference(g, int(n), code, passages)[0] for g, n in re.findall(r"\[([FL])(\d+)\]", groupe)]
+        return et.join(x for x in trouves if x)
+
+    def introduit(m):  # « selon [L2] » : le numéro fait partie de la phrase
         mot = re.sub(r"(?i)^(selon) (?:les articles|l'article)$", r"\1", m.group(1))
-        return f"{mot} {et.join(noms)}" if noms else m.group(0)
+        return f"{mot} {noms(m.group(2))}" if noms(m.group(2)) else m.group(0)
 
-    texte = _INTRODUIT.sub(lisible, reponse)
+    texte = _INTRODUIT.sub(introduit, reponse)
+    # Un numéro suivi d'un mot fait aussi partie de la phrase (« les articles [L1] et [L2] précisent ») ;
+    # en fin de phrase, il est simplement retiré (la source est ajoutée en bas).
+    texte = _AU_MILIEU.sub(lambda m: noms(m.group(1)) or m.group(0), texte)
     texte = re.sub(r"\s*\[[FL]\d+\]", "", texte)
     texte = re.sub(r"\s+([.,;:])", r"\1", texte).strip()
     if not liens:
         return texte
     return f"{texte}  \n*{_MOTS_SOURCE.get(code, _MOTS_SOURCE['fr'])[0]} : {' ; '.join(liens)}*"
+
+
+_AU_MILIEU = re.compile(r"(\[[FL]\d+\](?:\s*(?:,|\bet\b|\bund\b|\be\b|\band\b)?\s*\[[FL]\d+\])*)"
+                        r"(?!\s*(?:,|\bet\b|\bund\b|\be\b|\band\b)\s*\[)"
+                        r"(?!\s+(?:et|mais|ou|donc|und|aber|oder|e|ma|o|and|but|or|so)\b)(?=\s+[^\W\d_])")
 
 
 def numeros_inconnus(reponse, faits=None):
@@ -423,8 +436,10 @@ def nettoyer(reponse, garder_questions=False):
     texte = re.sub(r"^\s*(?:bonjour|salut|bonsoir|grüezi|grüss gott|hallo|guten tag|buongiorno|buonasera|ciao|"
                    r"salve|hello|hi)\s*[!,.]?\s*", "", reponse or "", flags=re.IGNORECASE).strip()
     texte = re.sub(r"\bÀ RETENIR\s*:\s*", "", texte, flags=re.IGNORECASE).strip()  # étiquette des faits recopiée
-    texte = re.sub(r"^(?:mesdames,? messieurs|madame,? monsieur|cher(?:e)? (?:client|assuré)e?)\s*,?\s*", "", texte,
-                   flags=re.IGNORECASE).strip()  # formule de lettre
+    texte = re.sub(r"^(?:mesdames,? messieurs|madame,? monsieur|(?:ma |mon )?ch[eè]re?s? (?:personne|client|cliente|assurée?|utilisat\w+|madame|monsieur)|"
+                   r"sehr geehrte[rs]? (?:Person|Kundin|Kunde|Dame|Herr|Damen und Herren)|liebe[rs]? (?:Person|Kundin|Kunde)|"
+                   r"gentile (?:cliente|persona|signora|signore)|egregi[oa] (?:cliente|signor[ae])|"
+                   r"dear (?:customer|client|user|sir|madam))\s*,\s*", "", texte, flags=re.IGNORECASE).strip()  # formule de lettre
     if not garder_questions:
         phrases = re.split(r"(?<=[.!?…])\s+", texte)
         texte = " ".join(p for p in phrases if not p.rstrip().endswith("?")).strip()
