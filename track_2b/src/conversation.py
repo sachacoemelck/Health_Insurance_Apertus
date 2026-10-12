@@ -58,8 +58,10 @@ FICHE_LAMAL = [
      "LAMal art. 64 ; OAMal art. 104"),
     ("accidents", "Une personne salariée au moins 8 heures par semaine chez le même employeur est assurée "
                   "contre les accidents non professionnels par son employeur (LAA) : elle peut exclure "
-                  "les accidents de sa LAMal et payer une prime plus basse. Les étudiants, indépendants, "
-                  "retraités ou personnes sans emploi doivent en général garder les accidents inclus.",
+                  "les accidents de sa LAMal et payer une prime plus basse. Les personnes au chômage qui "
+                  "touchent des indemnités sont assurées contre les accidents par l'assurance-chômage "
+                  "(Suva). Les étudiants, indépendants, retraités ou autres personnes sans emploi "
+                  "doivent en général garder les accidents inclus.",
      "LAMal art. 8 ; LAA art. 1a et 8"),
     ("modeles", "Modèles d'assurance : le libre choix (aucune restriction propre à un réseau) ; médecin "
                 "de famille ou HMO (premier contact chez le médecin ou le réseau désigné) ; télémédecine "
@@ -142,20 +144,47 @@ def source_liee(numero, code="fr"):
     return " ; ".join(liens)
 
 
+_GROUPE = re.compile(r"[\[(]\s*((?:[FL]\d+\s*(?:,|;|/|et|und|e|and)\s*)*[FL]\d+)\s*[\])]")
+# « selon [L2] », « gemäss [L1] und [L3] » : le numéro fait partie de la phrase, on le remplace par la
+# référence lisible (sinon il resterait « selon , … » après avoir retiré le numéro).
+_INTRODUIT = re.compile(r"\b(selon(?: les articles| l'article)?|conformément à|d'après|voir|gemäss|gemäß|nach|"
+                        r"siehe|laut|secondo|vedi|according to|under|see|in)\s+"
+                        r"(\[[FL]\d+\](?:\s*(?:,|\bet\b|\bund\b|\be\b|\band\b)?\s*\[[FL]\d+\])*)", re.IGNORECASE)
+
+
+def normaliser_numeros(reponse):
+    """« [F6, L2] », « (L1, L3) », « (L2) » -> « [F6] [L2] » : la forme que Python sait vérifier."""
+    return _GROUPE.sub(lambda m: " ".join(f"[{n}]" for n in re.findall(r"[FL]\d+", m.group(1))), reponse or "")
+
+
+def _reference(genre, n, code, passages):
+    """(référence lisible, [liens Markdown]) d'un numéro cité ; (None, []) s'il n'existe pas."""
+    if genre == "F" and 1 <= n <= len(FICHE_LAMAL):
+        liens = source_liee(n, code)
+        return re.sub(r"\[([^\]]+)\]\([^)]*\)", r"\1", liens), liens.split(" ; ")
+    if genre == "L" and 1 <= n <= len(passages):
+        return lois.reference(passages[n - 1], code), [lois.lien(passages[n - 1], code)]
+    return None, []
+
+
 def citer(reponse, code="fr", passages=()):
     """Remplace les numéros cités par Apertus ([F5] : fiche, [L2] : article de loi trouvé) par la vraie
     source, ajoutée en fin de réponse. Seuls les numéros fournis existent : pas de source inventée."""
+    reponse = normaliser_numeros(reponse)
     liens = []
-    for genre, n in re.findall(r"\[([FL])(\d+)\]", reponse or ""):
-        n = int(n)
-        if genre == "F" and 1 <= n <= len(FICHE_LAMAL):
-            nouveaux = source_liee(n, code).split(" ; ")
-        elif genre == "L" and 1 <= n <= len(passages):
-            nouveaux = [lois.lien(passages[n - 1], code)]
-        else:
-            continue
-        liens += [lien for lien in nouveaux if lien not in liens]  # sans doublon
-    texte = re.sub(r"\s*\[[FL]\d+\]", "", reponse or "").strip()
+    for genre, n in re.findall(r"\[([FL])(\d+)\]", reponse):
+        liens += [lien for lien in _reference(genre, int(n), code, passages)[1] if lien not in liens]
+
+    def lisible(m):
+        noms = [_reference(g, int(n), code, passages)[0] for g, n in re.findall(r"\[([FL])(\d+)\]", m.group(2))]
+        noms = [x for x in noms if x]
+        et = {"de": " und ", "it": " e ", "en": " and "}.get(code, " et ")
+        mot = re.sub(r"(?i)^(selon) (?:les articles|l'article)$", r"\1", m.group(1))
+        return f"{mot} {et.join(noms)}" if noms else m.group(0)
+
+    texte = _INTRODUIT.sub(lisible, reponse)
+    texte = re.sub(r"\s*\[[FL]\d+\]", "", texte)
+    texte = re.sub(r"\s+([.,;:])", r"\1", texte).strip()
     if not liens:
         return texte
     return f"{texte}  \n*{_MOTS_SOURCE.get(code, _MOTS_SOURCE['fr'])[0]} : {' ; '.join(liens)}*"
@@ -163,7 +192,7 @@ def citer(reponse, code="fr", passages=()):
 
 def numeros_inconnus(reponse, faits=None):
     """Numéros cités qui n'ont pas été fournis à Apertus (dans les faits, ou dans la fiche sans faits)."""
-    cites = re.findall(r"\[([FL]\d+)\]", reponse or "")
+    cites = re.findall(r"\[([FL]\d+)\]", normaliser_numeros(reponse))
     if faits is not None:
         fournis = set(re.findall(r"\[([FL]\d+)\]", faits))
     else:
@@ -342,6 +371,10 @@ Règles strictes :
   entre crochets, par exemple [F5] ou [L2]. N'utilise que les numéros fournis. Les articles de loi
   sont le texte officiel : explique-les en mots simples, sans jargon, et ne leur fais pas dire plus
   que ce qu'ils disent.
+- Mets les numéros seulement en fin de phrase, jamais dans la phrase (pas « selon [L2] »).
+- Si aucun article ni aucune connaissance fournis ne parle du sujet exact de la question, dis
+  simplement que tu ne peux pas répondre de façon fiable. N'en conclus JAMAIS qu'une prestation n'est
+  pas remboursée : l'absence d'un article dans les extraits ne prouve rien.
 - N'attribue JAMAIS à la personne une situation qu'elle n'a pas dite (emploi, santé, revenu…) :
   seul le « Profil connu » compte. Les connaissances générales ne décrivent pas la personne.
 - Si la personne dit avoir beaucoup de frais médicaux, commence par ce que le seuil signifie pour des
@@ -365,12 +398,23 @@ Règles strictes :
   entre crochets, par exemple [F5] ou [L2]. N'utilise que les numéros fournis. Les articles de loi
   sont le texte officiel : explique-les en mots simples, sans jargon, et ne leur fais pas dire plus
   que ce qu'ils disent.
+- Mets les numéros seulement en fin de phrase, jamais dans la phrase (pas « selon [L2] »).
+- Si aucun article ni aucune connaissance fournis ne parle du sujet exact de la question, dis
+  simplement que tu ne peux pas répondre de façon fiable. N'en conclus JAMAIS qu'une prestation n'est
+  pas remboursée : l'absence d'un article dans les extraits ne prouve rien.
 - Ne recommande aucun assureur et ne propose aucun nom « par exemple » : tu peux seulement citer les
   offres affichées comme des faits. Présente les compromis ; la décision reste à la personne.
 - N'attribue jamais à la personne une situation qu'elle n'a pas dite.
 - Si la personne veut changer une information (franchise, modèles, lieu…), dis-lui de l'écrire
   simplement, par exemple « et avec une franchise de 300 ? ».
 - Vouvoie la personne. Écris en {langue} simple et chaleureux, sans liste ni titre."""
+
+
+def raccourcir(texte, phrases_max):
+    """Au plus `phrases_max` phrases : Apertus a tendance à tout recopier (une réponse de 20 phrases
+    observée au test réel). Le numéro de source reste collé à sa phrase, donc il est gardé."""
+    phrases = re.split(r"(?<=[.!?…])\s+(?=[A-ZÀ-ÖØ-Þ«(*\[])", (texte or "").strip())
+    return " ".join(phrases[:phrases_max]).strip()
 
 
 def nettoyer(reponse, garder_questions=False):
@@ -419,7 +463,7 @@ def _probleme(reponse, faits, doit_questionner, code="fr"):
         return "réponse vide"
     if numeros_inconnus(reponse, faits):
         return "ne cite que les numéros fournis dans les faits, entre crochets, par exemple [F5] ou [L2]."
-    reponse = re.sub(r"\s*\[[FL]\d+\]", "", reponse)  # les numéros cités ne sont pas des chiffres de la réponse
+    reponse = re.sub(r"\s*\[[FL]\d+\]", "", normaliser_numeros(reponse))  # les numéros cités ne sont pas des chiffres de la réponse
     intrus = _intrus(reponse, faits)
     if intrus:
         return ("une réponse précédente citait des nombres absents des faits ("
@@ -516,7 +560,7 @@ def repondre_libre(appeler, texte, faits_resultats, chiffres="", passe="", langu
     try:
         reponse = demander_verifie(lambda s, m: appeler(s, m), PROMPT_LIBRE.replace("{langue}", langue),
                                    faits, doit_questionner=False, code=code)
-        return citer(nettoyer(reponse, garder_questions=True), code, passages) if reponse else None
+        return citer(raccourcir(nettoyer(reponse, garder_questions=True), 5), code, passages) if reponse else None
     except Exception:
         return None
 

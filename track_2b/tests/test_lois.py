@@ -77,6 +77,19 @@ def test_reponse_avec_un_article_inexistant_refusee():
     assert "fedlex" in conversation.repondre_libre(juste, "Accouchement ?", "rien", passages=passages)
 
 
+def test_numeros_groupes_et_dans_la_phrase():
+    """Formes vues au test réel du 12.10 : « [F6, L2] », « (L1, L3) », « selon [L2], … »."""
+    passages = lois.chercher("accouchement franchise", "fr", "", 2, base_test())
+    a = conversation.citer("Remboursée [F6, L2]. Selon [L1], rien à payer.", "fr", passages)
+    assert "[" not in a.split("\n")[0] and "Selon LAMal art." in a and ", rien à payer" in a, a
+    b = conversation.citer("According to (L1, L2), nothing is due.", "en", passages)
+    assert b.startswith("According to LAMal art.") and " and LAMal art." in b, b
+    c = conversation.citer("Gemäss [L1] und [L2] erhebt der Versicherer nichts.", "de", passages)
+    assert "erhebt" in c and "[L" not in c.split("\n")[0], c
+    assert conversation.numeros_inconnus("ok [L1, L9]", "[L1] x") == ["L9"]
+    assert conversation.raccourcir("Un. Deux. Trois. Quatre. Cinq. Six. Sept.", 5) == "Un. Deux. Trois. Quatre. Cinq."
+
+
 if __name__ == "__main__":
     tests = [f for nom, f in dict(globals()).items() if nom.startswith("test_")]
     for t in tests:
