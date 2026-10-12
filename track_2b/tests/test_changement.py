@@ -29,6 +29,9 @@ def test_apertus_ne_peut_pas_inventer_une_caisse_ni_une_prime():
     lu = c.lire_caisse(lambda s, m: json.dumps({"caisse": "CSS", "prime_mois": 412.5}), "CSS, je paie 412.50 par mois")
     assert lu["caisses"] == [8] and lu["prime_mois"] == 412.5
     assert c.lire_caisse(lambda s, m: 1 / 0, "Helsana")["caisses"] == [1562]   # 8B en panne : Python lit seul
+    # Test réel du 13.10 : Apertus 8B ajoutait « médecin de famille » sans que la personne le dise
+    invente_modele = lambda s, m: json.dumps({"caisse": "CSS", "modele": "médecin de famille", "prime_mois": None})
+    assert c.lire_caisse(invente_modele, "CSS je crois")["modele"] is None
 
 
 def test_economie_calculee_par_python():

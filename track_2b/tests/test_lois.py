@@ -88,6 +88,7 @@ def test_numeros_groupes_et_dans_la_phrase():
     assert "erhebt" in c and "[L" not in c.split("\n")[0], c
     assert conversation.numeros_inconnus("ok [L1, L9]", "[L1] x") == ["L9"]
     assert conversation.raccourcir("Un. Deux. Trois. Quatre. Cinq. Six. Sept.", 5) == "Un. Deux. Trois. Quatre. Cinq."
+    assert conversation.raccourcir("Das Modell (z. B. Hausarzt) hat Regeln. Zwei.", 1) == "Das Modell (z. B. Hausarzt) hat Regeln."
     # 2e test réel (60 questions) : numéros au milieu d'une phrase, plages, formules de lettre
     d = conversation.citer("Les articles [L1] et [L2] précisent que rien n'est dû.", "fr", passages)
     assert d.startswith("Les articles LAMal art.") and "précisent" in d, d

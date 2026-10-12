@@ -102,7 +102,9 @@ def lire_caisse(lire_8b, texte):
     # message (Apertus ne peut pas en inventer une), et un montant qui figure dans le message.
     caisses = trouver_caisses(f"{lu.get('caisse') or ''}") if lu.get("caisse") else []
     caisses = [n for n in caisses if n in trouver_caisses(texte)] or trouver_caisses(texte)
-    modele = lire_modele(texte) or lire_modele(str(lu.get("modele") or ""))
+    # Le modèle n'est retenu que s'il est écrit dans le message : au test réel, Apertus 8B a ajouté
+    # « médecin de famille » à 3 réponses qui ne parlaient d'aucun modèle (« CSS je crois »).
+    modele = lire_modele(texte)
     prime = lu.get("prime_mois")
     if prime is None:  # Apertus n'a rien lu (ou ne répond pas) : Python lit les formulations explicites
         prime = prime_dite(texte)

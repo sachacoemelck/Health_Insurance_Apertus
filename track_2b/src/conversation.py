@@ -426,8 +426,18 @@ Règles strictes :
 def raccourcir(texte, phrases_max):
     """Au plus `phrases_max` phrases : Apertus a tendance à tout recopier (une réponse de 20 phrases
     observée au test réel). Le numéro de source reste collé à sa phrase, donc il est gardé."""
-    phrases = re.split(r"(?<=[.!?…])\s+(?=[A-ZÀ-ÖØ-Þ«(*\[])", (texte or "").strip())
+    morceaux = re.split(r"(?<=[.!?…])\s+(?=[A-ZÀ-ÖØ-Þ«(*\[])", (texte or "").strip())
+    phrases = []
+    for m in morceaux:  # « z. B. », « p. ex. », « art. 7 » ne terminent pas une phrase (vu au test réel)
+        if phrases and _ABREVIATION.search(phrases[-1]):
+            phrases[-1] += " " + m
+        else:
+            phrases.append(m)
     return " ".join(phrases[:phrases_max]).strip()
+
+
+_ABREVIATION = re.compile(r"(?:\b(?:[a-zA-Z]|vgl|bzw|ca|inkl|evtl|ggf|usw|etc|Nr|Art|Abs|al|cpv|let|lit|"
+                          r"ex|env|resp|cf|Dr|Mme|M|St|ad|sog|bspw|ecc|ev|es|ess|para|vs|no|n)\.)$", re.IGNORECASE)
 
 
 def nettoyer(reponse, garder_questions=False):
