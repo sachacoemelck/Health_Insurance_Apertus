@@ -24,6 +24,7 @@ from openai import OpenAI
 import chatbot
 import complementaires as compl
 import sante
+import changement
 import conversation
 import langues
 import lois
@@ -460,7 +461,16 @@ def traiter_message(texte):
     tour = {"texte": texte, "question": question, "avant": faits_connus()}
     if s.attente == "commune" and choisir_commune_texte(texte):
         avancer()
+    elif s.etape == "resultats" and s.attente in ("caisse", "caisse_choix") and not question \
+            and traiter_caisse(texte):
+        pass
+    elif s.etape == "resultats" and s.attente == "lettre" and (_OUI.search(texte) or _NON.search(texte)):
+        repondre_lettre_texte(bool(_OUI.search(texte)))
+    elif s.etape == "resultats" and (s.get("economie") or {}).get("caisse") and demande_lettre(texte):
+        ecrire_lettre()
     elif s.etape == "resultats":
+        if s.attente in ("caisse", "caisse_choix", "lettre"):
+            s.attente = None  # la personne passe à autre chose : on ne réinsiste pas
         avant = s.profil["contract"].context(), s.profil["budget"]
         integrer(texte, question=question, suivi=True)
         if (s.profil["contract"].context(), s.profil["budget"]) != avant:
@@ -479,6 +489,24 @@ def articles_de_loi(texte):
         return lois.chercher(texte, L(), st.session_state.get("mots_cles", ""))
     except Exception:
         return []
+
+
+def demande_lettre(texte):
+    """« Rédigez-moi la lettre de résiliation » (une demande), mais pas « comment l'envoyer ? »."""
+    if not re.search(r"lettre|r[ée]siliation|k[üu]ndigung|disdetta|lettera|cancellation|letter", texte, re.IGNORECASE):
+        return False
+    return bool(len(texte.split()) <= 4 or re.search(
+        r"r[ée]dig|[ée]cri[sv]|refai|fai[st]es|donne|veux|voudrais|schreib|verfass|scriv|redig|write|draft|redo|"
+        r"again|nouvelle|neue|nuova|another", texte, re.IGNORECASE))
+
+
+def repondre_lettre_texte(oui):
+    s = st.session_state
+    if oui:
+        ecrire_lettre()
+    else:
+        s.attente = None
+        dire(tr("D'accord. Vous pouvez me la demander plus tard en écrivant « lettre de résiliation ».", L()))
 
 
 def repondre_apres_resultats(texte):
@@ -533,6 +561,107 @@ def calculer():
     s.resultats.append(bloc)
     s.messages.append({"role": "assistant", "type": "resultats", "index": len(s.resultats) - 1})
     s.etape, s.attente = "resultats", None
+    if props and s.get("caisse_lue") is None and not s.get("caisse_demandee"):
+        s.caisse_demandee = True
+        dire(tr(QUESTION_CAISSE, L()))
+        s.attente = "caisse"
+    elif props and s.get("caisse_lue"):  # nouvelle comparaison : l'économie est recalculée (Python seul)
+        montrer_economie(**s.caisse_lue, rediger=False)
+
+
+# --------------------------------------------------------------------------------------
+# Caisse actuelle, économie et lettre de résiliation (module changement)
+# --------------------------------------------------------------------------------------
+QUESTION_CAISSE = ("Chez quelle caisse maladie êtes-vous assuré(e) aujourd'hui, et avec quel modèle (libre choix, "
+                   "médecin de famille, télémédecine…) ? Je calcule ce que vous économiseriez en changeant. "
+                   "C'est facultatif.")
+_OUI = re.compile(r"^\s*(?:oui|ouais|volontiers|avec plaisir|d'accord|ok|okay|yes|yep|sure|please|ja|gerne|bitte|"
+                  r"s[iì]|certo|volentieri|va bene)\b", re.IGNORECASE)
+_NON = re.compile(r"^\s*(?:non|nein|no|nope|pas besoin|pas maintenant|nicht nötig|niente|no grazie)\b", re.IGNORECASE)
+
+
+def traiter_caisse(texte):
+    """Réponse à la question sur la caisse actuelle. True si le message a été traité ici."""
+    s, cfg = st.session_state, config()
+    lu = changement.lire_caisse(appel("demander_llm_json", cfg["LLM_NAME"], DELAI_8B), texte)
+    if len(lu["caisses"]) > 1:
+        s.choix_caisses, s.caisse_partielle = lu["caisses"], lu
+        dire(tr("Plusieurs caisses portent ce nom. Laquelle figure sur votre police d'assurance ?", L()))
+        s.attente = "caisse_choix"
+        return True
+    if not lu["caisses"] and lu["prime_mois"] is None:
+        return False
+    return montrer_economie(lu["caisses"][0] if lu["caisses"] else None, lu["modele"], lu["prime_mois"])
+
+
+def montrer_economie(numero=None, modele=None, prime_mois=None, rediger=True):
+    """Paragraphe d'économie : chiffres calculés par Python, texte rédigé par Apertus 70B et vérifié."""
+    s = st.session_state
+    bloc, profil = s.resultats[-1], s.profil["comparison"]
+    e = changement.calculer_economie(profil, bloc["offres"], numero, modele, prime_mois,
+                                     chatbot.no_ofs_de(profil.municipality, profil.canton))
+    if e is None:
+        return False
+    s.caisse_lue = {"numero": numero, "modele": modele, "prime_mois": prime_mois}
+    s.attente = None
+    if e.get("absente"):
+        dire(tr("{caisse} ne propose pas d'assurance de base pour votre profil dans votre région en 2027 : vous "
+                "devrez de toute façon choisir une autre caisse.", L(), caisse=e["caisse"]))
+        s.economie = dict(e, autre_caisse={"caisse": bloc["offres"].iloc[0]["Assureur"]})
+    else:
+        texte = None
+        if rediger:
+            try:
+                brut = conversation.demander_verifie(
+                    appeler_70b, changement.PROMPT_ECONOMIE.replace("{langue}", nom_langue()),
+                    changement.faits_economie(e), doit_questionner=False, code=L())
+                texte = conversation.raccourcir(conversation.nettoyer(brut), 4) if brut else None
+            except ErreurLLM:
+                texte = None
+        dire(texte or changement.texte_economie_secours(e, L()))
+        s.economie = e
+    if rediger and e["caisse"] and s.economie.get("autre_caisse"):
+        dire(tr("Souhaitez-vous que je rédige votre lettre de résiliation pour {caisse} ?", L(), caisse=e["caisse"]))
+        s.attente = "lettre"
+    return True
+
+
+def choisir_caisse(numero):
+    s = st.session_state
+    s.messages.append({"role": "user", "type": "texte", "contenu": changement.CAISSES[numero]})
+    lu = s.get("caisse_partielle") or {}
+    montrer_economie(numero, lu.get("modele"), lu.get("prime_mois"))
+
+
+def ecrire_lettre():
+    """Lettre de résiliation rédigée par Apertus 70B ; Python vérifie les éléments obligatoires."""
+    s, cfg = st.session_state, config()
+    e, profil = s.economie, s.profil["comparison"]
+    langue = changement.langue_lettre(L(), profil.canton)
+    # La lettre est la tâche principale de ce tour : un délai à elle (deux essais au plus)
+    rediger = appel("demander_llm", cfg["LLM_NAME_RESTITUTION"], 40)
+    lettre, par = changement.rediger_lettre(rediger, e["caisse"], langue, profil.premium_year)
+    s.messages.append({"role": "assistant", "type": "lettre", "texte": lettre, "langue": langue, "par": par,
+                       "annee": profil.premium_year})
+    s.attente = None
+
+
+def repondre_lettre(oui):
+    s = st.session_state
+    l = L()
+    s.messages.append({"role": "user", "type": "texte",
+                       "contenu": tr("Oui, rédigez ma lettre", l) if oui else tr("Non merci", l)})
+    if oui:
+        ecrire_lettre()
+    else:
+        s.attente = None
+        dire(tr("D'accord. Vous pouvez me la demander plus tard en écrivant « lettre de résiliation ».", l))
+
+
+def passer_caisse():
+    s = st.session_state
+    s.messages.append({"role": "user", "type": "texte", "contenu": tr("Passer", L())})
+    s.attente = None
 
 
 def faits_resultats(bloc):
@@ -776,6 +905,22 @@ def afficher_preferences(lignes, positions=None):
                   "les conditions du produit avant de changer.", lg))
 
 
+def afficher_lettre(m, i):
+    l = L()
+    st.markdown(f"**{tr('Votre lettre de résiliation', l)}**")
+    if m["par"] == "apertus":
+        st.caption(tr("Rédigée par Apertus ; les éléments obligatoires ont été vérifiés par l'application.", l))
+    else:
+        st.caption(tr("Lettre modèle de l'application (la lettre d'Apertus n'était pas complète).", l))
+    if m["langue"] != l:
+        st.caption(tr("La lettre est écrite dans une langue officielle de votre canton, celle que votre caisse "
+                      "utilise.", l))
+    st.code(m["texte"], language=None)
+    st.download_button(tr("Télécharger la lettre (.txt)", l), data=m["texte"].encode("utf-8"),
+                       file_name="resiliation_assurance_de_base.txt", mime="text/plain", key=f"lettre_{i}")
+    st.info(changement.conseils_envoi(l, m["annee"]), icon="📮")
+
+
 def afficher_resultats(bloc):
     afficher_propositions(bloc)
     resume = resume_budget(bloc)
@@ -861,6 +1006,17 @@ def reponses_rapides():
                ["unrestricted"], cle="care_base")
         bouton(tr("J'accepte tous les modèles", l), repondre_bouton, tr("J'accepte tous les modèles", l), "care_access",
                list(CARE_TYPES), cle="care_all")
+    elif s.attente == "caisse":
+        bouton(tr("Passer", L()), passer_caisse, cle="caisse_passer")
+    elif s.attente == "caisse_choix" and s.get("choix_caisses"):
+        colonnes = st.columns(min(len(s.choix_caisses), 3))
+        for i, n in enumerate(s.choix_caisses):
+            with colonnes[i % len(colonnes)]:
+                bouton(changement.CAISSES[n], choisir_caisse, n, cle=f"caisse_{n}")
+    elif s.attente == "lettre":
+        l = L()
+        bouton(tr("Oui, rédigez ma lettre", l), repondre_lettre, True, cle="lettre_oui")
+        bouton(tr("Non merci", l), repondre_lettre, False, cle="lettre_non")
     elif s.attente == "confirmation":
         l = L()
         st.multiselect(tr("Besoins en assurances complémentaires", l), options=list(compl.CATEGORIES),
@@ -899,7 +1055,7 @@ def main():
     st.warning(tr(AVERTISSEMENT, L()), icon="⚠️")
     st.caption(tr("Les informations de santé ne sont pas enregistrées.", L()))
 
-    for m in s.messages:
+    for i, m in enumerate(s.messages):
         with st.chat_message(m["role"]):
             if m["type"] == "accueil":
                 st.markdown(tr(ACCUEIL, L()))
@@ -909,6 +1065,8 @@ def main():
                 st.markdown(m["contenu"])
             elif m["type"] == "profil":
                 afficher_profil(m["profil"], m.get("sante", 0))
+            elif m["type"] == "lettre":
+                afficher_lettre(m, i)
             else:
                 afficher_resultats(s.resultats[m["index"]])
     reponses_rapides()

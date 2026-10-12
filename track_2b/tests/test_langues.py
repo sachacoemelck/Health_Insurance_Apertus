@@ -24,7 +24,7 @@ def test_detection():
 
 def test_tous_les_textes_fixes_sont_traduits():
     manquants = []
-    for fichier in ("app.py", "conversation.py"):
+    for fichier in ("app.py", "conversation.py", "changement.py"):
         for n in ast.walk(ast.parse((SRC / fichier).read_text())):
             if isinstance(n, ast.Call) and getattr(n.func, "id", None) == "tr" and n.args:
                 a = n.args[0]
@@ -35,7 +35,9 @@ def test_tous_les_textes_fixes_sont_traduits():
                   + [t for t, _ in comparateur.PROPOSITIONS.values()]
                   + [m["nom"] for m in comparateur.MODELES.values()]
                   + [comparateur.contrepartie(c) for c in comparateur.MODELES]
-                  + [conversation.QUESTION_BUDGET, conversation.TEXTE_SUBSIDES])
+                  + [conversation.QUESTION_BUDGET, conversation.TEXTE_SUBSIDES]
+                  + [n.value.value for n in ast.walk(ast.parse((SRC / 'app.py').read_text()))
+                     if isinstance(n, ast.Assign) and getattr(n.targets[0], 'id', '') == 'QUESTION_CAISSE'])
     manquants += [t[:60] for t in dynamiques if t not in langues.TRAD]
     assert not manquants, manquants
     for fr, traductions in langues.TRAD.items():  # mêmes {valeurs} dans chaque langue

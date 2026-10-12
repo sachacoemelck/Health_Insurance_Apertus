@@ -474,4 +474,86 @@ _("Sources : primes LAMal 2027, régions de primes et liste des assureurs admis 
   "Public Health (FOPH), via opendata.swiss and priminfo.admin.ch. Supplementary insurance: insurers' websites "
   "({caisses}), checked on {date}.")
 
+# Caisse actuelle, économie et lettre de résiliation (app.py, changement.py)
+_("Chez quelle caisse maladie êtes-vous assuré(e) aujourd'hui, et avec quel modèle (libre choix, médecin de "
+  "famille, télémédecine…) ? Je calcule ce que vous économiseriez en changeant. C'est facultatif.",
+  "Bei welcher Krankenkasse sind Sie heute versichert, und mit welchem Modell (freie Arztwahl, Hausarzt, "
+  "Telmed…)? Ich berechne, wie viel Sie mit einem Wechsel sparen würden. Diese Angabe ist freiwillig.",
+  "Presso quale cassa malati è assicurato/a oggi, e con quale modello (libera scelta, medico di famiglia, "
+  "telemedicina…)? Calcolo quanto risparmierebbe cambiando. È facoltativo.",
+  "Which health insurer are you with today, and with which model (free choice, family doctor, "
+  "telemedicine…)? I will calculate how much you would save by switching. This is optional.")
+_("Plusieurs caisses portent ce nom. Laquelle figure sur votre police d'assurance ?",
+  "Mehrere Kassen tragen diesen Namen. Welche steht auf Ihrer Versicherungspolice?",
+  "Diverse casse portano questo nome. Quale figura sulla sua polizza?",
+  "Several insurers carry this name. Which one is on your policy?")
+_("{caisse} ne propose pas d'assurance de base pour votre profil dans votre région en 2027 : vous devrez de "
+  "toute façon choisir une autre caisse.",
+  "{caisse} bietet 2027 für Ihr Profil in Ihrer Region keine Grundversicherung an: Sie müssen ohnehin eine "
+  "andere Kasse wählen.",
+  "{caisse} non offre l'assicurazione di base per il suo profilo nella sua regione nel 2027: dovrà comunque "
+  "scegliere un'altra cassa.",
+  "{caisse} does not offer basic insurance for your profile in your region in 2027: you will have to choose "
+  "another insurer anyway.")
+_("Souhaitez-vous que je rédige votre lettre de résiliation pour {caisse} ?",
+  "Möchten Sie, dass ich Ihr Kündigungsschreiben an {caisse} verfasse?",
+  "Desidera che le scriva la lettera di disdetta per {caisse}?",
+  "Would you like me to write your cancellation letter to {caisse}?")
+_("Oui, rédigez ma lettre", "Ja, Schreiben verfassen", "Sì, scriva la lettera", "Yes, write my letter")
+_("Non merci", "Nein danke", "No grazie", "No thanks")
+_("Passer", "Überspringen", "Salta", "Skip")
+_("D'accord. Vous pouvez me la demander plus tard en écrivant « lettre de résiliation ».",
+  "In Ordnung. Sie können es später verlangen, indem Sie « Kündigungsschreiben » eingeben.",
+  "D'accordo. Può chiedermela più tardi scrivendo « lettera di disdetta ».",
+  "All right. You can ask for it later by writing « cancellation letter ».")
+_("Votre lettre de résiliation", "Ihr Kündigungsschreiben", "La sua lettera di disdetta", "Your cancellation letter")
+_("Rédigée par Apertus ; les éléments obligatoires ont été vérifiés par l'application.",
+  "Von Apertus verfasst; die Pflichtangaben wurden von der Anwendung geprüft.",
+  "Redatta da Apertus; gli elementi obbligatori sono stati verificati dall'applicazione.",
+  "Written by Apertus; the required elements were checked by the application.")
+_("Lettre modèle de l'application (la lettre d'Apertus n'était pas complète).",
+  "Musterschreiben der Anwendung (das Schreiben von Apertus war nicht vollständig).",
+  "Lettera modello dell'applicazione (la lettera di Apertus non era completa).",
+  "The application's template letter (Apertus's letter was not complete).")
+_("La lettre est écrite dans une langue officielle de votre canton, celle que votre caisse utilise.",
+  "Das Schreiben ist in einer Amtssprache Ihres Kantons verfasst, die Ihre Kasse verwendet.",
+  "La lettera è scritta in una lingua ufficiale del suo cantone, quella usata dalla sua cassa.",
+  "The letter is written in an official language of your canton, the one your insurer uses.")
+_("Télécharger la lettre (.txt)", "Schreiben herunterladen (.txt)", "Scarica la lettera (.txt)",
+  "Download the letter (.txt)")
+_("Vous payez aujourd'hui {actuelle} CHF par mois (les offres affichées sont les primes 2027).",
+  "Sie bezahlen heute {actuelle} CHF pro Monat (die angezeigten Angebote sind die Prämien 2027).",
+  "Oggi paga {actuelle} CHF al mese (le offerte mostrate sono i premi 2027).",
+  "You pay {actuelle} CHF per month today (the offers shown are 2027 premiums).")
+_("En restant chez {caisse}, vous payeriez {actuelle} CHF par mois en 2027 (franchise {franchise} CHF).",
+  "Wenn Sie bei {caisse} bleiben, bezahlen Sie 2027 {actuelle} CHF pro Monat (Franchise {franchise} CHF).",
+  "Restando presso {caisse}, pagherebbe {actuelle} CHF al mese nel 2027 (franchigia {franchise} CHF).",
+  "If you stay with {caisse}, you would pay {actuelle} CHF per month in 2027 (deductible {franchise} CHF).")
+_("(Modèle non précisé : j'ai supposé le libre choix.)",
+  "(Modell nicht angegeben: ich habe die freie Arztwahl angenommen.)",
+  "(Modello non indicato: ho supposto la libera scelta.)",
+  "(Model not specified: I assumed free choice.)")
+_("Aucune offre de vos résultats n'est moins chère : changer ne vous ferait rien économiser.",
+  "Kein Angebot in Ihren Resultaten ist günstiger: ein Wechsel würde Ihnen nichts sparen.",
+  "Nessuna offerta dei suoi risultati è più conveniente: cambiare non le farebbe risparmiare nulla.",
+  "None of your results is cheaper: switching would not save you anything.")
+_("Avec {caisse} ({modele}), vous payeriez {prime} CHF par mois, soit {an} CHF de moins par an.",
+  "Mit {caisse} ({modele}) würden Sie {prime} CHF pro Monat bezahlen, also {an} CHF weniger pro Jahr.",
+  "Con {caisse} ({modele}) pagherebbe {prime} CHF al mese, cioè {an} CHF in meno all'anno.",
+  "With {caisse} ({modele}), you would pay {prime} CHF per month, i.e. {an} CHF less per year.")
+_("Avant d'envoyer : 1) inscrivez-vous d'abord auprès de la nouvelle caisse (votre assurance actuelle ne prend "
+  "fin que lorsque la nouvelle caisse confirme votre couverture, LAMal art. 7 al. 5) ; 2) envoyez la lettre en "
+  "recommandé : elle doit ARRIVER chez votre caisse au plus tard le {limite} ; 3) complétez les champs entre "
+  "crochets et signez.",
+  "Vor dem Versand: 1) melden Sie sich zuerst bei der neuen Kasse an (Ihre bisherige Versicherung endet erst, "
+  "wenn die neue Kasse Ihre Deckung bestätigt, KVG Art. 7 Abs. 5); 2) senden Sie das Schreiben eingeschrieben: "
+  "es muss spätestens am {limite} bei Ihrer Kasse EINTREFFEN; 3) füllen Sie die Felder in eckigen Klammern aus "
+  "und unterschreiben Sie.",
+  "Prima dell'invio: 1) si iscriva prima presso la nuova cassa (l'assicurazione attuale termina solo quando la "
+  "nuova cassa conferma la copertura, LAMal art. 7 cpv. 5); 2) invii la lettera per raccomandata: deve "
+  "ARRIVARE alla sua cassa al più tardi il {limite}; 3) completi i campi tra parentesi quadre e firmi.",
+  "Before sending: 1) first sign up with the new insurer (your current insurance only ends once the new "
+  "insurer confirms your cover, KVG/LAMal art. 7 para. 5); 2) send the letter by registered mail: it must "
+  "ARRIVE at your insurer by {limite} at the latest; 3) fill in the fields in square brackets and sign.")
+
 TRAD = {fr: dict(zip(("de", "it", "en"), v)) for fr, v in T.items()}
