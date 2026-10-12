@@ -12,6 +12,7 @@ Le parcours partage le contrat de profil de chatbot.py avec la CLI :
 - filtrage des catégories acceptées avant classement, puis explication vérifiée ;
 - module complémentaires (faits agrégés, résumé vérifié, produits à vérifier).
 """
+import html
 import re
 import json
 import time
@@ -29,10 +30,11 @@ import langues
 from langues import tr
 import regles
 import soins
+import style
 from chatbot import (Profile, State, CARE_TYPES, CARE_LABELS, QUESTIONS,
                      FRANCHISES, NOMS_PRIORITE, PROMPT_INTRO, extraire_json,
                      faits_propositions, lire_config, localiser, nom_simple)
-from comparateur import classe_age, propositions
+from comparateur import classe_age, communes_du_npa, propositions
 
 def L():
     """Langue de la conversation : détectée dans les messages, ou choisie dans la barre latérale."""
@@ -421,8 +423,12 @@ def avancer(tour=None):
             contexte="; ".join(f"{k} : {v}" for k, v in apres.items()),
             passe=conversation.historique(s.messages[:-1]), langue=nom_langue(), code=L()))
     if not champ:
-        s.messages.append({"role": "assistant", "type": "profil", "profil": deepcopy(s.profil),
-                           "sante": len(s.sante)})
+        if s.get("profil_formulaire"):
+            # Profil venu du formulaire : pas de résumé « Est-ce correct ? », on recalcule directement
+            calculer()
+        else:
+            s.messages.append({"role": "assistant", "type": "profil", "profil": deepcopy(s.profil),
+                               "sante": len(s.sante)})
 
 
 def choisir_commune(c):
@@ -671,15 +677,15 @@ def afficher_propositions(bloc):
         st.write(tr("Aucune prime trouvée pour ce profil.", L()))
         return
     st.write(bloc["intro"])
+    l = L()
     for colonne, p in zip(st.columns(len(props)), props):
-        with colonne, st.container(border=True):
-            l = L()
-            st.markdown(f"**{tr(p['titre'], l)}**")
-            st.markdown(f"### {p['prime_mois']:.2f} {tr('CHF / mois', l)}")
-            st.markdown(f"{p['assureur']}  \n*{p['produit']}* — {tr(p['modele'], l)}")
-            st.markdown(tr("La moins chère", l) if p["ecart_mois"] == 0
-                        else tr("+{x} CHF / mois par rapport à la moins chère", l, x=f"{p['ecart_mois']:.2f}"))
-            st.caption(tr("Franchise : {f} CHF. Contrepartie : {c}", l, f=p["franchise"], c=tr(p["contrepartie"], l)))
+        with colonne:
+            style.carte(tr(p["titre"], l), f"{p['prime_mois']:.2f}", tr("CHF / mois", l), p["assureur"],
+                        f"{p['produit']} — {tr(p['modele'], l)}",
+                        tr("La moins chère", l) if p["ecart_mois"] == 0
+                        else tr("+{x} CHF / mois par rapport à la moins chère", l, x=f"{p['ecart_mois']:.2f}"),
+                        tr("Franchise : {f} CHF. Contrepartie : {c}", l, f=p["franchise"], c=tr(p["contrepartie"], l)),
+                        meilleure=p["ecart_mois"] == 0)
     st.caption(tr("Compatibilité par catégorie seulement : réseau de médecins, application et conditions du produit à "
                   "vérifier. " + RAPPEL_LAMAL, L()))
     if bloc["offres"]["Franchise"].nunique() > 1:
@@ -850,9 +856,123 @@ def reponses_rapides():
     elif s.attente == "confirmation":
         l = L()
         st.multiselect(tr("Besoins en assurances complémentaires", l), options=list(compl.CATEGORIES),
-                       default=p["besoins"], format_func=compl.CATEGORIES.get, key="choix_besoins")
+                       default=p["besoins"], format_func=compl.CATEGORIES.get, key="choix_besoins", placeholder=tr("Choisissez…", l))
         bouton(tr("C'est correct, lancer la comparaison", l), confirmer, cle="confirmer")
         st.caption(tr("Sinon, écrivez votre correction dans le chat (ex. « j'ai 31 ans »).", l))
+
+
+# --------------------------------------------------------------------------------------
+# Écran de profil : les faits de base sont saisis dans des champs (lus sans erreur par Python),
+# puis le conseiller (chat) part d'un profil déjà juste et aide à choisir la franchise
+# --------------------------------------------------------------------------------------
+SITUATIONS = {
+    "salarie_8h": "Salarié(e), au moins 8 h par semaine chez un même employeur",
+    "salarie_moins": "Salarié(e), moins de 8 h par semaine chez un même employeur",
+    "independant": "Indépendant(e)",
+    "sans_emploi": "Sans emploi, étudiant(e) ou retraité(e)",
+    "ne_sait_pas": "Je ne sais pas",
+}
+APRES_FORMULAIRE = ("Merci ! Voici vos offres, avec toutes les franchises comparées. Posez-moi vos questions, "
+                    "par exemple « quelle franchise est la plus avantageuse pour moi ? » ou « c'est quoi le "
+                    "modèle médecin de famille ? ».")
+
+
+def valider_formulaire(annee, npa, commune, situation, modeles, besoins):
+    """Enregistre les champs dans le contrat de profil, puis calcule les offres directement."""
+    s = st.session_state
+    p = s.profil
+    c = p["contract"]
+    c.set("birth_year", int(annee))
+    c.set("postal_code", int(npa))
+    c.set("municipality", commune)
+    # Couverture accident : un employeur assure ses salariés travaillant au moins 8 h par semaine
+    if situation == "salarie_8h":
+        c.set("employed", True)
+        c.set("nonoccupational_covered", True)
+    elif situation == "salarie_moins":
+        c.set("employed", True)
+        c.set("nonoccupational_covered", False)
+    elif situation in ("independant", "sans_emploi"):
+        c.set("employed", False)
+        c.set("nonoccupational_covered", False)
+    # « Je ne sais pas » : rien n'est déduit, le conseiller posera la question dans le chat
+    c.set("care_access", list(modeles))
+    c.set("deductible", "all")  # le conseiller aide à choisir la franchise dans le chat
+    p["besoins"] = list(besoins)
+    synchroniser_profil()
+    s.formulaire_valide = s.profil_formulaire = True
+    s.messages = [{"role": "assistant", "type": "texte", "contenu": tr(APRES_FORMULAIRE, L())}]
+    avancer()  # résout le lieu, puis calcule les offres ; s'il manque quelque chose, le chat le demande
+
+
+def passer_au_chat():
+    st.session_state.formulaire_valide = True
+
+
+def commune_choisie(npa):
+    """Commune du formulaire : la seule commune du NPA, ou celle choisie dans la liste."""
+    communes = communes_du_npa(npa) if npa is not None else None
+    if communes is None or communes.empty:
+        return None
+    if len(communes) == 1:
+        return communes.iloc[0]["commune"]
+    return st.session_state.get("f_commune")
+
+
+def npa_saisi():
+    texte = str(st.session_state.get("f_npa") or "").strip()
+    return int(texte) if texte.isdigit() and len(texte) == 4 else None
+
+
+def soumettre_formulaire():
+    """Rappel du bouton « Voir mes offres » : s'exécute avant l'affichage suivant."""
+    s = st.session_state
+    npa = npa_saisi()
+    try:
+        valider_formulaire(s["f_naissance"], npa, commune_choisie(npa), s["f_situation"],
+                           s["f_modeles"], s.get("f_besoins", []))
+    except ErreurLLM:
+        dire(tr("Apertus ne répond pas pour le moment. Réessayez dans un instant.", L()))
+
+
+def ecran_profil():
+    """Formulaire de départ : année de naissance, NPA et commune, situation professionnelle,
+    modèles acceptés et besoins facultatifs."""
+    l = L()
+    st.subheader(tr("Votre profil", l))
+    st.caption(tr("Ces informations servent uniquement à calculer vos primes. Elles ne sont pas enregistrées.", l))
+    annee = st.number_input(tr("Année de naissance", l) + " :red[*]", min_value=1920, max_value=2027, value=None, step=1,
+                            placeholder="1994", key="f_naissance")
+    npa_texte = st.text_input(tr("Code postal (NPA)", l) + " :red[*]", max_chars=4, placeholder="1260", key="f_npa").strip()
+    npa = npa_saisi()
+    if npa_texte and npa is None:
+        st.caption(tr("Le code postal suisse a 4 chiffres.", l))
+    elif npa is not None:
+        communes = communes_du_npa(npa)
+        if communes.empty:
+            st.error(tr("Code postal inconnu en Suisse.", l))
+        elif len(communes) == 1:
+            st.caption(f"{communes.iloc[0]['commune']} ({communes.iloc[0]['canton']})")
+        else:
+            st.selectbox(tr("Commune de domicile", l), list(communes["commune"]), key="f_commune")
+    commune = commune_choisie(npa)
+    situation = st.radio(tr("Situation professionnelle", l) + " :red[*]", list(SITUATIONS), index=None,
+                         format_func=lambda k: tr(SITUATIONS[k], l), key="f_situation")
+    st.caption(tr("Elle indique si la couverture accident doit être incluse : un employeur assure contre les "
+                  "accidents ses salariés qui travaillent au moins 8 h par semaine chez lui.", l))
+    modeles = st.multiselect(tr("Modèles d'assurance acceptés", l), list(CARE_TYPES), default=list(CARE_TYPES),
+                             format_func=lambda k: tr(CARE_LABELS[k], l), key="f_modeles", placeholder=tr("Choisissez…", l))
+    besoins = st.multiselect(tr("Besoins en assurances complémentaires (facultatif)", l), list(compl.CATEGORIES),
+                             format_func=compl.CATEGORIES.get, key="f_besoins", placeholder=tr("Choisissez…", l))
+    manquants = [nom for nom, ok in ((tr("année de naissance", l), annee is not None),
+                                     (tr("code postal", l), commune is not None),
+                                     (tr("situation professionnelle", l), situation is not None),
+                                     (tr("au moins un modèle", l), bool(modeles))) if not ok]
+    st.button(tr("Voir mes offres", l), type="primary", disabled=bool(manquants), key="f_valider",
+              on_click=soumettre_formulaire)
+    if manquants:
+        st.caption(tr("À compléter : {champs}", l, champs=", ".join(manquants)))
+    st.button(tr("Je préfère décrire ma situation dans le chat", l), on_click=passer_au_chat, key="f_chat")
 
 
 def recommencer():
@@ -862,8 +982,15 @@ def recommencer():
 
 def main():
     st.set_page_config(page_title="Health Insurance Apertus", page_icon="🩺", layout="centered")
+    style.appliquer()
     config()  # arrête l'app avec un message clair si une variable LLM_* manque
     s = etat()
+
+    if not s.get("formulaire_valide"):  # écran de profil avant le conseiller
+        afficher_entete()
+        ecran_profil()
+        afficher_sources()
+        return
 
     # Texte d'exemple fixe : s'il changeait d'une étape à l'autre, Streamlit recréerait la zone de
     # saisie et le premier message écrit après le changement d'étape serait perdu.
@@ -875,15 +1002,7 @@ def main():
         except ErreurLLM:
             dire(tr("Apertus ne répond pas pour le moment. Réessayez dans un instant.", L()))
 
-    with st.sidebar:
-        st.selectbox(tr("Langue", L()), langues.CODES, key="langue",
-                     format_func={"fr": "Français", "de": "Deutsch", "it": "Italiano", "en": "English"}.get)
-        st.button(tr("Nouvelle comparaison", L()), on_click=recommencer)
-    st.title(tr("Comparateur d'assurance maladie", L()))
-    st.write(tr("Décrivez votre situation en quelques mots : je compare les primes officielles de l'assurance de "
-                "base (LAMal) 2027 et je vous explique les différences.", L()))
-    st.warning(tr(AVERTISSEMENT, L()), icon="⚠️")
-    st.caption(tr("Les informations de santé ne sont pas enregistrées.", L()))
+    afficher_entete()
 
     for m in s.messages:
         with st.chat_message(m["role"]):
@@ -899,6 +1018,23 @@ def main():
                 afficher_resultats(s.resultats[m["index"]])
     reponses_rapides()
 
+    afficher_sources()
+
+
+def afficher_entete():
+    with st.sidebar:
+        st.selectbox(tr("Langue", L()), langues.CODES, key="langue",
+                     format_func={"fr": "Français", "de": "Deutsch", "it": "Italiano", "en": "English"}.get)
+        st.button(tr("Nouvelle comparaison", L()), on_click=recommencer)
+    l = L()
+    style.entete(tr("Assurance de base LAMal 2027", l), tr("Votre assurance maladie.", l),
+                 tr("Comparée simplement.", l),
+                 tr("Les primes officielles de toutes les caisses, puis un conseiller qui répond à vos questions.", l),
+                 note=html.escape(tr(AVERTISSEMENT, l)) + "<br>"
+                 + html.escape(tr("Les informations de santé ne sont pas enregistrées.", l)))
+
+
+def afficher_sources():
     st.divider()
     caisses = ", ".join(sorted(compl.produits["assureur"].unique()))
     st.caption(tr("Sources : primes LAMal 2027, régions de primes et liste des assureurs admis : Office fédéral de "
