@@ -26,6 +26,7 @@ import complementaires as compl
 import sante
 import conversation
 import langues
+import lois
 from langues import tr
 import regles
 import soins
@@ -168,7 +169,10 @@ def integrer(texte, champ=None, question=False, suivi=False):
         taches["besoins"] = lambda: compl.categories_finales(
             extraire_json(lire(compl.PROMPT_BESOINS, texte)).get("categories"), texte)
         taches["sante"] = lambda: sante.classer(texte, lire)
+    if question or suivi:  # question : Apertus 8B traduit en mots-clés juridiques, en même temps (lois.py)
+        taches["mots_cles"] = lambda: lois.mots_cles(lire, texte)
     lu = en_parallele(**taches)
+    s.mots_cles = lu.get("mots_cles") or ""
     updates = lu["profil"] or {}
     updates = conversation.mises_a_jour_hors_question(updates, champ, question)
     budget = conversation.lire_budget(texte, champ)
@@ -419,7 +423,8 @@ def avancer(tour=None):
             appeler_70b, tour["texte"], notes, question_posee, question,
             chiffres=chiffres_franchise() if parle_franchise else "",
             contexte="; ".join(f"{k} : {v}" for k, v in apres.items()),
-            passe=conversation.historique(s.messages[:-1]), langue=nom_langue(), code=L()))
+            passe=conversation.historique(s.messages[:-1]), langue=nom_langue(), code=L(),
+            passages=articles_de_loi(tour["texte"]) if question_posee else ()))
     if not champ:
         s.messages.append({"role": "assistant", "type": "profil", "profil": deepcopy(s.profil),
                            "sante": len(s.sante)})
@@ -468,6 +473,14 @@ def traiter_message(texte):
         avancer(tour)
 
 
+def articles_de_loi(texte):
+    """Alinéas des vrais textes de loi les plus proches de la question (recherche Python, lois.py)."""
+    try:
+        return lois.chercher(texte, L(), st.session_state.get("mots_cles", ""))
+    except Exception:
+        return []
+
+
 def repondre_apres_resultats(texte):
     """Conversation libre après les résultats : Apertus répond avec les chiffres affichés et la fiche LAMal."""
     s = st.session_state
@@ -476,7 +489,8 @@ def repondre_apres_resultats(texte):
     if bloc is not None:
         reponse = conversation.repondre_libre(
             appeler_70b, texte, bloc.get("faits", ""), bloc.get("chiffres_franchise", ""),
-            passe=conversation.historique(s.messages[:-1]), langue=nom_langue(), code=L())
+            passe=conversation.historique(s.messages[:-1]), langue=nom_langue(), code=L(),
+            passages=articles_de_loi(texte))
     dire(reponse or tr("Je ne peux pas répondre de façon fiable à cette question ici ; vous pouvez vérifier sur "
                        "priminfo.admin.ch. Pour changer une information, écrivez par exemple « et avec une "
                        "franchise de 300 ? » ou « j'habite à 1003 ».", L()))
