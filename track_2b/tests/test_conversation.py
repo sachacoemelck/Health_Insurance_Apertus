@@ -110,6 +110,20 @@ def test_emploi_invente_refuse():
     assert c.repondre_tour(prudent, "tous ?", [], True, question).startswith("Si vous êtes salarié")
 
 
+def test_sources_citees_et_verifiees():
+    fiche = dict((k, i) for i, (k, _, _) in enumerate(c.FICHE_LAMAL, 1))
+    f = fiche["quote-part"]
+    cite = lambda s, m: f"La quote-part est de 10 %, au maximum 700 CHF par an [F{f}]."
+    rep = c.repondre_libre(cite, "C'est quoi la quote-part ?", "rien", code="fr")
+    assert "[F" not in rep and "OAMal art. 103" in rep and "fedlex.admin.ch" in rep, rep
+    rep_de = c.repondre_libre(lambda s, m: f"Der Selbstbehalt beträgt 10 % [F{f}].",
+                                         "Was ist der Selbstbehalt?", "nichts", code="de")
+    assert "Quelle" in rep_de and "KVV Art. 103" in rep_de, rep_de
+    invente = lambda s, m: "La quote-part est de 10 % [F99]."  # numéro inexistant : refusé deux fois
+    assert c.repondre_libre(invente, "La quote-part ?", "rien", code="fr") is None
+    assert c.citer("Sans source.") == "Sans source."
+
+
 if __name__ == "__main__":
     tests = [f for nom, f in dict(globals()).items() if nom.startswith("test_")]
     for t in tests:

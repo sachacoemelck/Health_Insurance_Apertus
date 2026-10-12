@@ -81,7 +81,7 @@ FICHE_LAMAL = [
      "LAMal art. 65"),
     ("lunettes", "Jusqu'à 18 ans révolus, la LAMal rembourse environ 180 CHF par année civile pour les "
                  "lunettes et lentilles. Pour les adultes, seulement en cas de changement de la vue lié à "
-                 "une maladie.", "OPAS, liste des moyens et appareils"),
+                 "une maladie.", "OPAS annexe 2"),
     ("dentaire", "La LAMal ne rembourse les soins dentaires que s'ils sont liés à une maladie grave et "
                  "inévitable de la mastication, à une maladie générale grave ou à un accident. Les caries, "
                  "le détartrage et les appareils dentaires ne sont pas couverts.", "LAMal art. 31"),
@@ -93,7 +93,69 @@ FICHE_LAMAL = [
 
 
 def texte_fiche():
-    return "\n".join(f"- {texte} (source : {source})" for _, texte, source in FICHE_LAMAL)
+    """Connaissances numérotées [F1], [F2]… : Apertus cite le numéro, Python ajoute la vraie source."""
+    return "\n".join(f"[F{i}] {texte}" for i, (_, texte, _source) in enumerate(FICHE_LAMAL, 1))
+
+
+# Textes officiels (fedlex.admin.ch, recueil systématique du droit fédéral) et nom de chaque loi par langue
+LOIS = {
+    "LAMal": ("https://www.fedlex.admin.ch/eli/cc/1995/1328_1328_1328/{l}",
+              {"fr": "LAMal", "de": "KVG", "it": "LAMal", "en": "KVG/LAMal"}),
+    "OAMal": ("https://www.fedlex.admin.ch/eli/cc/1995/3867_3867_3867/{l}",
+              {"fr": "OAMal", "de": "KVV", "it": "OAMal", "en": "KVV/OAMal"}),
+    "OPAS": ("https://www.fedlex.admin.ch/eli/cc/1995/4964_4964_4964/{l}",
+             {"fr": "OPAS", "de": "KLV", "it": "OPre", "en": "KLV/OPAS"}),
+    "LAA": ("https://www.fedlex.admin.ch/eli/cc/1982/1676_1676_1676/{l}",
+            {"fr": "LAA", "de": "UVG", "it": "LAINF", "en": "UVG/LAA"}),
+    "LSAMal": ("https://www.fedlex.admin.ch/eli/cc/2015/839/{l}",
+               {"fr": "LSAMal", "de": "KVAG", "it": "LVAMal", "en": "KVAG/LSAMal"}),
+    "OFSP": ("https://www.priminfo.admin.ch", {"fr": "OFSP", "de": "BAG", "it": "UFSP", "en": "FOPH"}),
+}
+_MOTS_SOURCE = {"fr": ("Source", "art."), "de": ("Quelle", "Art."), "it": ("Fonte", "art."), "en": ("Source", "Art.")}
+
+
+def source_liee(numero, code="fr"):
+    """« LAMal art. 64 ; OAMal art. 103 » de la connaissance n°, en liens Markdown dans la langue voulue."""
+    _, _, source = FICHE_LAMAL[numero - 1]
+    liens = []
+    for partie in source.split(";"):
+        m = re.match(r"\s*(\w+)\b[ ,]*(.*)", partie)
+        loi, reste = m.group(1), m.group(2).strip()
+        if loi not in LOIS:
+            liens.append(partie.strip())
+            continue
+        url, noms = LOIS[loi]
+        # fedlex n'a pas ces textes en anglais (l'adresse /en renvoie vers l'allemand) : allemand pour l'anglais
+        langue_url = {"fr": "fr", "de": "de", "it": "it"}.get(code, "de") if loi != "OFSP" else code
+        if loi == "OFSP":
+            reste = ""
+        mots = {"art.": _MOTS_SOURCE.get(code, _MOTS_SOURCE["fr"])[1], " à ": "–", " et ": ", ",
+                "annexe": {"de": "Anhang", "it": "allegato", "en": "Annex"}.get(code, "annexe")}
+        for fr, autre in mots.items():
+            reste = reste.replace(fr, autre)
+        liens.append(f"[{noms.get(code, loi)}{' ' + reste if reste else ''}]({url.format(l=langue_url)})")
+    return " ; ".join(liens)
+
+
+def citer(reponse, code="fr"):
+    """Remplace les numéros [F5] cités par Apertus par la vraie source, ajoutée en fin de réponse.
+    Seuls les numéros de la fiche existent : Apertus ne peut pas inventer une source."""
+    numeros = []
+    for n in re.findall(r"\[F(\d+)\]", reponse or ""):
+        if 1 <= int(n) <= len(FICHE_LAMAL) and int(n) not in numeros:
+            numeros.append(int(n))
+    texte = re.sub(r"\s*\[F\d+\]", "", reponse or "").strip()
+    if not numeros:
+        return texte
+    mot = _MOTS_SOURCE.get(code, _MOTS_SOURCE["fr"])[0]
+    liens = []
+    for n in numeros:  # sans doublon quand deux connaissances citent le même article
+        liens += [lien for lien in source_liee(n, code).split(" ; ") if lien not in liens]
+    return f"{texte}  \n*{mot} : {' ; '.join(liens)}*"
+
+
+def numeros_inconnus(reponse):
+    return [n for n in re.findall(r"\[F(\d+)\]", reponse or "") if not 1 <= int(n) <= len(FICHE_LAMAL)]
 
 
 # --------------------------------------------------------------------------------------
@@ -263,6 +325,8 @@ Règles strictes :
   connaissances et les chiffres fournis (commence par les lignes « À RETENIR » s'il y en a). Si la
   réponse n'y est pas, dis simplement que tu ne peux pas répondre de façon fiable ici.
 - Sinon : une seule phrase courte et naturelle qui réagit à ce que la personne vient de dire.
+- Après chaque phrase tirée des connaissances LAMal, ajoute son numéro entre crochets, par exemple [F5].
+  N'utilise que les numéros fournis.
 - N'attribue JAMAIS à la personne une situation qu'elle n'a pas dite (emploi, santé, revenu…) :
   seul le « Profil connu » compte. Les connaissances générales ne décrivent pas la personne.
 - Si la personne dit avoir beaucoup de frais médicaux, commence par ce que le seuil signifie pour des
@@ -281,6 +345,8 @@ Règles strictes :
   de l'assureur.
 - Ne cite AUCUN nombre absent des faits : recopie les montants exactement, ou n'en cite pas.
   Ne fais aucun calcul.
+- Après chaque phrase tirée des connaissances LAMal, ajoute son numéro entre crochets, par exemple [F5].
+  N'utilise que les numéros fournis.
 - Ne recommande aucun assureur et ne propose aucun nom « par exemple » : tu peux seulement citer les
   offres affichées comme des faits. Présente les compromis ; la décision reste à la personne.
 - N'attribue jamais à la personne une situation qu'elle n'a pas dite.
@@ -333,6 +399,9 @@ def emploi_non_fonde(reponse, faits):
 def _probleme(reponse, faits, doit_questionner, code="fr"):
     if not reponse or not reponse.strip():
         return "réponse vide"
+    if numeros_inconnus(reponse):
+        return "ne cite que les numéros de connaissances fournis, entre crochets, par exemple [F5]."
+    reponse = re.sub(r"\s*\[F\d+\]", "", reponse)  # les numéros cités ne sont pas des chiffres de la réponse
     intrus = _intrus(reponse, faits)
     if intrus:
         return ("une réponse précédente citait des nombres absents des faits ("
@@ -397,7 +466,7 @@ def repondre_tour(appeler, texte, notes, question_posee, prochaine_question, chi
         try:
             brut = demander_verifie(lambda s, m: appeler(s, m), PROMPT_TOUR.replace("{langue}", langue),
                                     faits, doit_questionner=False, code=code)
-            reaction = nettoyer(brut) if brut else None
+            reaction = citer(nettoyer(brut), code) if brut else None
         except Exception:
             reaction = None
     if reaction:
@@ -423,7 +492,7 @@ def repondre_libre(appeler, texte, faits_resultats, chiffres="", passe="", langu
     try:
         reponse = demander_verifie(lambda s, m: appeler(s, m), PROMPT_LIBRE.replace("{langue}", langue),
                                    faits, doit_questionner=False, code=code)
-        return nettoyer(reponse, garder_questions=True) if reponse else None
+        return citer(nettoyer(reponse, garder_questions=True), code) if reponse else None
     except Exception:
         return None
 
