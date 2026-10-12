@@ -1,4 +1,4 @@
-.PHONY: run build
+.PHONY: run build test
 
 # Starts the project in a Docker container. It must work from a clean checkout.
 # L'app Streamlit est ensuite ouverte sur http://localhost:8501
@@ -14,3 +14,8 @@ run: build
 
 build:
 	docker build -t $(IMAGE) .
+
+# Tests sans appel à Apertus (règles Python, recherche dans les lois, lettre, parcours complet avec un
+# faux Apertus). Les tests avec le vrai Apertus sont dans tests/apertus/ (voir README).
+test: build
+	docker run --rm $(IMAGE) sh -c 'for f in tests/test_*.py; do printf "%-32s" "$$f"; python "$$f" > /tmp/sortie.txt 2>&1 && tail -n 1 /tmp/sortie.txt || { cat /tmp/sortie.txt; exit 1; }; done'

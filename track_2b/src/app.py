@@ -68,6 +68,11 @@ def client_llm(base_url, api_key):
 # Au-delà de LIMITE_TOUR, Apertus 70B n'est plus appelé : la personne reçoit la question sans attendre.
 DELAI_8B, DELAI_70B, LIMITE_TOUR = 20, 25, 45
 
+# Assurances complémentaires et analyse de santé : modules d'une première version, dont les données
+# (produits de 6 caisses, textes de santé) n'ont pas été vérifiées et mesurées comme le reste.
+# Désactivés pour la version remise ; le code reste dans le dépôt (complementaires.py, sante.py).
+MODULES_COMPLEMENTAIRES = False
+
 
 def appel(fonction, modele, delai):
     """Fonction (systeme, message) -> texte, pour un modèle et un délai donnés. Préparée dans le fil
@@ -166,7 +171,8 @@ def integrer(texte, champ=None, question=False, suivi=False):
     taches = {"profil": lambda: chatbot.extraire_mises_a_jour(lire, message)}
     if not question and (champ == "care_access" or soins.parle_de_soins(texte)):
         taches["soins"] = lambda: soins.extraire_soins(lire_json, texte)
-    libre = champ is None and not question  # besoins et santé : seulement dans les descriptions libres
+    # besoins et santé : seulement dans les descriptions libres, et si les modules sont activés
+    libre = champ is None and not question and MODULES_COMPLEMENTAIRES
     if libre:
         taches["besoins"] = lambda: compl.categories_finales(
             extraire_json(lire(compl.PROMPT_BESOINS, texte)).get("categories"), texte)
@@ -743,8 +749,7 @@ def afficher_profil(p, nb_sante=0):
         f"- **{tr('Couverture accident', l)}**{sep} {accident}",
         f"- **{tr('Priorité', l)}**{sep} {priorite}",
         f"- **{tr('Budget', l)}**{sep} {budget}",
-        f"- **{tr('Besoins en complémentaires', l)}**{sep} {besoins}",
-    ] + ([f"- **{tr('Santé', l)}**{sep} {tr('{n} élément(s) pris en compte', l, n=nb_sante)}"] if nb_sante else [])))
+    ] + ([f"- **{tr('Besoins en complémentaires', l)}**{sep} {besoins}"] if MODULES_COMPLEMENTAIRES else []) + ([f"- **{tr('Santé', l)}**{sep} {tr('{n} élément(s) pris en compte', l, n=nb_sante)}"] if nb_sante else [])))
 
 
 def chf(montant):
@@ -1025,8 +1030,9 @@ def reponses_rapides():
         bouton(tr("Non merci", l), repondre_lettre, False, cle="lettre_non")
     elif s.attente == "confirmation":
         l = L()
-        st.multiselect(tr("Besoins en assurances complémentaires", l), options=list(compl.CATEGORIES),
-                       default=p["besoins"], format_func=compl.CATEGORIES.get, key="choix_besoins")
+        if MODULES_COMPLEMENTAIRES:
+            st.multiselect(tr("Besoins en assurances complémentaires", l), options=list(compl.CATEGORIES),
+                           default=p["besoins"], format_func=compl.CATEGORIES.get, key="choix_besoins")
         bouton(tr("C'est correct, lancer la comparaison", l), confirmer, cle="confirmer")
         st.caption(tr("Sinon, écrivez votre correction dans le chat (ex. « j'ai 31 ans »).", l))
 
@@ -1079,6 +1085,11 @@ def main():
 
     st.divider()
     caisses = ", ".join(sorted(compl.produits["assureur"].unique()))
+    if not MODULES_COMPLEMENTAIRES:
+        st.caption(tr("Sources : primes LAMal 2027, régions de primes et liste des assureurs admis : Office fédéral de "
+                      "la santé publique (OFSP), via opendata.swiss et priminfo.admin.ch. Textes de loi : fedlex.admin.ch "
+                      "(LAMal, OAMal, OPAS, LAA). Offices des subsides : liste de l'OFSP.", L()))
+        return
     st.caption(tr("Sources : primes LAMal 2027, régions de primes et liste des assureurs admis : Office fédéral de "
                   "la santé publique (OFSP), via opendata.swiss et priminfo.admin.ch. Assurances complémentaires : "
                   "sites des caisses ({caisses}), vérifiés le {date}.", L(), caisses=caisses,

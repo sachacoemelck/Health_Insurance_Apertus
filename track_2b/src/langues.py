@@ -564,4 +564,17 @@ _("Dans votre canton ({canton}), la demande se fait auprès de : [{office}]({url
   "[UFSP]({source}).",
   "In your canton ({canton}), you apply to: [{office}]({url}). Official list for all cantons: [FOPH]({source}).")
 
+_("Sources : primes LAMal 2027, régions de primes et liste des assureurs admis : Office fédéral de la santé "
+  "publique (OFSP), via opendata.swiss et priminfo.admin.ch. Textes de loi : fedlex.admin.ch (LAMal, OAMal, OPAS, "
+  "LAA). Offices des subsides : liste de l'OFSP.",
+  "Quellen: KVG-Prämien 2027, Prämienregionen und Liste der zugelassenen Versicherer: Bundesamt für Gesundheit "
+  "(BAG), via opendata.swiss und priminfo.admin.ch. Gesetzestexte: fedlex.admin.ch (KVG, KVV, KLV, UVG). Stellen "
+  "für die Prämienverbilligung: Liste des BAG.",
+  "Fonti: premi LAMal 2027, regioni di premio e lista degli assicuratori ammessi: Ufficio federale della sanità "
+  "pubblica (UFSP), via opendata.swiss e priminfo.admin.ch. Testi di legge: fedlex.admin.ch (LAMal, OAMal, OPre, "
+  "LAINF). Uffici dei sussidi: lista dell'UFSP.",
+  "Sources: 2027 basic insurance premiums, premium regions and list of approved insurers: Federal Office of Public "
+  "Health (FOPH), via opendata.swiss and priminfo.admin.ch. Law texts: fedlex.admin.ch (KVG/LAMal, KVV/OAMal, "
+  "KLV/OPAS, UVG/LAA). Premium subsidy offices: FOPH list.")
+
 TRAD = {fr: dict(zip(("de", "it", "en"), v)) for fr, v in T.items()}
