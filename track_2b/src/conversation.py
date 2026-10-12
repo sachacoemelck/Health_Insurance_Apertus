@@ -95,6 +95,20 @@ FICHE_LAMAL = [
 ]
 
 
+# Ce que fait l'application : Apertus en avait besoin pour répondre aux questions sur elle-même.
+# Test réel du 13.10 : à « Parlez-vous d'autres langues ? », Apertus a répondu « je ne parle que le
+# français », alors que l'application fonctionne en quatre langues.
+APPLICATION = (
+    "À propos de l'application (faits sûrs, à utiliser si la personne pose une question sur l'application) :\n"
+    "- Elle fonctionne en français, en allemand, en italien et en anglais : la personne peut écrire dans sa "
+    "langue (la réponse suit), ou choisir la langue dans le menu à gauche. Le suisse-allemand écrit et le "
+    "romanche sont en partie compris.\n"
+    "- Elle compare les primes officielles 2027 de l'assurance de base (OFSP) pour le profil de la personne.\n"
+    "- Elle répond aux questions sur la LAMal à partir des textes de loi officiels (fedlex), avec la source.\n"
+    "- Elle peut calculer l'économie par rapport à la caisse actuelle et rédiger la lettre de résiliation.\n"
+    "- Elle indique l'office des subsides du canton. Elle n'enregistre aucune donnée personnelle.\n"
+    "- Elle ne remplace pas un conseil personnalisé : vérifier sur priminfo.admin.ch avant de décider.")
+
 TITRE_LOIS = ("Articles de loi officiels trouvés pour cette question (texte exact ; ils peuvent ne pas "
               "répondre, dans ce cas ne les utilise pas) :\n")
 
@@ -536,6 +550,7 @@ def faits_tour(texte, notes, question_posee, prochaine_question, chiffres="", co
     if chiffres:
         lignes.append(chiffres)
     if question_posee:
+        lignes.append(APPLICATION)
         lignes.append("Connaissances LAMal autorisées (générales, elles ne décrivent pas la personne) :\n"
                       + texte_fiche())
         if passages:
@@ -580,6 +595,7 @@ def repondre_libre(appeler, texte, faits_resultats, chiffres="", passe="", langu
     faits = "\n".join(x for x in [f"Question de la personne : « {texte} »",
                                   ("Échanges précédents (contexte seulement) :\n" + passe) if passe else "",
                                   "Résultats affichés :\n" + faits_resultats, chiffres,
+                                  APPLICATION,
                                   "Connaissances LAMal autorisées :\n" + texte_fiche(),
                                   (TITRE_LOIS + lois.texte_passages(passages, code)) if passages else ""] if x)
     try:

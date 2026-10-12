@@ -124,6 +124,16 @@ def test_sources_citees_et_verifiees():
     assert c.citer("Sans source.") == "Sans source."
 
 
+def test_apertus_sait_ce_que_fait_l_application():
+    """Test réel du 13.10 : « je ne parle que le français ». Les faits disent maintenant les 4 langues."""
+    vus = []
+    c.repondre_libre(lambda s, m: vus.append(m) or "Oui.", "Parlez-vous d'autres langues ?", "rien")
+    assert "allemand, en italien et en anglais" in vus[0]
+    vus.clear()
+    c.repondre_tour(lambda s, m: vus.append(m) or "Oui.", "Vous parlez allemand ?", [], True, "Quel âge avez-vous ?")
+    assert "allemand, en italien et en anglais" in vus[0]
+
+
 if __name__ == "__main__":
     tests = [f for nom, f in dict(globals()).items() if nom.startswith("test_")]
     for t in tests:
