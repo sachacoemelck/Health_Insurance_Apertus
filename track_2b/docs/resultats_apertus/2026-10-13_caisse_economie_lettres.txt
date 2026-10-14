@@ -1,0 +1,365 @@
+Modèles : apertus-v1.5-8b (lecture), apertus-v1.5-70b (rédaction)
+
+=== 1 et 2. Caisse actuelle et paragraphe d'économie ===
+[fr] « Je suis chez Helsana, en modèle médecin de famille »
+  Lu : caisses=['Helsana'] modèle=PRAXIS prime=None  -> JUSTE  (0.5 s)
+  Faits Python :
+    Caisse actuelle : Helsana, modèle médecin de famille / HMO
+    Prime 2027 de la caisse actuelle pour ce profil (données OFSP), franchise 1500 CHF : 539.80 CHF par mois. C'est ce que la personne paiera si elle ne change rien.
+    À modèle égal : Atupri Gesundheitsversicherung AG, Médecin de famille / HMO (HMO), 514.30 CHF par mois, chez Atupri Gesundheitsversicherung AG : économie de 25.50 CHF par mois, soit 306.00 CHF par an
+  Texte APERTUS (vérifié) (3.2 s) : Si vous restez chez Helsana avec votre modèle médecin de famille, vous paierez 539.80 CHF par mois. En changeant pour Atupri Gesundheitsversicherung AG avec le même modèle, vous ne paieriez que 514.30 CHF par mois, soit une économie de 25.50 CHF par mois, soit 306.00 CHF par an. Les prestations de base de la LAMal sont identiques chez toutes les caisses, mais les modèles de soins comme le médecin de famille ont leurs propres règles et avantages.
+
+[fr] « CSS je crois »
+  Lu : caisses=['CSS'] modèle=PRAXIS prime=None  -> FAUX (attendu : ('CSS', None, None))  (0.2 s)
+  Faits Python :
+    Caisse actuelle : CSS, modèle médecin de famille / HMO
+    Prime 2027 de la caisse actuelle pour ce profil (données OFSP), franchise 1500 CHF : 573.30 CHF par mois. C'est ce que la personne paiera si elle ne change rien.
+    À modèle égal : Atupri Gesundheitsversicherung AG, Médecin de famille / HMO (HMO), 514.30 CHF par mois, chez Atupri Gesundheitsversicherung AG : économie de 59.00 CHF par mois, soit 708.00 CHF par an
+  Texte APERTUS (vérifié) (3.1 s) : Si vous restez chez CSS avec votre modèle médecin de famille, vous paierez 573.30 CHF par mois. En changeant pour Atupri Gesundheitsversicherung AG avec le même modèle, vous ne paieriez que 514.30 CHF par mois, soit une économie de 59.00 CHF par mois, ou 708.00 CHF par an. Les prestations de base de la LAMal sont identiques chez toutes les caisses, mais les modèles de soins comme le médecin de famille ont leurs propres règles et conditions.
+
+[fr] « Assura, libre choix, je paie 389.50 par mois »
+  Lu : caisses=['Assura-Basis SA'] modèle=BASE prime=389.5  -> JUSTE  (0.3 s)
+  Faits Python :
+    Caisse actuelle : Assura-Basis SA, modèle libre choix
+    Prime 2027 de la caisse actuelle pour ce profil (données OFSP), franchise 1500 CHF : 629.20 CHF par mois. C'est ce que la personne paiera si elle ne change rien.
+    La personne dit payer aujourd'hui 389.50 CHF par mois (prime de cette année ; les primes 2027 peuvent être différentes).
+    À modèle égal : GALENOS AG, Libre choix (BASE), 591.40 CHF par mois, chez GALENOS AG : économie de 37.80 CHF par mois, soit 453.60 CHF par an
+    Offre la moins chère des résultats : Atupri Gesundheitsversicherung AG, Médecin de famille / HMO (HMO), 514.30 CHF par mois, chez Atupri Gesundheitsversicherung AG : économie de 114.90 CHF par mois, soit 1378.80 CHF par an
+  Texte APERTUS (vérifié) (2.9 s) : Si vous restez chez Assura-Basis SA avec le modèle libre choix, vous paierez 629.20 CHF par mois en 2027. Les prestations de base sont identiques chez toutes les caisses, mais les modèles diffèrent. En changeant pour Atupri Gesundheitsversicherung AG avec le modèle Médecin de famille / HMO, vous économiseriez 114.90 CHF par mois, soit 1378.80 CHF par an, tout en conservant les mêmes prestations de base.
+
+[fr] « je sais plus, une caisse en S »
+  Lu : caisses=- modèle=None prime=None  -> JUSTE  (0.2 s)
+
+[fr] « Chez Groupe Mutuel »
+  Lu : caisses=['Avenir Krankenversicherung AG', 'Mutuel Krankenversicherung AG', 'Philos Krankenversicherung AG'] modèle=PRAXIS prime=None  -> FAUX (attendu : ('groupe', None, None))  (0.3 s)
+
+[fr] « Visana avec la télémédecine »
+  Lu : caisses=['Visana'] modèle=TEL_DIG prime=None  -> JUSTE  (0.3 s)
+  Faits Python :
+    Caisse actuelle : Visana, modèle télémédecine
+    Prime 2027 de la caisse actuelle pour ce profil (données OFSP), franchise 1500 CHF : 549.80 CHF par mois. C'est ce que la personne paiera si elle ne change rien.
+    À modèle égal : Assura-Basis SA, Télémédecine / numérique (MediTel), 517.40 CHF par mois, chez Assura-Basis SA : économie de 32.40 CHF par mois, soit 388.80 CHF par an
+    Offre la moins chère des résultats : Atupri Gesundheitsversicherung AG, Médecin de famille / HMO (HMO), 514.30 CHF par mois, chez Atupri Gesundheitsversicherung AG : économie de 35.50 CHF par mois, soit 426.00 CHF par an
+  Texte APERTUS (vérifié) (4.2 s) : Si vous restez chez Visana avec le modèle télémédecine, vous paierez 549.80 CHF par mois. En changeant pour Assura-Basis SA avec le même modèle télémédecine, vous économiseriez 32.40 CHF par mois (soit 388.80 CHF par an). L'offre la moins chère disponible est chez Atupri Gesundheitsversicherung AG avec un modèle Médecin de famille / HMO, ce qui vous permettrait d'économiser 35.50 CHF par mois (soit 426.00 CHF par an). Les prestations de base sont identiques chez toutes les caisses, mais les modèles de soins diffèrent selon les règles propres à chaque assureur.
+
+[de] « Ich bin bei der Sanitas, Hausarztmodell »
+  Lu : caisses=['Sanitas'] modèle=PRAXIS prime=None  -> JUSTE  (0.2 s)
+  Faits Python :
+    Caisse actuelle : Sanitas, modèle médecin de famille / HMO
+    Prime 2027 de la caisse actuelle pour ce profil (données OFSP), franchise 1500 CHF : 535.50 CHF par mois. C'est ce que la personne paiera si elle ne change rien.
+    À modèle égal : Atupri Gesundheitsversicherung AG, Médecin de famille / HMO (HMO), 514.30 CHF par mois, chez Atupri Gesundheitsversicherung AG : économie de 21.20 CHF par mois, soit 254.40 CHF par an
+  Texte APERTUS (vérifié) (3.2 s) : Sie bezahlen aktuell bei Sanitas 535.50 CHF pro Monat. Bei Atupri Gesundheitsversicherung AG im gleichen Modell (HMO mit Hausarzt) wären es nur 514.30 CHF pro Monat. Das bedeutet eine Ersparnis von 21.20 CHF pro Monat, also 254.40 CHF pro Jahr. Bitte beachten Sie: Die Grundleistungen der obligatorischen Krankenversicherung sind bei allen Kassen gleich, aber das Modell (z.
+
+[de] « bei der ÖKK, Telmed »
+  Lu : caisses=['ÖKK'] modèle=TEL_DIG prime=None  -> JUSTE  (0.3 s)
+  Faits Python :
+    Caisse actuelle : ÖKK, modèle télémédecine
+    Prime 2027 de la caisse actuelle pour ce profil (données OFSP), franchise 1500 CHF : 557.20 CHF par mois. C'est ce que la personne paiera si elle ne change rien.
+    À modèle égal : Assura-Basis SA, Télémédecine / numérique (MediTel), 517.40 CHF par mois, chez Assura-Basis SA : économie de 39.80 CHF par mois, soit 477.60 CHF par an
+    Offre la moins chère des résultats : Atupri Gesundheitsversicherung AG, Médecin de famille / HMO (HMO), 514.30 CHF par mois, chez Atupri Gesundheitsversicherung AG : économie de 42.90 CHF par mois, soit 514.80 CHF par an
+  Texte APERTUS (vérifié) (2.9 s) : Sie bezahlen bei Ihrer aktuellen ÖKK-Kasse mit dem Telemedizin-Modell monatlich 557.20 CHF. Die Leistungen der Grundversicherung sind bei allen Kassen gleich. Bei einem Wechsel zu Assura-Basis SA mit dem gleichen Telemedizin-Modell würden Sie monatlich 39.80 CHF sparen. Die günstigste Option wäre jedoch ein Wechsel zu Atupri Gesundheitsversicherung AG mit dem HMO-Modell, was Ihnen monatlich 42.90 CHF einsparen würde.
+
+[de] « Swica, ich zahle 455 Franken im Monat »
+  Lu : caisses=['SWICA'] modèle=PRAXIS prime=455.0  -> FAUX (attendu : ('SWICA', None, 455.0))  (0.2 s)
+  Faits Python :
+    Caisse actuelle : SWICA, modèle médecin de famille / HMO
+    Prime 2027 de la caisse actuelle pour ce profil (données OFSP), franchise 1500 CHF : 537.90 CHF par mois. C'est ce que la personne paiera si elle ne change rien.
+    La personne dit payer aujourd'hui 455.00 CHF par mois (prime de cette année ; les primes 2027 peuvent être différentes).
+    À modèle égal : Atupri Gesundheitsversicherung AG, Médecin de famille / HMO (HMO), 514.30 CHF par mois, chez Atupri Gesundheitsversicherung AG : économie de 23.60 CHF par mois, soit 283.20 CHF par an
+  Texte APERTUS (vérifié) (8.5 s) : Wenn Sie bei SWICA mit Ihrem aktuellen Modell (Hausarzt/HMO) bleiben, zahlen Sie ab 2027 monatlich 537.90 CHF. Bei Atupri Gesundheitsversicherung AG mit dem gleichen Modell (Hausarzt/HMO) betrüge die monatliche Prämie 514.30 CHF. Das bedeutet eine Ersparnis von 23.60 CHF pro Monat, also 283.20 CHF pro Jahr. Bitte beachten Sie, dass die Grundleistungen bei allen Krankenkassen gleich sind, aber das Modell (z.
+
+[de] « Ich weiss es nicht mehr »
+  Lu : caisses=- modèle=None prime=None  -> JUSTE  (0.2 s)
+
+[it] « Sono assicurato con la Concordia, libera scelta »
+  Lu : caisses=['CONCORDIA'] modèle=BASE prime=None  -> JUSTE  (0.3 s)
+  Faits Python :
+    Caisse actuelle : CONCORDIA, modèle libre choix
+    Prime 2027 de la caisse actuelle pour ce profil (données OFSP), franchise 1500 CHF : 633.50 CHF par mois. C'est ce que la personne paiera si elle ne change rien.
+    À modèle égal : GALENOS AG, Libre choix (BASE), 591.40 CHF par mois, chez GALENOS AG : économie de 42.10 CHF par mois, soit 505.20 CHF par an
+    Offre la moins chère des résultats : Atupri Gesundheitsversicherung AG, Médecin de famille / HMO (HMO), 514.30 CHF par mois, chez Atupri Gesundheitsversicherung AG : économie de 119.20 CHF par mois, soit 1430.40 CHF par an
+  Texte APERTUS (vérifié) (9.5 s) : Lei attualmente paga 633.50 CHF al mese con CONCORDIA, modello libero scelta. Se Lei mantiene questa cassa, continuerà a pagare questa somma. Con lo stesso modello (libero scelta) presso GALENOS AG, Lei risparmierebbe 42.10 CHF al mese (505.20 CHF all'anno). Tuttavia, l'offerta più economica disponibile è Atupri Gesundheitsversicherung AG con modello medico di famiglia/HMO, dove Lei risparmierebbe 119.20 CHF al mese (1430.40 CHF all'anno).
+
+[it] « Atupri, medico di famiglia »
+  Lu : caisses=['Atupri Gesundheitsversicherung AG'] modèle=PRAXIS prime=None  -> JUSTE  (0.3 s)
+  Faits Python :
+    Caisse actuelle : Atupri Gesundheitsversicherung AG, modèle médecin de famille / HMO
+    Prime 2027 de la caisse actuelle pour ce profil (données OFSP), franchise 1500 CHF : 514.30 CHF par mois. C'est ce que la personne paiera si elle ne change rien.
+    Aucune offre des résultats n'est moins chère : aucune économie possible.
+  Texte APERTUS (vérifié) (2.3 s) : Lei attualmente paga 514.30 CHF al mese con Atupri Gesundheitsversicherung AG. Nessuna delle offerte disponibili è più economica: non è possibile risparmiare cambiando cassa. Le prestazioni di base della LAMal sono identiche per tutte le casse, ma il modello (medico di famiglia / HMO) ha regole specifiche che variano da cassa a cassa.
+
+[it] « pago circa 420 franchi al mese ma non ricordo la cassa »
+  Lu : caisses=- modèle=None prime=420.0  -> JUSTE  (0.2 s)
+  Faits Python :
+    Prime actuelle indiquée par la personne : 420.00 CHF par mois. Attention : c'est la prime d'aujourd'hui, alors que les offres sont les primes 2027.
+    Aucune offre des résultats n'est moins chère : aucune économie possible.
+  Texte APERTUS (vérifié) (2.3 s) : Lei attualmente paga 420.00 CHF al mese per la sua cassa malattia. Nessuna delle offerte trovate è più economica: non è possibile risparmiare cambiando cassa. Ricordi che le prestazioni di base della LAMal sono identiche per tutte le casse, ma le modalità di accesso (come il medico di famiglia o la telemedicina) possono variare.
+
+[en] « I'm with KPT, standard model »
+  Lu : caisses=['KPT'] modèle=BASE prime=None  -> JUSTE  (0.2 s)
+  Faits Python :
+    Caisse actuelle : KPT, modèle libre choix
+    Prime 2027 de la caisse actuelle pour ce profil (données OFSP), franchise 1500 CHF : 675.50 CHF par mois. C'est ce que la personne paiera si elle ne change rien.
+    À modèle égal : GALENOS AG, Libre choix (BASE), 591.40 CHF par mois, chez GALENOS AG : économie de 84.10 CHF par mois, soit 1009.20 CHF par an
+    Offre la moins chère des résultats : Atupri Gesundheitsversicherung AG, Médecin de famille / HMO (HMO), 514.30 CHF par mois, chez Atupri Gesundheitsversicherung AG : économie de 161.20 CHF par mois, soit 1934.40 CHF par an
+  Texte APERTUS (vérifié) (3.3 s) : If you stay with KPT under the free choice model, your monthly premium will be 675.50 CHF. Switching to the same free choice model with Galenos AG would save you 84.10 CHF per month (1009.20 CHF per year). However, the cheapest option overall is Atupri Gesundheitsversicherung AG with an HMO model, saving you 161.20 CHF per month (1934.40 CHF per year). Remember, basic coverage is identical across all insurers, but models like HMO have specific rules about choosing doctors.
+
+[en] « Sympany, family doctor model »
+  Lu : caisses=['Vivao Sympany'] modèle=PRAXIS prime=None  -> JUSTE  (0.2 s)
+  Faits Python :
+    Caisse actuelle : Vivao Sympany, modèle médecin de famille / HMO
+    Prime 2027 de la caisse actuelle pour ce profil (données OFSP), franchise 1500 CHF : 531.20 CHF par mois. C'est ce que la personne paiera si elle ne change rien.
+    À modèle égal : Atupri Gesundheitsversicherung AG, Médecin de famille / HMO (HMO), 514.30 CHF par mois, chez Atupri Gesundheitsversicherung AG : économie de 16.90 CHF par mois, soit 202.80 CHF par an
+  Texte APERTUS (vérifié) (3.0 s) : If you stay with Vivao Sympany under the same family doctor/HMO model, you will pay 531.20 CHF per month. Switching to Atupri Gesundheitsversicherung AG with the identical family doctor/HMO model would lower your monthly premium to 514.30 CHF, saving you 16.90 CHF each month — that's 202.80 CHF per year. Remember, all basic LAMal benefits are the same across insurers, but specific models like family doctor/HMO have their own rules and requirements.
+
+[en] « EGK I think, telemedicine »
+  Lu : caisses=['EGK'] modèle=TEL_DIG prime=None  -> JUSTE  (0.2 s)
+  Faits Python :
+    Caisse actuelle : EGK, modèle télémédecine
+    Prime 2027 de la caisse actuelle pour ce profil (données OFSP), franchise 1500 CHF : 575.20 CHF par mois. C'est ce que la personne paiera si elle ne change rien.
+    À modèle égal : Assura-Basis SA, Télémédecine / numérique (MediTel), 517.40 CHF par mois, chez Assura-Basis SA : économie de 57.80 CHF par mois, soit 693.60 CHF par an
+    Offre la moins chère des résultats : Atupri Gesundheitsversicherung AG, Médecin de famille / HMO (HMO), 514.30 CHF par mois, chez Atupri Gesundheitsversicherung AG : économie de 60.90 CHF par mois, soit 730.80 CHF par an
+  Texte APERTUS (vérifié) (3.5 s) : If you stay with EGK under the telemedicine model, your monthly premium will be 575.20 CHF. Switching to Assura-Basis SA with the same telemedicine model would save you 57.80 CHF per month (693.60 CHF per year). However, the cheapest option overall is Atupri Gesundheitsversicherung AG with an HMO model, saving you 60.90 CHF per month (730.80 CHF per year). Remember, all basic LAMal benefits are identical across insurers, but models like telemedicine or HMO have different rules for accessing care.
+
+=== 3. Lettres de résiliation ===
+[fr] Helsana : APERTUS (1er essai, 4.1 s)
+  Problèmes vus par Python : [[]]
+  Lettre :
+    [Prénom Nom]
+    [Adresse]
+    [NPA Localité]
+    
+    Helsana
+    [Adresse de la caisse]
+    
+    [Lieu, date]
+    
+    Objet : Résiliation de l'assurance obligatoire des soins (LAMal) – [Numéro d'assuré]
+    
+    Madame, Monsieur,
+    
+    Par la présente, je vous informe de ma décision de résilier mon assurance obligatoire des soins (LAMal) à compter du 31 décembre 2026.
+    
+    Je tiens à préciser que cette résiliation ne concerne pas mes assurances complémentaires, qui demeurent inchangées.
+    
+    Je vous remercie de bien vouloir m'adresser une confirmation écrite de la prise en compte de cette résiliation.
+    
+    Je vous prie d'agréer, Madame, Monsieur, l'expression de mes salutations distinguées.
+    
+    [Signature]
+
+[fr] CSS : APERTUS (1er essai, 4.0 s)
+  Problèmes vus par Python : [[]]
+  Lettre :
+    [Prénom Nom]
+    [Adresse]
+    [NPA Localité]
+    
+    CSS
+    [Adresse de la caisse]
+    
+    [Lieu, date]
+    
+    Objet : Résiliation de l'assurance obligatoire des soins (LAMal) – [Numéro d'assuré]
+    
+    Madame, Monsieur,
+    
+    Par la présente, je vous informe de ma décision de résilier mon assurance obligatoire des soins (LAMal) à compter du 31 décembre 2026.
+    
+    Je tiens à préciser que cette résiliation ne concerne pas mes assurances complémentaires, qui demeurent inchangées.
+    
+    Je vous remercie de bien vouloir m'adresser une confirmation écrite de cette résiliation.
+    
+    Je vous prie d'agréer, Madame, Monsieur, l'expression de mes salutations distinguées.
+    
+    [Signature]
+
+[fr] Assura-Basis SA : APERTUS (1er essai, 4.0 s)
+  Problèmes vus par Python : [[]]
+  Lettre :
+    [Prénom Nom]
+    [Adresse]
+    [NPA Localité]
+    
+    Assura-Basis SA
+    [Adresse de la caisse]
+    
+    [Lieu, date]
+    
+    Objet : Résiliation de l'assurance obligatoire des soins (LAMal) – [Numéro d'assuré]
+    
+    Madame, Monsieur,
+    
+    Par la présente, je vous informe de ma décision de résilier mon assurance obligatoire des soins (LAMal) à compter du 31 décembre 2026.
+    
+    Je tiens à préciser que cette résiliation ne concerne pas mes assurances complémentaires, qui demeurent inchangées.
+    
+    Je vous remercie de bien vouloir m'adresser une confirmation écrite de cette résiliation.
+    
+    Je vous prie d'agréer, Madame, Monsieur, l'expression de mes salutations distinguées.
+    
+    [Signature]
+
+[de] Sanitas : APERTUS (1er essai, 4.5 s)
+  Problèmes vus par Python : [[]]
+  Lettre :
+    [Vorname Name]
+    [Adresse]
+    [PLZ Ort]
+    
+    Sanitas
+    [Adresse der Krankenkasse]
+    
+    [Ort, Datum]
+    
+    Betreff: Kündigung der obligatorischen Krankenpflegeversicherung (Grundversicherung)
+    
+    Sehr geehrte Damen und Herren,
+    
+    hiermit kündige ich meine obligatorische Krankenpflegeversicherung (Grundversicherung) per 31. Dezember 2026. Der Versichertenummer lautet: [Versichertennummer].
+    
+    Bitte beachten Sie, dass diese Kündigung ausschliesslich die obligatorische Krankenpflegeversicherung betrifft. Die bestehenden Zusatzversicherungen bleiben von dieser Kündigung unberührt.
+    
+    Ich bitte Sie, mir den Erhalt dieser Kündigung sowie das Beendigungsdatum schriftlich zu bestätigen.
+    
+    Mit freundlichen Grüssen
+    
+    [Unterschrift]
+
+[de] ÖKK : APERTUS (1er essai, 4.6 s)
+  Problèmes vus par Python : [[]]
+  Lettre :
+    [Vorname Name]
+    [Adresse]
+    [PLZ Ort]
+    
+    ÖKK
+    [Adresse der Krankenkasse]
+    
+    [Ort, Datum]
+    
+    Betreff: Kündigung der obligatorischen Krankenpflegeversicherung (Grundversicherung)
+    
+    Sehr geehrte Damen und Herren,
+    
+    hiermit kündige ich meine obligatorische Krankenpflegeversicherung (Grundversicherung) fristgerecht per 31. Dezember 2026. Der Versichertenummer lautet: [Versichertennummer].
+    
+    Bitte beachten Sie, dass diese Kündigung ausschliesslich die obligatorische Krankenpflegeversicherung betrifft. Die bestehenden Zusatzversicherungen bleiben von dieser Kündigung unberührt.
+    
+    Für Ihre Bemühungen danke ich im Voraus und bitte um eine schriftliche Bestätigung der Kündigung.
+    
+    Mit freundlichen Grüssen
+    
+    [Unterschrift]
+
+[de] SWICA : APERTUS (1er essai, 4.6 s)
+  Problèmes vus par Python : [[]]
+  Lettre :
+    [Vorname Name]
+    [Adresse]
+    [PLZ Ort]
+    
+    SWICA
+    [Adresse der Krankenkasse]
+    
+    [Ort, Datum]
+    
+    Betreff: Kündigung der obligatorischen Krankenpflegeversicherung (Grundversicherung)
+    
+    Sehr geehrte Damen und Herren,
+    
+    hiermit kündige ich meine obligatorische Krankenpflegeversicherung (Grundversicherung) per 31. Dezember 2026. Der Versichertenummer lautet: [Versichertennummer].
+    
+    Bitte beachten Sie, dass diese Kündigung ausschliesslich die obligatorische Krankenpflegeversicherung betrifft. Die bestehenden Zusatzversicherungen bleiben von dieser Kündigung unberührt.
+    
+    Ich bitte Sie, mir den Erhalt dieser Kündigung sowie das Beendigungsdatum schriftlich zu bestätigen.
+    
+    Mit freundlichen Grüssen
+    
+    [Unterschrift]
+
+[it] CONCORDIA : APERTUS (1er essai, 4.9 s)
+  Problèmes vus par Python : [[]]
+  Lettre :
+    [Nome Cognome]
+    [Indirizzo]
+    [NPA Località]
+    
+    CONCORDIA
+    [Indirizzo della cassa]
+    
+    [Luogo, data]
+    
+    Oggetto: Disdetta dell'assicurazione malattia obbligatoria (LAMal)
+    
+    Egregi Signori,
+    
+    con la presente, in conformità con le disposizioni contrattuali e legali, intendo disdire il mio contratto di assicurazione malattia obbligatoria (LAMal) a partire dal 31 dicembre 2026.
+    
+    Numero d'assicurato: [Numero d'assicurato]
+    
+    Le comunico che le eventuali assicurazioni complementari rimangono invariate e non sono oggetto della presente disdetta.
+    
+    La prego di inviarmi una conferma scritta della ricezione della disdetta e della data di cessazione del contratto.
+    
+    Ringraziandovi per la collaborazione, porgo distinti saluti.
+    
+    [Firma]
+
+[it] Atupri Gesundheitsversicherung AG : APERTUS (1er essai, 5.1 s)
+  Problèmes vus par Python : [[]]
+  Lettre :
+    [Nome Cognome]
+    [Indirizzo]
+    [NPA Località]
+    
+    Atupri Gesundheitsversicherung AG
+    [Indirizzo della cassa]
+    
+    [Luogo, data]
+    
+    Oggetto: Disdetta dell'assicurazione malattia obbligatoria (LAMal)
+    
+    Egregi Signori,
+    
+    con la presente, in conformità con le disposizioni contrattuali e legali, notifico la disdetta del mio contratto di assicurazione malattia obbligatoria (LAMal) a decorrere dal 31 dicembre 2026.
+    
+    Numero d'assicurato: [Numero d'assicurato]
+    
+    Le comunico che le eventuali assicurazioni complementari rimangono invariate e non sono oggetto della presente disdetta.
+    
+    La prego di inviarmi una conferma scritta della ricezione della disdetta e della data di cessazione del contratto.
+    
+    Ringraziandovi per la collaborazione, porgo distinti saluti.
+    
+    [Firma]
+
+[it] Helsana : APERTUS (1er essai, 5.0 s)
+  Problèmes vus par Python : [[]]
+  Lettre :
+    [Nome Cognome]
+    [Indirizzo]
+    [NPA Località]
+    
+    Helsana
+    [Indirizzo della cassa]
+    
+    [Luogo, data]
+    
+    Oggetto: Disdetta dell'assicurazione obbligatoria delle cure medico-sanitarie (LAMal)
+    
+    Egregi Signori,
+    
+    con la presente, in conformità con le disposizioni contrattuali e legali vigenti, intendo disdire il mio contratto di assicurazione obbligatoria delle cure medico-sanitarie (LAMal) a partire dal 31 dicembre 2026.
+    
+    Numero d'assicurato: [Numero d'assicurato]
+    
+    Le comunico che le eventuali assicurazioni complementari rimangono invariate e non sono oggetto della presente disdetta.
+    
+    La prego di inviarmi una conferma scritta della ricezione della presente disdetta e della data di cessazione del contratto.
+    
+    Ringraziandovi per la collaborazione, porgo distinti saluti.
+    
+    [Firma]
+
+RÉSUMÉ : lecture de la caisse 13/16 justes | paragraphe d'économie d'Apertus accepté 13/13 | lettres d'Apertus acceptées 9/9 (lettre modèle : 0)

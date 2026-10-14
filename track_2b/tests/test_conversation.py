@@ -1,0 +1,141 @@
+"""Tests du moteur de conversation (sans appel au vrai Apertus).
+Lancer : python tests/test_conversation.py"""
+import sys
+from pathlib import Path
+
+sys.path.insert(0, str(Path(__file__).resolve().parent.parent / "src"))
+
+import conversation as c
+
+
+def test_questions_detectees():
+    for texte in ("c est quoi le mieux", "C'est quoi un modèle HMO", "Quelle franchise choisir",
+                  "je sais pas", "vous me conseillez quoi", "j'hésite", "Laquelle est la moins chère ?",
+                  "comment ça marche", "Was ist eine Franchise", "which one should I take"):
+        assert c.est_question(texte), texte
+
+
+def test_reponses_pas_prises_pour_des_questions():
+    for texte in ("2500", "la plus haute", "avec accidents", "1261", "tous les modèles me vont",
+                  "J'ai 30 ans et j'habite à Nyon", "pas de limite", "oui"):
+        assert not c.est_question(texte), texte
+
+
+def test_question_ne_remplit_pas_le_champ_demande():
+    u = {"deductible": {"value": "all", "status": "known", "correction": False},
+         "age": {"value": 21, "status": "known", "correction": False}}
+    assert set(c.mises_a_jour_hors_question(u, "deductible", True)) == {"age"}
+    assert c.mises_a_jour_hors_question(u, "deductible", False) == u
+
+
+def test_budget():
+    assert c.lire_budget("pas plus de 350 par mois", "budget") == ("montant", 350)
+    assert c.lire_budget("300 CHF", "budget") == ("montant", 300)
+    assert c.lire_budget("pas de limite", "budget") == ("aucun", None)
+    assert c.lire_budget("j'ai un petit budget") == ("petit", None)
+    assert c.lire_budget("mon budget est de 280 francs par mois") == ("montant", 280)
+    # Un âge, une franchise ou un code postal ne sont jamais lus comme un budget
+    assert c.lire_budget("j'ai 21 ans, franchise 2500, j'habite à 1261 Le Vaud") is None
+    assert c.lire_budget("j'ai 45 ans", "budget") == ("aucun", None) or c.lire_budget("j'ai 45 ans", "budget") is None
+
+
+def test_conseil_franchise_coherent():
+    faits = c.faits_franchise("VD", 1, 22, True, None, 350)
+    assert "franchise 300 CHF" in faits and "franchise 2500 CHF" in faits
+    lignes = c.franchises_pour("VD", 1, 22, True)
+    basse, haute = lignes[0], lignes[-1]
+    s = c.seuil(basse, haute, 700)
+    # Juste avant le seuil, la franchise haute coûte moins ; au seuil, plus
+    assert c.cout_total(haute["prime_an"], 2500, s - 10, 700) <= c.cout_total(basse["prime_an"], 300, s - 10, 700)
+    assert c.cout_total(haute["prime_an"], 2500, s, 700) > c.cout_total(basse["prime_an"], 300, s, 700)
+    assert c.faits_franchise(None, None, 22, True) == ""
+
+
+def test_reponse_avec_nombre_invente_refusee():
+    question = "Quelle franchise souhaitez-vous ?"
+    menteur = lambda s, m: "Prenez 2500, vous économiserez 1234 CHF. " + question
+    assert c.repondre_tour(menteur, "c'est quoi le mieux", [], True, question).endswith(question)
+    assert "1234" not in c.repondre_tour(menteur, "c'est quoi le mieux", [], True, question)
+
+
+def test_reponse_correcte_acceptee():
+    question = "Quelle franchise souhaitez-vous ?"
+    bon = lambda s, m: "Avec peu de frais, une franchise haute coûte moins en primes. " + question
+    assert c.repondre_tour(bon, "c'est quoi le mieux", [], True, question).startswith("Avec peu de frais")
+
+
+def test_tutoiement_et_panne_refuses():
+    question = "Quel est votre âge ?"
+    assert c.repondre_tour(lambda s, m: "Quel est ton âge ?", "salut", [], False, question) == question
+
+    def panne(s, m):
+        raise RuntimeError("Apertus indisponible")
+    assert c.repondre_tour(panne, "salut", [], False, question) == question
+
+
+def test_question_de_l_application_jamais_reformulee():
+    # Apertus pose sa propre question (au sens différent) : elle est retirée, celle de Python reste
+    question = "Je compare une personne à la fois. Pour qui faisons-nous la comparaison ?"
+    bavard = lambda s, m: "Bonjour ! Je comprends. Pourriez-vous confirmer votre commune ?"
+    rep = c.repondre_tour(bavard, "je dois inclure les accidents ?", [], True, question)
+    assert rep == "Je comprends. " + question, rep
+    assert rep.count("?") == 1
+
+
+def test_question_ne_remplit_aucun_choix():
+    lu = {"multiple_people": {"value": True}, "include_accident": {"value": True},
+          "deductible": {"value": "all"}, "employed": {"value": False}}
+    assert c.mises_a_jour_hors_question(lu, "include_accident", True) == {"employed": {"value": False}}
+    assert c.mises_a_jour_hors_question(lu, "include_accident", False) == lu
+
+
+def test_sans_nouvelle_information_pas_d_appel_inutile():
+    appels = []
+    question = "Quel est votre âge ?"
+    assert c.repondre_tour(lambda s, m: appels.append(1) or "ok", "hmm", [], False, question) == question
+    assert not appels
+
+
+def test_code_postal_jamais_lu_comme_budget():
+    assert c.lire_budget("58 ans, Nyon 1260, avec accidents, pas de budget") == ("aucun", None)
+    assert c.lire_budget("étudiante à Fribourg 1700, petit budget") == ("petit", None)
+    assert c.lire_budget("300 par mois", "budget") == ("montant", 300)
+
+
+def test_emploi_invente_refuse():
+    question = "Quels modèles acceptez-vous ?"
+    invente = lambda s, m: "Puisque vous êtes salarié, votre employeur vous couvre."
+    assert c.repondre_tour(invente, "tous ?", [], True, question).startswith("Je ne peux pas répondre")
+    prudent = lambda s, m: "Si vous êtes salarié au moins 8 heures, vous pouvez exclure les accidents."
+    assert c.repondre_tour(prudent, "tous ?", [], True, question).startswith("Si vous êtes salarié")
+
+
+def test_sources_citees_et_verifiees():
+    fiche = dict((k, i) for i, (k, _, _) in enumerate(c.FICHE_LAMAL, 1))
+    f = fiche["quote-part"]
+    cite = lambda s, m: f"La quote-part est de 10 %, au maximum 700 CHF par an [F{f}]."
+    rep = c.repondre_libre(cite, "C'est quoi la quote-part ?", "rien", code="fr")
+    assert "[F" not in rep and "OAMal art. 103" in rep and "fedlex.admin.ch" in rep, rep
+    rep_de = c.repondre_libre(lambda s, m: f"Der Selbstbehalt beträgt 10 % [F{f}].",
+                                         "Was ist der Selbstbehalt?", "nichts", code="de")
+    assert "Quelle" in rep_de and "KVV Art. 103" in rep_de, rep_de
+    invente = lambda s, m: "La quote-part est de 10 % [F99]."  # numéro inexistant : refusé deux fois
+    assert c.repondre_libre(invente, "La quote-part ?", "rien", code="fr") is None
+    assert c.citer("Sans source.") == "Sans source."
+
+
+def test_apertus_sait_ce_que_fait_l_application():
+    """Test réel du 13.10 : « je ne parle que le français ». Les faits disent maintenant les 4 langues."""
+    vus = []
+    c.repondre_libre(lambda s, m: vus.append(m) or "Oui.", "Parlez-vous d'autres langues ?", "rien")
+    assert "allemand, en italien et en anglais" in vus[0]
+    vus.clear()
+    c.repondre_tour(lambda s, m: vus.append(m) or "Oui.", "Vous parlez allemand ?", [], True, "Quel âge avez-vous ?")
+    assert "allemand, en italien et en anglais" in vus[0]
+
+
+if __name__ == "__main__":
+    tests = [f for nom, f in dict(globals()).items() if nom.startswith("test_")]
+    for t in tests:
+        t()
+    print(f"{len(tests)} tests réussis")

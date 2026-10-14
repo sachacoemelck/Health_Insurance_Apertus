@@ -209,8 +209,6 @@ class Profile:
             return "birth_year"
         if self.rating_age() is None:
             return "birth_year"
-        if not self.deductibles():
-            return "deductible"
         if self.accident() is None:
             return "include_accident"
         hours = self.known("hours_per_week_one_employer")
@@ -223,6 +221,9 @@ class Profile:
             return "care_conditions"
         if self.known("care_access") is None:
             return "care_access"
+        # La franchise en dernier : le conseil de franchise peut alors utiliser les modèles acceptés
+        if not self.deductibles():
+            return "deductible"
         return None
 
     def comparison(self, location):
@@ -447,7 +448,9 @@ def demander_llm_json(client, modele, systeme, message):
                 messages=[{"role": "system", "content": systeme},
                           {"role": "user", "content": message}])
             return reponse.choices[0].message.content
-        except Exception:
+        except Exception as erreur:
+            if "timeout" in type(erreur).__name__.lower() or "connection" in type(erreur).__name__.lower():
+                raise  # serveur lent ou injoignable : ce n'est pas un refus du format JSON
             _JSON_FORCE = False
     return demander_llm(client, modele, systeme, message)
 
@@ -490,11 +493,36 @@ def nom_simple(commune):
     return nom.casefold()
 
 
+# Noms usuels des villes dans les autres langues -> nom officiel simplifié (OFSP)
+ALIAS_COMMUNES = {
+    "geneva": "geneve", "genf": "geneve", "ginevra": "geneve", "berne": "bern", "berna": "bern",
+    "bale": "basel", "basle": "basel", "basilea": "basel", "zurigo": "zurich", "lucerne": "luzern",
+    "lucerna": "luzern", "freiburg": "fribourg", "friburgo": "fribourg", "neuenburg": "neuchatel",
+    "sitten": "sion", "soleure": "solothurn", "soletta": "solothurn", "schaffhouse": "schaffhausen",
+    "sciaffusa": "schaffhausen", "saint-gall": "st. gallen", "st-gall": "st. gallen", "san gallo": "st. gallen",
+    "st gallen": "st. gallen", "sankt gallen": "st. gallen", "coire": "chur", "coira": "chur",
+    "losanna": "lausanne", "bellinzone": "bellinzona", "thoune": "thun", "morat": "murten", "siders": "sierre",
+    "viege": "visp", "delsberg": "delemont", "lauis": "lugano",
+    # Suisse-allemand et romanche usuels
+    "barn": "bern", "zuri": "zurich", "luzarn": "luzern", "st. galla": "st. gallen", "sanggalle": "st. gallen",
+    "basel-stadt": "basel", "cuira": "chur", "glion": "ilanz/glion",
+}
+
+
 def communes_par_nom(nom):
     """Communes (une ligne par n° OFS) dont le nom correspond à celui donné, sinon vide."""
     if not nom:
         return regions.iloc[0:0]
-    trouvees = regions[regions["commune"].map(nom_simple) == nom_simple(nom)]
+    # « Genève 1205 » ou « 1205 Genève » : le code postal n'appartient pas au nom de la commune
+    # « Lausanne VD » ou « Lausanne (1003) » : canton et code postal ne font pas partie du nom
+    cherche = re.sub(r"\b\d{4}\b|[()\[\],;]", " ", nom_simple(nom))
+    cherche = re.sub(r"\s+(?:ag|ai|ar|be|bl|bs|fr|ge|gl|gr|ju|lu|ne|nw|ow|sg|sh|so|sz|tg|ti|ur|vd|vs|zg|zh)$", "",
+                     re.sub(r"\s+", " ", cherche).strip(" ,-"))
+    cherche = ALIAS_COMMUNES.get(cherche, cherche)
+    trouvees = regions[regions["commune"].map(nom_simple) == cherche]
+    if trouvees.empty:
+        # Noms bilingues officiels : « Bienne » ou « Biel » désignent « Biel/Bienne »
+        trouvees = regions[regions["commune"].map(lambda c: cherche in [p.strip() for p in nom_simple(c).split("/")])]
     return trouvees.drop_duplicates("no_ofs").reset_index(drop=True)
 
 
@@ -519,10 +547,13 @@ def localiser(npa=None, commune=None):
     else:
         communes = communes_du_npa(npa)
         if commune:
-            citee = communes[communes["commune"].map(nom_simple) == nom_simple(commune)]
-            if citee.empty:
+            connues = communes_par_nom(commune)
+            citee = communes[communes["no_ofs"].isin(connues["no_ofs"])]
+            if citee.empty and not connues.empty:
                 return None  # Explicit postcode / municipality conflict: ask, never ignore.
-            communes = citee
+            # Un nom qui n'est pas une commune officielle (« Lausanne-Ouchy », faute de lecture)
+            # ne contredit pas le code postal : c'est le code postal qui fait foi.
+            communes = citee if not citee.empty else communes
         if not communes.empty and len(communes[["canton", "region"]].drop_duplicates()) == 1:
             # Une seule région possible pour ce NPA : inutile de demander la commune
             c = communes.iloc[0]
@@ -676,6 +707,7 @@ def resumer_faits(profil, resultats):
 def nombres(texte):
     """Nombres cités dans un texte ('5 124', "5'124" et '5124.00' donnent 5124)."""
     texte = re.sub(r"(?<=\d)[ '’  ](?=\d{3}\b)", "", texte or "")
+    texte = re.sub(r"(?<=\d),(?=\d{3}(?:\.\d+)?(?!\d))", "", texte)  # séparateur anglais : « 1,539.60 »
     return {float(n.replace(",", ".")) for n in re.findall(r"\d+(?:[.,]\d+)?", texte)}
 
 

@@ -15,6 +15,7 @@ RUN pip install --no-cache-dir -r requirements.txt
 COPY .streamlit/ .streamlit/
 COPY src/ src/
 COPY data/ data/
+COPY tests/ tests/
 
 # L'app tourne sans droits d'administration
 RUN useradd --create-home appuser

@@ -1,0 +1,756 @@
+
+==========================================================================================
+[X-D1] Alles in einem Satz
+==========================================================================================
+APP : [accueil]
+PERSONNE : Guten Tag, ich bin 36 Jahre alt, wohne in Aarau 5000, möchte die Unfalldeckung, alle Modelle sind okay, kein Budget, Franchise 1000.
+APP (6 s) : Sie haben eine Franchise von 1000 CHF gewählt, was monatlich 439.40 CHF kostet. Möchten Sie mit Unfalldeckung vergleichen? Ausschliessen können Sie sie nur, wenn Sie über Ihren Arbeitgeber gegen Nichtberufsunfälle versichert sind.
+   appels Apertus : apertus-v1.5-8b Tu extrais les faits expl… 1s, apertus-v1.5-8b Tu analyses comment une p… 1s, apertus-v1.5-8b Tu identifies les besoins… 0s, apertus-v1.5-70b Tu es le conseiller en as… 4s
+PERSONNE : mit Unfall
+APP (2 s) : [profil]
+   appels Apertus : apertus-v1.5-8b Tu extrais les faits expl… 0s, apertus-v1.5-70b Tu es le conseiller en as… 2s
+PERSONNE : [clique « C'est correct, lancer la comparaison »]
+-> profil compris : {'canton': 'AG', 'age': 36, 'franchise': 1000, 'accidents': True}
+-> réponses : 1, dont phrases de secours : 0 | 12 s
+-> OK
+
+==========================================================================================
+[X-D2] Angestellt, ohne Unfall
+==========================================================================================
+APP : [accueil]
+PERSONNE : Ich arbeite 40 Stunden pro Woche bei der gleichen Firma, bin 44 und wohne in Zug 6300.
+APP (6 s) : Welche Modelle kommen für Sie in Frage: freie Arztwahl, Hausarzt / HMO, Telefon oder digitaler Dienst, Apotheke, flexibles Modell, oder alle?
+   appels Apertus : apertus-v1.5-8b Tu extrais les faits expl… 1s, apertus-v1.5-8b Tu identifies les besoins… 0s, apertus-v1.5-70b Tu es le conseiller en as… 3s, apertus-v1.5-70b Tu es le conseiller en as… 2s
+PERSONNE : ohne Unfall bitte
+APP (2 s) : Ohne Unfall – das berücksichtige ich. Ich habe Ihre Antwort nicht verstanden. Welche Modelle kommen für Sie in Frage: freie Arztwahl, Hausarzt / HMO, Telefon oder digitaler Dienst, Apotheke, flexibles Modell, oder alle? Zum Beispiel: « alle Modelle sind mir recht ».
+   appels Apertus : apertus-v1.5-8b Tu extrais les faits expl… 0s, apertus-v1.5-8b Tu analyses comment une p… 0s, apertus-v1.5-70b Tu es le conseiller en as… 1s
+PERSONNE : alle Modelle
+APP (4 s) : Haben Sie ein maximales Monatsbudget für die Prämie? Nennen Sie einen Betrag oder « kein Limit ».
+   appels Apertus : apertus-v1.5-8b Tu extrais les faits expl… 0s, apertus-v1.5-8b Tu analyses comment une p… 0s, apertus-v1.5-70b Tu es le conseiller en as… 1s, apertus-v1.5-70b Tu es le conseiller en as… 2s
+PERSONNE : kein Limit
+APP (4 s) : Kein Limit bedeutet, dass Sie sich nicht durch einen festen Betrag einschränken müssen. Welche Franchise möchten Sie: einen bestimmten Betrag, die tiefste, die höchste, oder alle Franchisen vergleichen?
+   appels Apertus : apertus-v1.5-8b Tu extrais les faits expl… 0s, apertus-v1.5-70b Tu es le conseiller en as… 4s
+PERSONNE : die höchste Franchise
+APP (4 s) : [profil]
+   appels Apertus : apertus-v1.5-8b Tu extrais les faits expl… 0s, apertus-v1.5-70b Tu es le conseiller en as… 3s
+PERSONNE : [clique « C'est correct, lancer la comparaison »]
+-> profil compris : {'canton': 'ZG', 'age': 44, 'franchise': 2500, 'accidents': False}
+-> réponses : 4, dont phrases de secours : 0 | 24 s
+-> OK
+
+==========================================================================================
+[X-D3] Geburtsjahr statt Alter
+==========================================================================================
+APP : [accueil]
+PERSONNE : Ich bin 1975 geboren und lebe in Schaffhausen 8200. Mit Unfall, Hausarztmodell ist für mich okay, Franchise 2000, kein Budget.
+APP (6 s) : Sie haben eine Franchise von 2000 CHF gewählt und möchten das Unfallrisiko abgedeckt haben. Welche Gemeinde ist es: Neuhausen am Rheinfall (SH), Büttenhardt (SH), Schaffhausen (SH)?
+   appels Apertus : apertus-v1.5-8b Tu extrais les faits expl… 1s, apertus-v1.5-8b Tu analyses comment une p… 0s, apertus-v1.5-8b Tu identifies les besoins… 0s, apertus-v1.5-70b Tu es le conseiller en as… 3s, apertus-v1.5-70b Tu es le conseiller en as… 2s
+PERSONNE : 1
+APP (0 s) : [profil]
+   appels Apertus : 
+PERSONNE : [clique « C'est correct, lancer la comparaison »]
+-> profil compris : {'canton': 'SH', 'age': 1975, 'franchise': 2000, 'accidents': True}
+-> réponses : 1, dont phrases de secours : 0 | 10 s
+-> OK
+
+==========================================================================================
+[X-D4] Frage mitten drin
+==========================================================================================
+APP : [accueil]
+PERSONNE : Hallo, 27 Jahre, Biel 2502
+APP (4 s) : Möchten Sie mit Unfalldeckung vergleichen? Ausschliessen können Sie sie nur, wenn Sie über Ihren Arbeitgeber gegen Nichtberufsunfälle versichert sind.
+   appels Apertus : apertus-v1.5-8b Tu extrais les faits expl… 0s, apertus-v1.5-8b Tu identifies les besoins… 0s, apertus-v1.5-70b Tu es le conseiller en as… 3s, apertus-v1.5-70b Tu es le conseiller en as… 2s
+PERSONNE : Was kostet mich die tiefste Franchise im Vergleich zur höchsten?
+APP (6 s) : Die tiefste Franchise kostet Sie 440.40 CHF pro Monat (5284.80 CHF pro Jahr), die höchste 568.70 CHF pro Monat (6824.40 CHF pro Jahr). Die tiefste Franchise ist also im Jahr um 1539.60 CHF günstiger. Sie bleibt jedoch nur dann insgesamt günstiger, wenn Ihre jährlichen Gesundheitskosten unter etwa 2020 CHF liegen. Möchten Sie mit Unfalldeckung vergleichen? Ausschliessen können Sie sie nur, wenn Sie über Ihren Arbeitgeber gegen Nichtberufsunfälle versichert sind.
+   appels Apertus : apertus-v1.5-8b Tu extrais les faits expl… 0s, apertus-v1.5-70b Tu es le conseiller en as… 3s, apertus-v1.5-70b Tu es le conseiller en as… 3s
+PERSONNE : mit Unfall
+APP (6 s) : Avec la couverture accidents incluse, la franchise la plus basse coûte 440.40 CHF/mois (5284.80 CHF/an) et la plus haute 568.70 CHF/mois (6824.40 CHF/an). Welche Modelle kommen für Sie in Frage: freie Arztwahl, Hausarzt / HMO, Telefon oder digitaler Dienst, Apotheke, flexibles Modell, oder alle?
+   appels Apertus : apertus-v1.5-8b Tu extrais les faits expl… 0s, apertus-v1.5-70b Tu es le conseiller en as… 5s
+PERSONNE : alle Modelle
+APP (2 s) : Alle Modelle werden für Sie angezeigt: freie Arztwahl, Hausarzt / HMO und das flexible Modell (dessen Bedingungen Sie bitte noch prüfen). Haben Sie ein maximales Monatsbudget für die Prämie? Nennen Sie einen Betrag oder « kein Limit ».
+   appels Apertus : apertus-v1.5-8b Tu extrais les faits expl… 0s, apertus-v1.5-8b Tu analyses comment une p… 0s, apertus-v1.5-70b Tu es le conseiller en as… 1s
+PERSONNE : kein Limit
+APP (4 s) : Kein Limit bedeutet, dass Sie sich nicht durch ein festes Monatsbudget einschränken müssen. Welche Franchise möchten Sie: einen bestimmten Betrag, die tiefste, die höchste, oder alle Franchisen vergleichen?
+   appels Apertus : apertus-v1.5-8b Tu extrais les faits expl… 0s, apertus-v1.5-70b Tu es le conseiller en as… 4s
+PERSONNE : 300
+APP (5 s) : [profil]
+   appels Apertus : apertus-v1.5-8b Tu extrais les faits expl… 0s, apertus-v1.5-70b Tu es le conseiller en as… 3s, apertus-v1.5-70b Tu es le conseiller en as… 2s
+PERSONNE : [clique « C'est correct, lancer la comparaison »]
+-> profil compris : {'canton': 'BE', 'age': 27, 'franchise': 300, 'accidents': True}
+-> réponses : 5, dont phrases de secours : 0 | 30 s
+-> OK
+
+==========================================================================================
+[X-D5] Kind
+==========================================================================================
+APP : [accueil]
+PERSONNE : Ich suche eine Versicherung für meinen Sohn, er ist 9 Jahre alt. Wir wohnen in Olten 4600.
+APP (4 s) : Möchten Sie mit Unfalldeckung vergleichen? Ausschliessen können Sie sie nur, wenn Sie über Ihren Arbeitgeber gegen Nichtberufsunfälle versichert sind.
+   appels Apertus : apertus-v1.5-8b Tu extrais les faits expl… 0s, apertus-v1.5-8b Tu identifies les besoins… 0s, apertus-v1.5-70b Tu es le conseiller en as… 2s, apertus-v1.5-70b Tu es le conseiller en as… 2s
+PERSONNE : mit Unfall
+APP (4 s) : Welche Modelle kommen für Sie in Frage: freie Arztwahl, Hausarzt / HMO, Telefon oder digitaler Dienst, Apotheke, flexibles Modell, oder alle?
+   appels Apertus : apertus-v1.5-8b Tu extrais les faits expl… 0s, apertus-v1.5-70b Tu es le conseiller en as… 3s, apertus-v1.5-70b Tu es le conseiller en as… 1s
+PERSONNE : alle Modelle
+APP (1 s) : Alle Modelle werden für Sie geprüft: freie Arztwahl, Hausarzt / HMO und das flexible Modell (sofern die Bedingungen erfüllt sind). Welche Gemeinde ist es: Starrkirch-Wil (SO), Olten (SO), Aarburg (AG)?
+   appels Apertus : apertus-v1.5-8b Tu extrais les faits expl… 0s, apertus-v1.5-8b Tu analyses comment une p… 0s, apertus-v1.5-70b Tu es le conseiller en as… 1s
+PERSONNE : kein Limit
+APP (5 s) : Kein Budgetlimit bedeutet, dass die Prämienhöhe für Sie kein entscheidendes Kriterium ist. Welche Gemeinde ist es: Starrkirch-Wil (SO), Olten (SO), Aarburg (AG)?
+   appels Apertus : apertus-v1.5-8b Tu extrais les faits expl… 0s, apertus-v1.5-70b Tu es le conseiller en as… 3s, apertus-v1.5-70b Tu es le conseiller en as… 2s
+PERSONNE : Franchise 0
+APP (3 s) : Franchise de 0 CHF, accidents inclus, pas de limite budgétaire, modèles acceptés : libre choix, médecin de famille / HMO, modèle flexible (conditions à vérifier), code postal 4600. Welche Gemeinde ist es: Starrkirch-Wil (SO), Olten (SO), Aarburg (AG)?
+   appels Apertus : apertus-v1.5-8b Tu extrais les faits expl… 0s, apertus-v1.5-8b Tu extrais les faits expl… 0s, apertus-v1.5-70b Tu es le conseiller en as… 2s
+PERSONNE : 1
+APP (0 s) : [profil]
+   appels Apertus : 
+PERSONNE : [clique « C'est correct, lancer la comparaison »]
+-> profil compris : {'canton': 'SO', 'age': 9, 'franchise': 0, 'accidents': True}
+-> réponses : 5, dont phrases de secours : 0 | 21 s
+-> OK
+
+==========================================================================================
+[X-D6] Korrektur
+==========================================================================================
+APP : [accueil]
+PERSONNE : Ich bin 50, wohne in Baden 5400
+APP (3 s) : Sie wohnen in Baden im Kanton Aargau. In welchem Jahr sind Sie geboren? Damit prüfe ich Ihre Prämienkategorie für 2027.
+   appels Apertus : apertus-v1.5-8b Tu extrais les faits expl… 0s, apertus-v1.5-8b Tu identifies les besoins… 0s, apertus-v1.5-70b Tu es le conseiller en as… 1s, apertus-v1.5-70b Tu es le conseiller en as… 2s
+PERSONNE : Entschuldigung, ich wohne eigentlich in Wettingen 5430
+APP (2 s) : Wettingen gehört zur Prämienregion 0 im Kanton Aargau. Ich habe Ihre Antwort nicht verstanden. In welchem Jahr sind Sie geboren? Damit prüfe ich Ihre Prämienkategorie für 2027. Zum Beispiel: « ich bin 1990 geboren ».
+   appels Apertus : apertus-v1.5-8b Tu extrais les faits expl… 0s, apertus-v1.5-70b Tu es le conseiller en as… 1s
+PERSONNE : mit Unfall
+APP (2 s) : Ich habe notiert, dass Sie in Wettingen (5430) wohnen und Ihre Versicherung Unfälle einschliesst. Ich habe Ihre Antwort nicht verstanden. In welchem Jahr sind Sie geboren? Damit prüfe ich Ihre Prämienkategorie für 2027. Zum Beispiel: « ich bin 1990 geboren ».
+   appels Apertus : apertus-v1.5-8b Tu extrais les faits expl… 0s, apertus-v1.5-70b Tu es le conseiller en as… 2s
+PERSONNE : alle Modelle
+APP (3 s) : Ich habe verstanden: Sie möchten alle verfügbaren Versicherungsmodelle für Ihre Grundversicherung 2027 in Ihrer Prämienregion 0 sehen. Ich habe Ihre Antwort nicht verstanden. In welchem Jahr sind Sie geboren? Damit prüfe ich Ihre Prämienkategorie für 2027. Zum Beispiel: « ich bin 1990 geboren ».
+   appels Apertus : apertus-v1.5-8b Tu extrais les faits expl… 0s, apertus-v1.5-8b Tu analyses comment une p… 0s, apertus-v1.5-70b Tu es le conseiller en as… 3s
+PERSONNE : kein Limit
+APP (2 s) : Ich habe notiert: Sie haben kein Budgetlimit angegeben. Ich habe Ihre Antwort nicht verstanden. In welchem Jahr sind Sie geboren? Damit prüfe ich Ihre Prämienkategorie für 2027. Zum Beispiel: « ich bin 1990 geboren ».
+   appels Apertus : apertus-v1.5-8b Tu extrais les faits expl… 0s, apertus-v1.5-70b Tu es le conseiller en as… 2s
+PERSONNE : 2500
+APP (0 s) : Ich habe Ihre Antwort nicht verstanden. Dieser Wert ist ungültig. In welchem Jahr sind Sie geboren? Damit prüfe ich Ihre Prämienkategorie für 2027. Zum Beispiel: « ich bin 1990 geboren ».
+   appels Apertus : apertus-v1.5-8b Tu extrais les faits expl… 0s
+PERSONNE : ich bin 1990 geboren
+APP (5 s) : Ich habe notiert: Sie sind 1990 geboren. Welche Franchise möchten Sie: einen bestimmten Betrag, die tiefste, die höchste, oder alle Franchisen vergleichen?
+   appels Apertus : apertus-v1.5-8b Tu extrais les faits expl… 0s, apertus-v1.5-70b Tu es le conseiller en as… 4s
+PERSONNE : 2500
+APP (3 s) : [profil]
+   appels Apertus : apertus-v1.5-8b Tu extrais les faits expl… 0s, apertus-v1.5-70b Tu es le conseiller en as… 2s
+PERSONNE : [clique « C'est correct, lancer la comparaison »]
+-> profil compris : {'canton': 'AG', 'age': 1990, 'franchise': 2500, 'accidents': True}
+-> réponses : 7, dont phrases de secours : 0 | 24 s
+-> PROBLÈMES : profil faux : age = 1990 au lieu de 50
+
+==========================================================================================
+[X-D7] Budget
+==========================================================================================
+APP : [accueil]
+PERSONNE : 33 Jahre, Frauenfeld 8500, höchstens 350 Franken pro Monat, mit Unfall, alle Modelle
+APP (5 s) : Sie sind 33 Jahre alt, wohnen in Frauenfeld (TG) und möchten eine Krankenversicherung mit Unfall abschliessen. Haben Sie ein maximales Monatsbudget für die Prämie? Nennen Sie einen Betrag oder « kein Limit ».
+   appels Apertus : apertus-v1.5-8b Tu extrais les faits expl… 1s, apertus-v1.5-8b Tu analyses comment une p… 1s, apertus-v1.5-8b Tu identifies les besoins… 0s, apertus-v1.5-70b Tu es le conseiller en as… 1s, apertus-v1.5-70b Tu es le conseiller en as… 2s
+PERSONNE : 2500
+APP (4 s) : Sie haben 2500 CHF als Franchise genannt. Dieser Wert ist ungültig. Welche Franchise möchten Sie: einen bestimmten Betrag, die tiefste, die höchste, oder alle Franchisen vergleichen?
+   appels Apertus : apertus-v1.5-8b Tu extrais les faits expl… 0s, apertus-v1.5-70b Tu es le conseiller en as… 4s
+PERSONNE : 2500
+APP (4 s) : [profil]
+   appels Apertus : apertus-v1.5-8b Tu extrais les faits expl… 0s, apertus-v1.5-70b Tu es le conseiller en as… 2s, apertus-v1.5-70b Tu es le conseiller en as… 2s
+PERSONNE : [clique « C'est correct, lancer la comparaison »]
+-> profil compris : {'canton': 'TG', 'age': 33, 'franchise': 2500, 'accidents': True}
+-> réponses : 2, dont phrases de secours : 0 | 18 s
+-> OK
+
+==========================================================================================
+[X-D8] Nach den Resultaten
+==========================================================================================
+APP : [accueil]
+PERSONNE : 58 Jahre, Liestal 4410, mit Unfall, alle Modelle, kein Limit, Franchise 300
+APP (5 s) : [profil]
+   appels Apertus : apertus-v1.5-8b Tu extrais les faits expl… 1s, apertus-v1.5-8b Tu analyses comment une p… 1s, apertus-v1.5-8b Tu identifies les besoins… 0s, apertus-v1.5-70b Tu es le conseiller en as… 3s
+PERSONNE : [clique « C'est correct, lancer la comparaison »]
+PERSONNE : Was zahle ich höchstens pro Jahr?
+APP (5 s) : Sie zahlen höchstens 7822.00 CHF pro Jahr bei der günstigsten Option mit Ihrer gewählten Franchise von 300 CHF. Das setzt sich zusammen aus den Jahresprämien von 6822.00 CHF plus der Franchise von 300 CHF und den maximalen Kostenbeteiligungen (Quote-part) von 700 CHF pro Jahr. Falls Sie im Jahr keine oder nur sehr geringe medizinische Kosten haben, wäre die Franchise von 2500 CHF mit 5282.40 CHF pro Jahr günstiger. Da Sie Ihre zukünftigen Kosten nicht kennen, zeigt Ihnen dieser Vergleich den finanziellen Kompromiss zwischen Prämien und Selbstbehalt.
+   appels Apertus : apertus-v1.5-8b Tu extrais les faits expl… 0s, apertus-v1.5-70b Tu es le conseiller en as… 4s
+-> profil compris : {'canton': 'BL', 'age': 58, 'franchise': 300, 'accidents': True}
+-> réponses : 1, dont phrases de secours : 0 | 14 s
+-> OK
+
+==========================================================================================
+[X-I1] Tutto in una frase
+==========================================================================================
+APP : [accueil]
+PERSONNE : Buonasera, ho 42 anni, abito a Lugano 6900, con infortuni, accetto tutti i modelli, nessun limite di budget, franchigia 1500.
+APP (6 s) : [profil]
+   appels Apertus : apertus-v1.5-8b Tu extrais les faits expl… 1s, apertus-v1.5-8b Tu analyses comment une p… 1s, apertus-v1.5-8b Tu identifies les besoins… 0s, apertus-v1.5-70b Tu es le conseiller en as… 4s
+PERSONNE : [clique « C'est correct, lancer la comparaison »]
+-> profil compris : {'canton': 'TI', 'age': 42, 'franchise': 1500, 'accidents': True}
+-> réponses : 0, dont phrases de secours : 0 | 10 s
+-> OK
+
+==========================================================================================
+[X-I2] Dipendente senza infortuni
+==========================================================================================
+APP : [accueil]
+PERSONNE : Lavoro 42 ore alla settimana presso lo stesso datore di lavoro, ho 39 anni e vivo a Bellinzona 6500.
+APP (4 s) : Quali modelli accetta: libera scelta, medico di famiglia / HMO, telefono o servizio digitale, farmacia, modello flessibile, o tutti?
+   appels Apertus : apertus-v1.5-8b Tu extrais les faits expl… 1s, apertus-v1.5-8b Tu identifies les besoins… 0s, apertus-v1.5-70b Tu es le conseiller en as… 2s, apertus-v1.5-70b Tu es le conseiller en as… 1s
+PERSONNE : senza infortuni
+APP (3 s) : Capisco: Lei non ha infortuni inclusi nella copertura. Non ho capito la sua risposta. Quali modelli accetta: libera scelta, medico di famiglia / HMO, telefono o servizio digitale, farmacia, modello flessibile, o tutti? Per esempio: « tutti i modelli mi vanno bene ».
+   appels Apertus : apertus-v1.5-8b Tu extrais les faits expl… 0s, apertus-v1.5-8b Tu analyses comment une p… 0s, apertus-v1.5-70b Tu es le conseiller en as… 3s
+PERSONNE : tutti i modelli
+APP (6 s) : Ha un budget massimo mensile per il premio? Indichi un importo, oppure « nessun limite ».
+   appels Apertus : apertus-v1.5-8b Tu extrais les faits expl… 0s, apertus-v1.5-8b Tu analyses comment une p… 1s, apertus-v1.5-70b Tu es le conseiller en as… 3s, apertus-v1.5-70b Tu es le conseiller en as… 2s
+PERSONNE : nessun limite
+APP (6 s) : Lei ha indicato « nessun limite » per il budget mensile, quindi possiamo concentrarci sulla franchigia più economica in termini di premio. Quale franchigia desidera: un importo preciso, la più bassa, la più alta, o confrontare tutte le franchigie?
+   appels Apertus : apertus-v1.5-8b Tu extrais les faits expl… 0s, apertus-v1.5-70b Tu es le conseiller en as… 5s
+PERSONNE : la franchigia più alta
+APP (7 s) : [profil]
+   appels Apertus : apertus-v1.5-8b Tu extrais les faits expl… 0s, apertus-v1.5-70b Tu es le conseiller en as… 4s, apertus-v1.5-70b Tu es le conseiller en as… 2s
+PERSONNE : [clique « C'est correct, lancer la comparaison »]
+-> profil compris : {'canton': 'TI', 'age': 39, 'franchise': 2500, 'accidents': False}
+-> réponses : 4, dont phrases de secours : 0 | 29 s
+-> OK
+
+==========================================================================================
+[X-I3] Anno di nascita
+==========================================================================================
+APP : [accueil]
+PERSONNE : Sono nata nel 1988, abito a Locarno 6600, con infortuni, franchigia 2000, tutti i modelli, nessun limite.
+APP (4 s) : [profil]
+   appels Apertus : apertus-v1.5-8b Tu extrais les faits expl… 1s, apertus-v1.5-8b Tu extrais les faits expl… 1s, apertus-v1.5-8b Tu analyses comment une p… 1s, apertus-v1.5-8b Tu identifies les besoins… 0s, apertus-v1.5-70b Tu es le conseiller en as… 2s
+PERSONNE : [clique « C'est correct, lancer la comparaison »]
+-> profil compris : {'canton': 'TI', 'age': 1988, 'franchise': 2000, 'accidents': True}
+-> réponses : 0, dont phrases de secours : 0 | 9 s
+-> OK
+
+==========================================================================================
+[X-I4] Domanda in mezzo
+==========================================================================================
+APP : [accueil]
+PERSONNE : Salve, 24 anni, Mendrisio 6850
+APP (2 s) : Lei ha 24 anni e risiede a Castel San Pietro o Mendrisio, nel Canton Ticino, dove le tariffe dell'assicurazione di base sono stabilite per la regione 1. In che anno è nato/a? Mi serve per verificare la sua categoria di premio 2027.
+   appels Apertus : apertus-v1.5-8b Tu extrais les faits expl… 0s, apertus-v1.5-8b Tu identifies les besoins… 0s, apertus-v1.5-70b Tu es le conseiller en as… 2s
+PERSONNE : Cosa conviene di più a un giovane, franchigia alta o bassa?
+APP (5 s) : Per un giovane di 24 anni, la scelta tra franchigia alta o bassa dipende soprattutto dai suoi costi sanitari effettivi. Una franchigia più alta abbassa la sua quota mensile, ma lo obbliga a pagare di tasca propria i primi costi fino a quel limite. Se Lei ha pochi o nessun costo medico, una franchigia alta (ad esempio 2'500 CHF) riduce la sua spesa assicurativa. Se invece ha spesso visite, farmaci o trattamenti, una franchigia bassa (300 CHF) evita di dover pagare subito molti soldi, anche se la sua quota mensile sarà più alta. Per una decisione precisa, mi serve sapere l'anno di nascita per confermare la sua categoria di premio 2027. In che anno è nato/a? Mi serve per verificare la sua categoria di premio 2027.
+   appels Apertus : apertus-v1.5-8b Tu extrais les faits expl… 0s, apertus-v1.5-70b Tu es le conseiller en as… 4s
+PERSONNE : con infortuni
+APP (3 s) : Lei ha indicato di avere « infortuni », il che conferma che gli incidenti sono inclusi nella sua copertura. Non ho capito la sua risposta. In che anno è nato/a? Mi serve per verificare la sua categoria di premio 2027. Per esempio: « sono nato nel 1990 ».
+   appels Apertus : apertus-v1.5-8b Tu extrais les faits expl… 0s, apertus-v1.5-70b Tu es le conseiller en as… 3s
+PERSONNE : tutti i modelli
+APP (6 s) : Lei ha chiesto di vedere « tutti i modelli » disponibili per confrontare le sue opzioni assicurative. Non ho capito la sua risposta. In che anno è nato/a? Mi serve per verificare la sua categoria di premio 2027. Per esempio: « sono nato nel 1990 ».
+   appels Apertus : apertus-v1.5-8b Tu extrais les faits expl… 0s, apertus-v1.5-8b Tu analyses comment une p… 1s, apertus-v1.5-70b Tu es le conseiller en as… 5s
+PERSONNE : nessun limite
+APP (2 s) : Lei ha indicato « nessun limite » per il budget, quindi non ha vincoli economici per le sue scelte. Non ho capito la sua risposta. In che anno è nato/a? Mi serve per verificare la sua categoria di premio 2027. Per esempio: « sono nato nel 1990 ».
+   appels Apertus : apertus-v1.5-8b Tu extrais les faits expl… 0s, apertus-v1.5-70b Tu es le conseiller en as… 2s
+PERSONNE : 2500
+APP (0 s) : Non ho capito la sua risposta. Questo valore non è valido. In che anno è nato/a? Mi serve per verificare la sua categoria di premio 2027. Per esempio: « sono nato nel 1990 ».
+   appels Apertus : apertus-v1.5-8b Tu extrais les faits expl… 0s
+PERSONNE : sono nato nel 1990
+APP (8 s) : Quale franchigia desidera: un importo preciso, la più bassa, la più alta, o confrontare tutte le franchigie?
+   appels Apertus : apertus-v1.5-8b Tu extrais les faits expl… 0s, apertus-v1.5-70b Tu es le conseiller en as… 4s, apertus-v1.5-70b Tu es le conseiller en as… 3s
+PERSONNE : 2500
+APP (6 s) : [profil]
+   appels Apertus : apertus-v1.5-8b Tu extrais les faits expl… 0s, apertus-v1.5-70b Tu es le conseiller en as… 3s, apertus-v1.5-70b Tu es le conseiller en as… 3s
+PERSONNE : [clique « C'est correct, lancer la comparaison »]
+-> profil compris : {'canton': 'TI', 'age': 1990, 'franchise': 2500, 'accidents': True}
+-> réponses : 7, dont phrases de secours : 0 | 37 s
+-> PROBLÈMES : profil faux : age = 1990 au lieu de 24
+
+==========================================================================================
+[X-I5] Figlio
+==========================================================================================
+APP : [accueil]
+PERSONNE : Cerco un'assicurazione per mia figlia di 12 anni, viviamo a Chiasso 6830.
+APP (4 s) : Desidera confrontare con gli infortuni inclusi? Può escluderli solo se dispone di una copertura per gli infortuni non professionali.
+   appels Apertus : apertus-v1.5-8b Tu extrais les faits expl… 0s, apertus-v1.5-8b Tu identifies les besoins… 0s, apertus-v1.5-70b Tu es le conseiller en as… 2s, apertus-v1.5-70b Tu es le conseiller en as… 2s
+PERSONNE : con infortuni
+APP (3 s) : Lei ha scelto un'assicurazione che include la copertura infortuni, il che è utile se sua figlia pratica sport o ha un'attività fisica regolare. Quali modelli accetta: libera scelta, medico di famiglia / HMO, telefono o servizio digitale, farmacia, modello flessibile, o tutti?
+   appels Apertus : apertus-v1.5-8b Tu extrais les faits expl… 0s, apertus-v1.5-70b Tu es le conseiller en as… 1s, apertus-v1.5-70b Tu es le conseiller en as… 2s
+PERSONNE : tutti i modelli
+APP (5 s) : Ha un budget massimo mensile per il premio? Indichi un importo, oppure « nessun limite ».
+   appels Apertus : apertus-v1.5-8b Tu extrais les faits expl… 0s, apertus-v1.5-8b Tu analyses comment une p… 1s, apertus-v1.5-70b Tu es le conseiller en as… 2s, apertus-v1.5-70b Tu es le conseiller en as… 2s
+PERSONNE : nessun limite
+APP (9 s) : Lei ha indicato di non avere un limite di budget per le spese mensili. Quale franchigia desidera: un importo preciso, la più bassa, la più alta, o confrontare tutte le franchigie?
+   appels Apertus : apertus-v1.5-8b Tu extrais les faits expl… 0s, apertus-v1.5-70b Tu es le conseiller en as… 9s
+PERSONNE : franchigia 0
+APP (5 s) : [profil]
+   appels Apertus : apertus-v1.5-8b Tu extrais les faits expl… 0s, apertus-v1.5-70b Tu es le conseiller en as… 3s, apertus-v1.5-70b Tu es le conseiller en as… 2s
+PERSONNE : [clique « C'est correct, lancer la comparaison »]
+-> profil compris : {'canton': 'TI', 'age': 12, 'franchise': 0, 'accidents': True}
+-> réponses : 4, dont phrases de secours : 0 | 32 s
+-> OK
+
+==========================================================================================
+[X-I6] Italiano dei Grigioni
+==========================================================================================
+APP : [accueil]
+PERSONNE : Ho 61 anni e abito a Poschiavo 7742, con infortuni, tutti i modelli, nessun limite, franchigia 300.
+APP (6 s) : [profil]
+   appels Apertus : apertus-v1.5-8b Tu extrais les faits expl… 1s, apertus-v1.5-8b Tu analyses comment une p… 1s, apertus-v1.5-8b Tu identifies les besoins… 0s, apertus-v1.5-70b Tu es le conseiller en as… 2s, apertus-v1.5-70b Tu es le conseiller en as… 2s
+PERSONNE : [clique « C'est correct, lancer la comparaison »]
+-> profil compris : {'canton': 'GR', 'age': 61, 'franchise': 300, 'accidents': True}
+-> réponses : 0, dont phrases de secours : 0 | 9 s
+-> OK
+
+==========================================================================================
+[X-I7] Budget preciso
+==========================================================================================
+APP : [accueil]
+PERSONNE : 30 anni, Lugano 6900, al massimo 300 franchi al mese, con infortuni, tutti i modelli
+APP (4 s) : [profil]
+   appels Apertus : apertus-v1.5-8b Tu extrais les faits expl… 1s, apertus-v1.5-8b Tu analyses comment une p… 1s, apertus-v1.5-8b Tu identifies les besoins… 0s, apertus-v1.5-70b Tu es le conseiller en as… 2s
+PERSONNE : [clique « C'est correct, lancer la comparaison »]
+PERSONNE : 2500
+APP (9 s) : Lei ha scritto « 2500 ». Questo valore corrisponde alla franchigia più alta disponibile per un adulto (2500 CHF), che è anche quella che riduce di più la sua mensilità.
+
+Con questa franchigia, la sua assicurazione di base LAMal costerebbe 505.80 CHF al mese (6069.60 CHF all'anno), contro i 616.70 CHF al mese (7400.40 CHF all'anno) con la franchigia di 300 CHF.
+
+La franchigia di 2500 CHF è più conveniente al totale solo se i suoi costi medici annui rimangono sotto circa 1780 CHF. Se dovesse avere spese mediche più elevate, la franchigia di 300 CHF diventerebbe più economica nel lungo periodo.
+
+Lei ha già indicato di voler includere la copertura infortuni e di avere un budget massimo di 300 CHF al mese. Con questi parametri, la franchigia di 300 CHF rimane la scelta più sicura per non rischiare costi totali elevati in caso di malattia o infortunio.
+
+Se desidera valutare la franchigia di 2500 CHF, deve essere sicuro di non avere spese mediche significative. Se invece preferisce una maggiore tranquillità economica in caso di malattia, la franchigia di 300 CHF è la più indicata.
+
+Vuole che confronti anche altre franchigie o ha bisogno di chiarimenti sui modelli d'assicurazione?
+   appels Apertus : apertus-v1.5-8b Tu extrais les faits expl… 0s, apertus-v1.5-8b Tu identifies les besoins… 0s, apertus-v1.5-70b Tu es le conseiller en as… 9s
+-> profil compris : {'canton': 'TI', 'age': 30, 'franchise': 300, 'accidents': True}
+-> réponses : 1, dont phrases de secours : 0 | 17 s
+-> PROBLÈMES : profil faux : franchise = 300 au lieu de 2500
+
+==========================================================================================
+[X-I8] Dopo i risultati
+==========================================================================================
+APP : [accueil]
+PERSONNE : 47 anni, Locarno 6600, con infortuni, tutti i modelli, nessun limite, franchigia 2500
+APP (6 s) : [profil]
+   appels Apertus : apertus-v1.5-8b Tu extrais les faits expl… 2s, apertus-v1.5-8b Tu analyses comment une p… 1s, apertus-v1.5-8b Tu identifies les besoins… 0s, apertus-v1.5-70b Tu es le conseiller en as… 2s, apertus-v1.5-70b Tu es le conseiller en as… 1s
+PERSONNE : [clique « C'est correct, lancer la comparaison »]
+PERSONNE : E con una franchigia di 500?
+APP (5 s) : [profil]
+   appels Apertus : apertus-v1.5-8b Tu extrais les faits expl… 0s, apertus-v1.5-8b Tu extrais les faits expl… 0s, apertus-v1.5-70b Tu es le conseiller en as… 4s
+PERSONNE : [clique « C'est correct, lancer la comparaison »]
+-> profil compris : {'canton': 'TI', 'age': 47, 'franchise': 500, 'accidents': True}
+-> réponses : 0, dont phrases de secours : 0 | 21 s
+-> PROBLÈMES : profil faux : franchise = 500 au lieu de 2500
+
+==========================================================================================
+[X-E1] All in one sentence
+==========================================================================================
+APP : [accueil]
+-> PROBLÈMES : conversation interrompue (RuntimeError : AppTest script run timed out after 900(s))
+
+==========================================================================================
+[X-E2] Employed, no accidents
+==========================================================================================
+APP : [accueil]
+PERSONNE : I work full time, 42 hours a week for the same employer. I'm 40 and live in Zug 6300.
+APP (5 s) : Which models do you accept: free choice of doctor, family doctor / HMO, phone or digital service, pharmacy, flexible model, or all?
+   appels Apertus : apertus-v1.5-8b Tu extrais les faits expl… 1s, apertus-v1.5-8b Tu identifies les besoins… 0s, apertus-v1.5-70b Tu es le conseiller en as… 3s, apertus-v1.5-70b Tu es le conseiller en as… 2s
+PERSONNE : without accidents
+APP (6 s) : Do you have a maximum monthly budget for the premium? Give an amount, or « no limit ».
+   appels Apertus : apertus-v1.5-8b Tu extrais les faits expl… 0s, apertus-v1.5-8b Tu analyses comment une p… 0s, apertus-v1.5-70b Tu es le conseiller en as… 3s, apertus-v1.5-70b Tu es le conseiller en as… 2s
+PERSONNE : all models
+APP (4 s) : Based on your profile in Zug and without accidents, the lowest monthly premium is with a 2500 CHF deductible at 213.20 CHF per month. Which deductible would you like: a specific amount, the lowest, the highest, or compare all deductibles?
+   appels Apertus : apertus-v1.5-8b Tu extrais les faits expl… 0s, apertus-v1.5-8b Tu analyses comment une p… 1s, apertus-v1.5-70b Tu es le conseiller en as… 3s
+PERSONNE : no limit
+APP (6 s) : [profil]
+   appels Apertus : apertus-v1.5-8b Tu extrais les faits expl… 0s, apertus-v1.5-70b Tu es le conseiller en as… 3s, apertus-v1.5-70b Tu es le conseiller en as… 2s
+PERSONNE : [clique « C'est correct, lancer la comparaison »]
+PERSONNE : the highest deductible
+APP (3 s) : [profil]
+   appels Apertus : apertus-v1.5-8b Tu extrais les faits expl… 0s, apertus-v1.5-8b Tu identifies les besoins… 0s, apertus-v1.5-70b Tu es le conseiller en as… 1s, apertus-v1.5-70b Tu es le conseiller en as… 2s
+PERSONNE : [clique « C'est correct, lancer la comparaison »]
+-> profil compris : {'canton': 'ZG', 'age': 40, 'franchise': 2500, 'accidents': False}
+-> réponses : 3, dont phrases de secours : 0 | 31 s
+-> OK
+
+==========================================================================================
+[X-E3] Birth year
+==========================================================================================
+APP : [accueil]
+PERSONNE : I was born in 1982 and I live in Basel 4051. With accidents, family doctor model is fine, deductible 1500, no budget limit.
+APP (6 s) : [profil]
+   appels Apertus : apertus-v1.5-8b Tu extrais les faits expl… 1s, apertus-v1.5-8b Tu analyses comment une p… 0s, apertus-v1.5-8b Tu identifies les besoins… 0s, apertus-v1.5-70b Tu es le conseiller en as… 4s
+PERSONNE : [clique « C'est correct, lancer la comparaison »]
+-> profil compris : {'canton': 'BS', 'age': 1982, 'franchise': 1500, 'accidents': True}
+-> réponses : 0, dont phrases de secours : 0 | 9 s
+-> OK
+
+==========================================================================================
+[X-E4] Question in the middle
+==========================================================================================
+APP : [accueil]
+PERSONNE : Hello, 29, Geneva 1205
+APP (3 s) : You're based in Geneva (postal code 1205), which is in premium region 0. What is your year of birth? It lets me check your premium category for 2027.
+   appels Apertus : apertus-v1.5-8b Tu extrais les faits expl… 0s, apertus-v1.5-8b Tu identifies les besoins… 0s, apertus-v1.5-70b Tu es le conseiller en as… 2s, apertus-v1.5-70b Tu es le conseiller en as… 2s
+PERSONNE : Is the deductible paid per year or per illness?
+APP (2 s) : The deductible is paid once per calendar year, not per illness. You pay it only once each year until it is met, regardless of how many times you need medical care. What is your year of birth? It lets me check your premium category for 2027.
+   appels Apertus : apertus-v1.5-8b Tu extrais les faits expl… 0s, apertus-v1.5-8b Tu extrais les faits expl… 0s, apertus-v1.5-70b Tu es le conseiller en as… 1s
+PERSONNE : with accidents
+APP (3 s) : You're in Geneva (postal code 1205), which is in premium region 0. I did not understand your answer. What is your year of birth? It lets me check your premium category for 2027. For example: « I was born in 1990 ».
+   appels Apertus : apertus-v1.5-8b Tu extrais les faits expl… 0s, apertus-v1.5-70b Tu es le conseiller en as… 2s
+PERSONNE : all models
+APP (4 s) : I see you mentioned "all models" — that means you're open to any of the accepted models: free choice, family doctor/HMO, phone or digital service, pharmacy, or the flexible model (with conditions to check). I did not understand your answer. What is your year of birth? It lets me check your premium category for 2027. For example: « I was born in 1990 ».
+   appels Apertus : apertus-v1.5-8b Tu extrais les faits expl… 0s, apertus-v1.5-8b Tu analyses comment une p… 1s, apertus-v1.5-70b Tu es le conseiller en as… 3s
+PERSONNE : no limit
+APP (5 s) : I see you said "no limit" regarding your budget — that means cost is not a constraint for you when comparing options. I did not understand your answer. What is your year of birth? It lets me check your premium category for 2027. For example: « I was born in 1990 ».
+   appels Apertus : apertus-v1.5-8b Tu extrais les faits expl… 0s, apertus-v1.5-70b Tu es le conseiller en as… 3s, apertus-v1.5-70b Tu es le conseiller en as… 2s
+PERSONNE : 2500
+APP (0 s) : I did not understand your answer. This value is not valid. What is your year of birth? It lets me check your premium category for 2027. For example: « I was born in 1990 ».
+   appels Apertus : apertus-v1.5-8b Tu extrais les faits expl… 0s
+PERSONNE : I was born in 1990
+APP (4 s) : I note your year of birth as 1990. Which deductible would you like: a specific amount, the lowest, the highest, or compare all deductibles?
+   appels Apertus : apertus-v1.5-8b Tu extrais les faits expl… 0s, apertus-v1.5-70b Tu es le conseiller en as… 3s
+PERSONNE : 2500
+APP (5 s) : [profil]
+   appels Apertus : apertus-v1.5-8b Tu extrais les faits expl… 0s, apertus-v1.5-70b Tu es le conseiller en as… 3s, apertus-v1.5-70b Tu es le conseiller en as… 2s
+PERSONNE : [clique « C'est correct, lancer la comparaison »]
+-> profil compris : {'canton': 'GE', 'age': 1990, 'franchise': 2500, 'accidents': True}
+-> réponses : 7, dont phrases de secours : 0 | 30 s
+-> PROBLÈMES : profil faux : age = 1990 au lieu de 29
+
+==========================================================================================
+[X-E5] Child
+==========================================================================================
+APP : [accueil]
+PERSONNE : I need insurance for my son, he is 5. We live in Zurich 8001.
+APP (4 s) : Your son will need basic health insurance (LAMal) starting in 2027, and you live in Zürich (postcode 8001), which determines the official premium level for your region. What is your year of birth? It lets me check your premium category for 2027.
+   appels Apertus : apertus-v1.5-8b Tu extrais les faits expl… 0s, apertus-v1.5-8b Tu identifies les besoins… 0s, apertus-v1.5-70b Tu es le conseiller en as… 2s, apertus-v1.5-70b Tu es le conseiller en as… 2s
+PERSONNE : with accidents
+APP (4 s) : I see you mentioned including coverage for accidents. I did not understand your answer. What is your year of birth? It lets me check your premium category for 2027. For example: « I was born in 1990 ».
+   appels Apertus : apertus-v1.5-8b Tu extrais les faits expl… 0s, apertus-v1.5-70b Tu es le conseiller en as… 2s, apertus-v1.5-70b Tu es le conseiller en as… 2s
+PERSONNE : all models
+APP (3 s) : I see you mentioned you want to include accident coverage and are open to several models like family doctor/HMO, digital services, or pharmacy-based care. I did not understand your answer. What is your year of birth? It lets me check your premium category for 2027. For example: « I was born in 1990 ».
+   appels Apertus : apertus-v1.5-8b Tu extrais les faits expl… 0s, apertus-v1.5-8b Tu analyses comment une p… 1s, apertus-v1.5-70b Tu es le conseiller en as… 2s
+PERSONNE : no limit
+APP (6 s) : I notice you mentioned "no limit" for your budget. I did not understand your answer. What is your year of birth? It lets me check your premium category for 2027. For example: « I was born in 1990 ».
+   appels Apertus : apertus-v1.5-8b Tu extrais les faits expl… 0s, apertus-v1.5-70b Tu es le conseiller en as… 3s, apertus-v1.5-70b Tu es le conseiller en as… 3s
+PERSONNE : deductible 0
+APP (6 s) : I see you've set your deductible to 0 CHF. I did not understand your answer. What is your year of birth? It lets me check your premium category for 2027. For example: « I was born in 1990 ».
+   appels Apertus : apertus-v1.5-8b Tu extrais les faits expl… 0s, apertus-v1.5-70b Tu es le conseiller en as… 3s, apertus-v1.5-70b Tu es le conseiller en as… 3s
+PERSONNE : I was born in 1990
+APP (3 s) : I have noted your year of birth as 1990. A 0 CHF deductible does not exist for your age: the possible deductibles are 300, 500, 1000, 1500, 2000, 2500 CHF. Which deductible would you like: a specific amount, the lowest, the highest, or compare all deductibles?
+   appels Apertus : apertus-v1.5-8b Tu extrais les faits expl… 0s, apertus-v1.5-70b Tu es le conseiller en as… 3s
+PERSONNE : 2500
+APP (2 s) : [profil]
+   appels Apertus : apertus-v1.5-8b Tu extrais les faits expl… 0s, apertus-v1.5-70b Tu es le conseiller en as… 2s
+PERSONNE : [clique « C'est correct, lancer la comparaison »]
+-> profil compris : {'canton': 'ZH', 'age': 1990, 'franchise': 2500, 'accidents': True}
+-> réponses : 6, dont phrases de secours : 0 | 32 s
+-> PROBLÈMES : profil faux : age = 1990 au lieu de 5 | profil faux : franchise = 2500 au lieu de 0
+
+==========================================================================================
+[X-E6] Correction
+==========================================================================================
+APP : [accueil]
+PERSONNE : I'm 35, living in Bern 3011
+APP (4 s) : Would you like to compare with accident cover included? You can only exclude it if you have non-occupational accident cover (e.g. through your employer).
+   appels Apertus : apertus-v1.5-8b Tu extrais les faits expl… 0s, apertus-v1.5-8b Tu extrais les faits expl… 0s, apertus-v1.5-8b Tu identifies les besoins… 0s, apertus-v1.5-70b Tu es le conseiller en as… 2s, apertus-v1.5-70b Tu es le conseiller en as… 1s
+PERSONNE : sorry, I actually live in Köniz 3098
+APP (4 s) : I did not understand your answer. Would you like to compare with accident cover included? You can only exclude it if you have non-occupational accident cover (e.g. through your employer). For example: « with accidents ».
+   appels Apertus : apertus-v1.5-8b Tu extrais les faits expl… 0s, apertus-v1.5-8b Tu extrais les faits expl… 0s, apertus-v1.5-70b Tu es le conseiller en as… 2s, apertus-v1.5-70b Tu es le conseiller en as… 1s
+PERSONNE : with accidents
+APP (4 s) : I see you want to include accident cover in your comparison. Which models do you accept: free choice of doctor, family doctor / HMO, phone or digital service, pharmacy, flexible model, or all?
+   appels Apertus : apertus-v1.5-8b Tu extrais les faits expl… 0s, apertus-v1.5-70b Tu es le conseiller en as… 3s, apertus-v1.5-70b Tu es le conseiller en as… 1s
+PERSONNE : all models
+APP (3 s) : I see you're interested in comparing all available models that include accident cover. Do you have a maximum monthly budget for the premium? Give an amount, or « no limit ».
+   appels Apertus : apertus-v1.5-8b Tu extrais les faits expl… 0s, apertus-v1.5-8b Tu analyses comment une p… 1s, apertus-v1.5-70b Tu es le conseiller en as… 2s
+PERSONNE : no limit
+APP (4 s) : I see you have no budget limit for your monthly premium. Which deductible would you like: a specific amount, the lowest, the highest, or compare all deductibles?
+   appels Apertus : apertus-v1.5-8b Tu extrais les faits expl… 0s, apertus-v1.5-70b Tu es le conseiller en as… 4s
+PERSONNE : 2500
+APP (6 s) : [profil]
+   appels Apertus : apertus-v1.5-8b Tu extrais les faits expl… 0s, apertus-v1.5-70b Tu es le conseiller en as… 4s, apertus-v1.5-70b Tu es le conseiller en as… 2s
+PERSONNE : [clique « C'est correct, lancer la comparaison »]
+-> profil compris : {'canton': 'BE', 'age': 35, 'franchise': 2500, 'accidents': True}
+-> réponses : 5, dont phrases de secours : 0 | 29 s
+-> OK
+
+==========================================================================================
+[X-E7] Budget
+==========================================================================================
+APP : [accueil]
+PERSONNE : 27 years old, Neuchâtel 2000, max 320 CHF per month, with accidents, all models
+APP (8 s) : [profil]
+   appels Apertus : apertus-v1.5-8b Tu extrais les faits expl… 1s, apertus-v1.5-8b Tu analyses comment une p… 1s, apertus-v1.5-8b Tu identifies les besoins… 0s, apertus-v1.5-70b Tu es le conseiller en as… 4s, apertus-v1.5-70b Tu es le conseiller en as… 3s
+PERSONNE : [clique « C'est correct, lancer la comparaison »]
+PERSONNE : 2500
+APP (8 s) : Your budget of 320 CHF per month is not achievable with any of the displayed options, as the lowest available premium is 465.40 CHF per month (Sanitas, 2500 CHF franchise, digital model). This means you would need a cantonal subsidy to cover the difference, which depends on your income and is handled by your canton.
+
+The lowest premium shown is 465.40 CHF per month with a 2500 CHF deductible. This remains the most cost-effective option overall if your annual medical expenses stay below approximately 1880 CHF. If you expect higher medical costs, a lower deductible (like 300 CHF) could be cheaper in total, but it would cost you 583.40 CHF per month.
+
+Since you don't know your future medical costs, the 2500 CHF deductible saves you the most on premiums (1416 CHF per year compared to 300 CHF) if you stay healthy. However, if you have significant medical needs, you could end up paying more out-of-pocket with the high deductible.
+
+Would you like to explore if you qualify for a cantonal subsidy, or would you prefer to see how the premiums change with a lower deductible?
+   appels Apertus : apertus-v1.5-8b Tu extrais les faits expl… 0s, apertus-v1.5-8b Tu identifies les besoins… 0s, apertus-v1.5-70b Tu es le conseiller en as… 7s
+-> profil compris : {'canton': 'NE', 'age': 27, 'franchise': (300, 500, 1000, 1500, 2000, 2500), 'accidents': True}
+-> réponses : 1, dont phrases de secours : 0 | 20 s
+-> PROBLÈMES : profil faux : franchise = (300, 500, 1000, 1500, 2000, 2500) au lieu de 2500
+
+==========================================================================================
+[X-E8] After results
+==========================================================================================
+APP : [accueil]
+PERSONNE : 52, Lucerne 6003, with accidents, all models, no limit, deductible 1500
+APP (5 s) : Got it — you're in Lucerne (postal code 6003), looking at all insurance models with accident coverage included, and you've chosen a deductible of 1500 CHF. What is your year of birth? It lets me check your premium category for 2027.
+   appels Apertus : apertus-v1.5-8b Tu extrais les faits expl… 0s, apertus-v1.5-8b Tu analyses comment une p… 1s, apertus-v1.5-8b Tu identifies les besoins… 0s, apertus-v1.5-70b Tu es le conseiller en as… 2s, apertus-v1.5-70b Tu es le conseiller en as… 2s
+PERSONNE : I was born in 1990
+APP (5 s) : [profil]
+   appels Apertus : apertus-v1.5-8b Tu extrais les faits expl… 0s, apertus-v1.5-70b Tu es le conseiller en as… 3s, apertus-v1.5-70b Tu es le conseiller en as… 2s
+PERSONNE : [clique « C'est correct, lancer la comparaison »]
+PERSONNE : Why is the family doctor model cheaper?
+APP (6 s) : The family doctor model (HMO) is often cheaper because it encourages you to first consult a designated doctor or network. This reduces administrative costs for the insurer and can lead to more efficient care coordination. In your case, the cheapest option shown is Atupri Gesundheitsversicherung AG with the family doctor model at 404.60 CHF per month (franchise 1500 CHF). The trade-off is that you must see your chosen doctor or network first for most medical issues before seeing a specialist. If you prefer to see any doctor freely, the price is higher (457.65 CHF per month). Remember, the cheapest overall depends on your expected medical costs: a 2500 CHF franchise is cheapest if your annual medical bills stay under about 2020 CHF, while a 300 CHF franchise becomes better if you have high medical costs. Your actual future costs are unknown, so these are just guidelines. Would you like to see how the price changes with a different franchise amount?
+   appels Apertus : apertus-v1.5-8b Tu extrais les faits expl… 0s, apertus-v1.5-70b Tu es le conseiller en as… 6s
+-> profil compris : {'canton': 'LU', 'age': 1990, 'franchise': 1500, 'accidents': True}
+-> réponses : 2, dont phrases de secours : 0 | 20 s
+-> PROBLÈMES : profil faux : age = 1990 au lieu de 52
+
+==========================================================================================
+[X-G1] Bärn
+==========================================================================================
+APP : [accueil]
+PERSONNE : Grüezi, ich bi 35i und wohn z'Bärn, 3011. Mit Unfall bitte, alli Modäll sind mir glich, kei Limit, Franchise 2500.
+APP (6 s) : Sie wohnen in Bern (3011) und haben eine Franchise von 2500 CHF mit Unfallversicherung eingeschlossen. Wie lautet Ihre Postleitzahl oder Ihre Wohngemeinde?
+   appels Apertus : apertus-v1.5-8b Tu extrais les faits expl… 1s, apertus-v1.5-8b Tu analyses comment une p… 1s, apertus-v1.5-8b Tu identifies les besoins… 0s, apertus-v1.5-70b Tu es le conseiller en as… 1s, apertus-v1.5-70b Tu es le conseiller en as… 3s
+PERSONNE : 3011 Bern
+APP (2 s) : Sie wohnen in Bern (Postleitzahl 3011) und haben eine Franchise von 2500 CHF mit Unfallversicherung eingeschlossen. In welchem Jahr sind Sie geboren? Damit prüfe ich Ihre Prämienkategorie für 2027.
+   appels Apertus : apertus-v1.5-8b Tu extrais les faits expl… 0s, apertus-v1.5-70b Tu es le conseiller en as… 2s
+PERSONNE : ich bin 1990 geboren
+APP (2 s) : [profil]
+   appels Apertus : apertus-v1.5-8b Tu extrais les faits expl… 0s, apertus-v1.5-70b Tu es le conseiller en as… 2s
+PERSONNE : [clique « C'est correct, lancer la comparaison »]
+-> profil compris : {'canton': 'BE', 'age': 1990, 'franchise': 2500, 'accidents': True}
+-> réponses : 2, dont phrases de secours : 0 | 13 s
+-> PROBLÈMES : profil faux : age = 1990 au lieu de 35
+
+==========================================================================================
+[X-G2] Züri, ohni Unfall
+==========================================================================================
+APP : [accueil]
+PERSONNE : Hoi, bin 28 Jahr alt, wohne in Züri 8004, ohni Unfall – ich schaffe 42 Stund pro Wuche bim gliiche Arbetgeber. Franchise 1500.
+APP (4 s) : Sie sind 28 Jahre alt, wohnen in Zürich und haben eine Franchise von 1500 CHF. Möchten Sie mit Unfalldeckung vergleichen? Ausschliessen können Sie sie nur, wenn Sie über Ihren Arbeitgeber gegen Nichtberufsunfälle versichert sind.
+   appels Apertus : apertus-v1.5-8b Tu extrais les faits expl… 1s, apertus-v1.5-8b Tu identifies les besoins… 0s, apertus-v1.5-70b Tu es le conseiller en as… 3s
+PERSONNE : alli Modäll
+APP (4 s) : Ich habe Ihre Antwort nicht verstanden. Möchten Sie mit Unfalldeckung vergleichen? Ausschliessen können Sie sie nur, wenn Sie über Ihren Arbeitgeber gegen Nichtberufsunfälle versichert sind. Zum Beispiel: « mit Unfall ».
+   appels Apertus : apertus-v1.5-8b Tu extrais les faits expl… 0s, apertus-v1.5-8b Tu analyses comment une p… 1s, apertus-v1.5-70b Tu es le conseiller en as… 2s, apertus-v1.5-70b Tu es le conseiller en as… 1s
+PERSONNE : kei Limit
+APP (0 s) : Ich habe Ihre Antwort nicht verstanden. Möchten Sie mit Unfalldeckung vergleichen? Ausschliessen können Sie sie nur, wenn Sie über Ihren Arbeitgeber gegen Nichtberufsunfälle versichert sind. Zum Beispiel: « mit Unfall ».
+   appels Apertus : apertus-v1.5-8b Tu extrais les faits expl… 0s
+PERSONNE : mit Unfall
+APP (6 s) : [profil]
+   appels Apertus : apertus-v1.5-8b Tu extrais les faits expl… 0s, apertus-v1.5-70b Tu es le conseiller en as… 4s, apertus-v1.5-70b Tu es le conseiller en as… 2s
+PERSONNE : [clique « C'est correct, lancer la comparaison »]
+-> profil compris : {'canton': 'ZH', 'age': 28, 'franchise': 1500, 'accidents': True}
+-> réponses : 3, dont phrases de secours : 0 | 18 s
+-> PROBLÈMES : profil faux : accidents = True au lieu de False
+
+==========================================================================================
+[X-G3] Basel
+==========================================================================================
+APP : [accueil]
+PERSONNE : Ich bi 52gi, wohne z'Basel 4051, Unfall inklusiv, d'höchsti Franchise, alli Modäll, kei Limit.
+APP (6 s) : Sie haben Ihre Präferenzen klar definiert: höchstmögliche Franchise, Unfallversicherung inklusive und freie Wahl des Versicherungsmodells. In welchem Jahr sind Sie geboren? Damit prüfe ich Ihre Prämienkategorie für 2027.
+   appels Apertus : apertus-v1.5-8b Tu extrais les faits expl… 1s, apertus-v1.5-8b Tu analyses comment une p… 0s, apertus-v1.5-8b Tu identifies les besoins… 0s, apertus-v1.5-70b Tu es le conseiller en as… 3s, apertus-v1.5-70b Tu es le conseiller en as… 2s
+PERSONNE : ich bin 1990 geboren
+APP (4 s) : [profil]
+   appels Apertus : apertus-v1.5-8b Tu extrais les faits expl… 0s, apertus-v1.5-70b Tu es le conseiller en as… 1s, apertus-v1.5-70b Tu es le conseiller en as… 2s
+PERSONNE : [clique « C'est correct, lancer la comparaison »]
+-> profil compris : {'canton': 'BS', 'age': 1990, 'franchise': 2500, 'accidents': True}
+-> réponses : 1, dont phrases de secours : 0 | 13 s
+-> PROBLÈMES : profil faux : age = 1990 au lieu de 52
+
+==========================================================================================
+[X-G4] Tochter
+==========================================================================================
+APP : [accueil]
+PERSONNE : Mini Tochter isch 8 Johr alt, mir wohne in Luzärn 6003, Franchise 0, mit Unfall.
+APP (2 s) : Sie wohnen in Luzern 6003, und Ihre Franchise beträgt 0 CHF bei inkludierter Unfallversicherung. Wie lautet Ihre Postleitzahl oder Ihre Wohngemeinde?
+   appels Apertus : apertus-v1.5-8b Tu extrais les faits expl… 0s, apertus-v1.5-8b Tu identifies les besoins… 0s, apertus-v1.5-70b Tu es le conseiller en as… 1s, apertus-v1.5-70b Tu es le conseiller en as… 1s
+PERSONNE : alli Modäll
+APP (4 s) : Sie haben « alli Modäll » geschrieben – das ist kein klarer Hinweis auf eine Präferenz. Ich habe Ihre Antwort nicht verstanden. Wie lautet Ihre Postleitzahl oder Ihre Wohngemeinde? Zum Beispiel: « 3011 Bern ».
+   appels Apertus : apertus-v1.5-8b Tu extrais les faits expl… 0s, apertus-v1.5-8b Tu analyses comment une p… 1s, apertus-v1.5-70b Tu es le conseiller en as… 1s, apertus-v1.5-70b Tu es le conseiller en as… 1s
+PERSONNE : kei Limit
+APP (0 s) : Ich habe Ihre Antwort nicht verstanden. Wie lautet Ihre Postleitzahl oder Ihre Wohngemeinde? Zum Beispiel: « 3011 Bern ».
+   appels Apertus : apertus-v1.5-8b Tu extrais les faits expl… 0s
+PERSONNE : 3011 Bern
+APP (5 s) : Ihr Wohnort ist Bern (Postleitzahl 3011). In welchem Jahr sind Sie geboren? Damit prüfe ich Ihre Prämienkategorie für 2027.
+   appels Apertus : apertus-v1.5-8b Tu extrais les faits expl… 0s, apertus-v1.5-70b Tu es le conseiller en as… 2s, apertus-v1.5-70b Tu es le conseiller en as… 2s
+PERSONNE : ich bin 1990 geboren
+APP (6 s) : Sie sind 1990 geboren und wohnen in Bern (Postleitzahl 3011). Haben Sie ein maximales Monatsbudget für die Prämie? Nennen Sie einen Betrag oder « kein Limit ».
+   appels Apertus : apertus-v1.5-8b Tu extrais les faits expl… 0s, apertus-v1.5-70b Tu es le conseiller en as… 3s, apertus-v1.5-70b Tu es le conseiller en as… 2s
+PERSONNE : kein Limit
+APP (7 s) : Kein Limit bedeutet, dass Sie sich nicht durch einen festen Betrag einschränken müssen. Eine Franchise von 0 CHF gibt es für Ihr Alter nicht: möglich sind 300, 500, 1000, 1500, 2000, 2500 CHF. Welche Franchise möchten Sie: einen bestimmten Betrag, die tiefste, die höchste, oder alle Franchisen vergleichen?
+   appels Apertus : apertus-v1.5-8b Tu extrais les faits expl… 0s, apertus-v1.5-70b Tu es le conseiller en as… 3s, apertus-v1.5-70b Tu es le conseiller en as… 4s
+PERSONNE : 2500
+APP (2 s) : [profil]
+   appels Apertus : apertus-v1.5-8b Tu extrais les faits expl… 0s, apertus-v1.5-70b Tu es le conseiller en as… 2s
+PERSONNE : [clique « C'est correct, lancer la comparaison »]
+-> profil compris : {'canton': 'BE', 'age': 1990, 'franchise': 2500, 'accidents': True}
+-> réponses : 6, dont phrases de secours : 0 | 29 s
+-> PROBLÈMES : profil faux : canton = 'BE' au lieu de 'LU' | profil faux : age = 1990 au lieu de 8 | profil faux : franchise = 2500 au lieu de 0
+
+==========================================================================================
+[X-G5] Student
+==========================================================================================
+APP : [accueil]
+PERSONNE : Bi Student, 22i, wohne z'St. Gallä 9000, ha wenig Gäld. Mit Unfall, Franchise 2500.
+APP (3 s) : Sie wohnen in St. Wie lautet Ihre Postleitzahl oder Ihre Wohngemeinde?
+   appels Apertus : apertus-v1.5-8b Tu extrais les faits expl… 1s, apertus-v1.5-8b Tu identifies les besoins… 0s, apertus-v1.5-70b Tu es le conseiller en as… 1s, apertus-v1.5-70b Tu es le conseiller en as… 1s
+PERSONNE : alli Modäll
+APP (2 s) : Entschuldigung, ich habe Ihre Nachricht nicht verstanden. Ich habe Ihre Antwort nicht verstanden. Wie lautet Ihre Postleitzahl oder Ihre Wohngemeinde? Zum Beispiel: « 3011 Bern ».
+   appels Apertus : apertus-v1.5-8b Tu extrais les faits expl… 0s, apertus-v1.5-8b Tu analyses comment une p… 1s, apertus-v1.5-70b Tu es le conseiller en as… 1s
+PERSONNE : kei Limit
+APP (0 s) : Ich habe Ihre Antwort nicht verstanden. Wie lautet Ihre Postleitzahl oder Ihre Wohngemeinde? Zum Beispiel: « 3011 Bern ».
+   appels Apertus : apertus-v1.5-8b Tu extrais les faits expl… 0s
+PERSONNE : 3011 Bern
+APP (4 s) : Ihr Wohnort ist Bern (Postleitzahl 3011). In welchem Jahr sind Sie geboren? Damit prüfe ich Ihre Prämienkategorie für 2027.
+   appels Apertus : apertus-v1.5-8b Tu extrais les faits expl… 0s, apertus-v1.5-70b Tu es le conseiller en as… 2s, apertus-v1.5-70b Tu es le conseiller en as… 1s
+PERSONNE : ich bin 1990 geboren
+APP (5 s) : [profil]
+   appels Apertus : apertus-v1.5-8b Tu extrais les faits expl… 0s, apertus-v1.5-70b Tu es le conseiller en as… 2s, apertus-v1.5-70b Tu es le conseiller en as… 2s
+PERSONNE : [clique « C'est correct, lancer la comparaison »]
+-> profil compris : {'canton': 'BE', 'age': 1990, 'franchise': 2500, 'accidents': True}
+-> réponses : 4, dont phrases de secours : 0 | 17 s
+-> PROBLÈMES : profil faux : canton = 'BE' au lieu de 'SG' | profil faux : age = 1990 au lieu de 22
+
+==========================================================================================
+[X-G6] Thun
+==========================================================================================
+APP : [accueil]
+PERSONNE : Grüessech, ich bi 67 und wohne z'Thun 3600. Dr Unfall mues drin si, Franchise 300.
+APP (3 s) : Ich habe notiert: Sie wohnen in der Region Thun (Prämienregion 2), möchten eine Franchise von 300 CHF und haben die Deckung für Unfälle eingeschlossen. In welchem Jahr sind Sie geboren? Damit prüfe ich Ihre Prämienkategorie für 2027.
+   appels Apertus : apertus-v1.5-8b Tu extrais les faits expl… 1s, apertus-v1.5-8b Tu identifies les besoins… 0s, apertus-v1.5-70b Tu es le conseiller en as… 2s
+PERSONNE : alli Modäll
+APP (3 s) : Ich habe verstanden: Sie möchten eine Krankenversicherung mit Unfalldeckung und einer Franchise von 300 CHF. Ich habe Ihre Antwort nicht verstanden. In welchem Jahr sind Sie geboren? Damit prüfe ich Ihre Prämienkategorie für 2027. Zum Beispiel: « ich bin 1990 geboren ».
+   appels Apertus : apertus-v1.5-8b Tu extrais les faits expl… 0s, apertus-v1.5-8b Tu analyses comment une p… 1s, apertus-v1.5-70b Tu es le conseiller en as… 2s
+PERSONNE : kei Limit
+APP (0 s) : Ich habe Ihre Antwort nicht verstanden. In welchem Jahr sind Sie geboren? Damit prüfe ich Ihre Prämienkategorie für 2027. Zum Beispiel: « ich bin 1990 geboren ».
+   appels Apertus : apertus-v1.5-8b Tu extrais les faits expl… 0s
+PERSONNE : ich bin 1990 geboren
+APP (5 s) : [profil]
+   appels Apertus : apertus-v1.5-8b Tu extrais les faits expl… 0s, apertus-v1.5-70b Tu es le conseiller en as… 2s, apertus-v1.5-70b Tu es le conseiller en as… 3s
+PERSONNE : [clique « C'est correct, lancer la comparaison »]
+-> profil compris : {'canton': 'BE', 'age': 1990, 'franchise': 300, 'accidents': True}
+-> réponses : 3, dont phrases de secours : 0 | 15 s
+-> PROBLÈMES : profil faux : age = 1990 au lieu de 67
+
+==========================================================================================
+[X-R1] Cuira
+==========================================================================================
+APP : [accueil]
+PERSONNE : Bun di! Jau hai 40 onns ed abitesch a Cuira 7000. Cun accidents, franchisa 2500, tut ils models, nagin limit.
+APP (4 s) : Souhaitez-vous comparer avec les accidents inclus ? Pour les exclure, vérifiez que vous disposez d'une couverture des accidents non professionnels applicable.
+   appels Apertus : apertus-v1.5-8b Tu extrais les faits expl… 1s, apertus-v1.5-8b Tu identifies les besoins… 0s, apertus-v1.5-70b Tu es le conseiller en as… 2s, apertus-v1.5-70b Tu es le conseiller en as… 1s
+PERSONNE : cun accidents
+APP (0 s) : Je n'ai pas compris votre réponse. Cette valeur n'est pas valide. Souhaitez-vous comparer avec les accidents inclus ? Pour les exclure, vérifiez que vous disposez d'une couverture des accidents non professionnels applicable. Par exemple : « avec accidents ».
+   appels Apertus : apertus-v1.5-8b Tu extrais les faits expl… 0s
+PERSONNE : cun accidents
+APP (0 s) : Je n'ai pas compris votre réponse. Cette valeur n'est pas valide. Souhaitez-vous comparer avec les accidents inclus ? Pour les exclure, vérifiez que vous disposez d'une couverture des accidents non professionnels applicable. Par exemple : « avec accidents ».
+   appels Apertus : apertus-v1.5-8b Tu extrais les faits expl… 0s
+PERSONNE : cun accidents
+APP (0 s) : Je n'ai pas compris votre réponse. Cette valeur n'est pas valide. Souhaitez-vous comparer avec les accidents inclus ? Pour les exclure, vérifiez que vous disposez d'une couverture des accidents non professionnels applicable. Par exemple : « avec accidents ».
+   appels Apertus : apertus-v1.5-8b Tu extrais les faits expl… 0s
+PERSONNE : cun accidents
+APP (0 s) : Je n'ai pas compris votre réponse. Cette valeur n'est pas valide. Souhaitez-vous comparer avec les accidents inclus ? Pour les exclure, vérifiez que vous disposez d'une couverture des accidents non professionnels applicable. Par exemple : « avec accidents ».
+   appels Apertus : apertus-v1.5-8b Tu extrais les faits expl… 0s
+PERSONNE : cun accidents
+APP (0 s) : Je n'ai pas compris votre réponse. Cette valeur n'est pas valide. Souhaitez-vous comparer avec les accidents inclus ? Pour les exclure, vérifiez que vous disposez d'une couverture des accidents non professionnels applicable. Par exemple : « avec accidents ».
+   appels Apertus : apertus-v1.5-8b Tu extrais les faits expl… 0s
+PERSONNE : cun accidents
+APP (0 s) : Je n'ai pas compris votre réponse. Cette valeur n'est pas valide. Souhaitez-vous comparer avec les accidents inclus ? Pour les exclure, vérifiez que vous disposez d'une couverture des accidents non professionnels applicable. Par exemple : « avec accidents ».
+   appels Apertus : apertus-v1.5-8b Tu extrais les faits expl… 0s
+PERSONNE : cun accidents
+APP (0 s) : Je n'ai pas compris votre réponse. Cette valeur n'est pas valide. Souhaitez-vous comparer avec les accidents inclus ? Pour les exclure, vérifiez que vous disposez d'une couverture des accidents non professionnels applicable. Par exemple : « avec accidents ».
+   appels Apertus : apertus-v1.5-8b Tu extrais les faits expl… 0s
+PERSONNE : cun accidents
+APP (0 s) : Je n'ai pas compris votre réponse. Cette valeur n'est pas valide. Souhaitez-vous comparer avec les accidents inclus ? Pour les exclure, vérifiez que vous disposez d'une couverture des accidents non professionnels applicable. Par exemple : « avec accidents ».
+   appels Apertus : apertus-v1.5-8b Tu extrais les faits expl… 0s
+PERSONNE : cun accidents
+APP (0 s) : Je n'ai pas compris votre réponse. Cette valeur n'est pas valide. Souhaitez-vous comparer avec les accidents inclus ? Pour les exclure, vérifiez que vous disposez d'une couverture des accidents non professionnels applicable. Par exemple : « avec accidents ».
+   appels Apertus : apertus-v1.5-8b Tu extrais les faits expl… 0s
+PERSONNE : cun accidents
+APP (0 s) : Je n'ai pas compris votre réponse. Cette valeur n'est pas valide. Souhaitez-vous comparer avec les accidents inclus ? Pour les exclure, vérifiez que vous disposez d'une couverture des accidents non professionnels applicable. Par exemple : « avec accidents ».
+   appels Apertus : apertus-v1.5-8b Tu extrais les faits expl… 0s
+PERSONNE : cun accidents
+APP (0 s) : Je n'ai pas compris votre réponse. Cette valeur n'est pas valide. Souhaitez-vous comparer avec les accidents inclus ? Pour les exclure, vérifiez que vous disposez d'une couverture des accidents non professionnels applicable. Par exemple : « avec accidents ».
+   appels Apertus : apertus-v1.5-8b Tu extrais les faits expl… 0s
+PERSONNE : cun accidents
+APP (0 s) : Je n'ai pas compris votre réponse. Cette valeur n'est pas valide. Souhaitez-vous comparer avec les accidents inclus ? Pour les exclure, vérifiez que vous disposez d'une couverture des accidents non professionnels applicable. Par exemple : « avec accidents ».
+   appels Apertus : apertus-v1.5-8b Tu extrais les faits expl… 0s
+PERSONNE : cun accidents
+APP (0 s) : Je n'ai pas compris votre réponse. Cette valeur n'est pas valide. Souhaitez-vous comparer avec les accidents inclus ? Pour les exclure, vérifiez que vous disposez d'une couverture des accidents non professionnels applicable. Par exemple : « avec accidents ».
+   appels Apertus : apertus-v1.5-8b Tu extrais les faits expl… 0s
+-> réponses : 14, dont phrases de secours : 0 | 8 s
+-> PROBLÈMES : pas arrivé aux résultats (étape : collecte)
+
+==========================================================================================
+[X-R2] Glion, senza accidents
+==========================================================================================
+APP : [accueil]
+PERSONNE : Jau hai 33 onns, abitesch a Glion 7130, senza accidents, jau lavur 40 uras l'emna tar il medem patrun. Franchisa 1500, tut ils models, nagin limit.
+APP (4 s) : Lei ha 33 anni, abita a Glion (7130) e lavora 40 ore alla settimana per lo stesso datore di lavoro. Quali modelli accetta: libera scelta, medico di famiglia / HMO, telefono o servizio digitale, farmacia, modello flessibile, o tutti?
+   appels Apertus : apertus-v1.5-8b Tu extrais les faits expl… 1s, apertus-v1.5-8b Tu identifies les besoins… 0s, apertus-v1.5-70b Tu es le conseiller en as… 2s
+PERSONNE : tut ils models
+APP (1 s) : Non ho capito la sua risposta. Quali modelli accetta: libera scelta, medico di famiglia / HMO, telefono o servizio digitale, farmacia, modello flessibile, o tutti? Per esempio: « tutti i modelli mi vanno bene ».
+   appels Apertus : apertus-v1.5-8b Tu extrais les faits expl… 0s, apertus-v1.5-8b Tu analyses comment une p… 0s
+PERSONNE : tut ils models
+APP (2 s) : [profil]
+   appels Apertus : apertus-v1.5-8b Tu extrais les faits expl… 0s, apertus-v1.5-8b Tu analyses comment une p… 0s, apertus-v1.5-70b Tu es le conseiller en as… 2s
+PERSONNE : [clique « C'est correct, lancer la comparaison »]
+-> profil compris : {'canton': 'GR', 'age': 33, 'franchise': 1500, 'accidents': True}
+-> réponses : 2, dont phrases de secours : 0 | 9 s
+-> PROBLÈMES : profil faux : accidents = True au lieu de False
+
+==========================================================================================
+[X-R3] Scuol
+==========================================================================================
+APP : [accueil]
+PERSONNE : Allegra! Jau hai 58 onns, abitesch a Scuol 7550, cun accidents, la franchisa la pli auta, tut ils models, nagin limit.
+APP (2 s) : Vous avez 58 ans, résidez à Scuol (GR) où les primes sont fixées pour la région 2, et vous souhaitez une franchise la plus élevée possible, sans restriction sur les modèles d'assurance. Souhaitez-vous comparer avec les accidents inclus ? Pour les exclure, vérifiez que vous disposez d'une couverture des accidents non professionnels applicable.
+   appels Apertus : apertus-v1.5-8b Tu extrais les faits expl… 1s, apertus-v1.5-8b Tu identifies les besoins… 0s, apertus-v1.5-70b Tu es le conseiller en as… 1s
+PERSONNE : cun accidents
+APP (4 s) : Vous avez 58 ans, résidez à Scuol (région de primes 2) et souhaitez une franchise la plus élevée possible, avec la couverture des accidents incluse. Quels modèles acceptez-vous : libre choix, médecin de famille / HMO, téléphone ou service numérique, pharmacie, modèle flexible, ou tous ?
+   appels Apertus : apertus-v1.5-8b Tu extrais les faits expl… 0s, apertus-v1.5-70b Tu es le conseiller en as… 2s, apertus-v1.5-70b Tu es le conseiller en as… 1s
+PERSONNE : tut ils models
+APP (1 s) : Je n'ai pas compris votre réponse. Quels modèles acceptez-vous : libre choix, médecin de famille / HMO, téléphone ou service numérique, pharmacie, modèle flexible, ou tous ? Par exemple : « tous les modèles me conviennent ».
+   appels Apertus : apertus-v1.5-8b Tu extrais les faits expl… 0s, apertus-v1.5-8b Tu analyses comment une p… 0s
+PERSONNE : tut ils models
+APP (4 s) : Avez-vous un budget maximum par mois pour la prime ? Indiquez un montant, ou « pas de limite ».
+   appels Apertus : apertus-v1.5-8b Tu extrais les faits expl… 0s, apertus-v1.5-8b Tu analyses comment une p… 0s, apertus-v1.5-70b Tu es le conseiller en as… 2s, apertus-v1.5-70b Tu es le conseiller en as… 1s
+PERSONNE : nagin limit
+APP (4 s) : Je vois que vous avez indiqué accepter tous les modèles, et que vous n'avez pas de limite de budget pour la prime. Quelle franchise souhaitez-vous : un montant précis, la plus basse, la plus haute, ou comparer toutes les franchises ?
+   appels Apertus : apertus-v1.5-8b Tu extrais les faits expl… 0s, apertus-v1.5-70b Tu es le conseiller en as… 3s
+PERSONNE : 2500
+APP (2 s) : [profil]
+   appels Apertus : apertus-v1.5-8b Tu extrais les faits expl… 0s, apertus-v1.5-70b Tu es le conseiller en as… 2s
+PERSONNE : [clique « C'est correct, lancer la comparaison »]
+-> profil compris : {'canton': 'GR', 'age': 58, 'franchise': 2500, 'accidents': True}
+-> réponses : 5, dont phrases de secours : 0 | 18 s
+-> OK
+
+==========================================================================================
+[X-R4] Figlia
+==========================================================================================
+APP : [accueil]
+PERSONNE : Mia figlia ha 10 onns, nus abitain a Domat/Ems 7013, cun accidents, franchisa 0, tut ils models, nagin limit.
+APP (3 s) : Vous résidez à Domat/Ems (code postal 7013), votre fille a 10 ans, vous avez choisi une franchise de 0 CHF et une couverture accidents complète. Quelle est votre année de naissance ? Elle permet de vérifier votre catégorie pour les primes 2027.
+   appels Apertus : apertus-v1.5-8b Tu extrais les faits expl… 1s, apertus-v1.5-8b Tu identifies les besoins… 0s, apertus-v1.5-70b Tu es le conseiller en as… 2s
+PERSONNE : 1990
+APP (2 s) : Vous êtes né(e) en 1990, vous résidez à Domat/Ems (GR), votre fille a 10 ans, vous avez choisi une franchise de 0 CHF et une couverture accidents complète. Quels modèles acceptez-vous : libre choix, médecin de famille / HMO, téléphone ou service numérique, pharmacie, modèle flexible, ou tous ?
+   appels Apertus : apertus-v1.5-8b Tu extrais les faits expl… 0s, apertus-v1.5-70b Tu es le conseiller en as… 2s
+PERSONNE : tut ils models
+APP (1 s) : Je n'ai pas compris votre réponse. Quels modèles acceptez-vous : libre choix, médecin de famille / HMO, téléphone ou service numérique, pharmacie, modèle flexible, ou tous ? Par exemple : « tous les modèles me conviennent ».
+   appels Apertus : apertus-v1.5-8b Tu extrais les faits expl… 0s, apertus-v1.5-8b Tu analyses comment une p… 0s
+PERSONNE : tut ils models
+APP (4 s) : Je retiens que vous acceptez le modèle « libre choix ». Avez-vous un budget maximum par mois pour la prime ? Indiquez un montant, ou « pas de limite ».
+   appels Apertus : apertus-v1.5-8b Tu extrais les faits expl… 0s, apertus-v1.5-8b Tu analyses comment une p… 0s, apertus-v1.5-70b Tu es le conseiller en as… 2s, apertus-v1.5-70b Tu es le conseiller en as… 1s
+PERSONNE : nagin limit
+APP (4 s) : Je retiens que vous n'avez pas de limite de budget et que vous avez choisi le modèle libre choix. Une franchise de 0 CHF n'existe pas pour votre âge : les franchises possibles sont 300, 500, 1000, 1500, 2000, 2500 CHF. Quelle franchise souhaitez-vous : un montant précis, la plus basse, la plus haute, ou comparer toutes les franchises ?
+   appels Apertus : apertus-v1.5-8b Tu extrais les faits expl… 0s, apertus-v1.5-70b Tu es le conseiller en as… 3s
+PERSONNE : 2500
+APP (3 s) : [profil]
+   appels Apertus : apertus-v1.5-8b Tu extrais les faits expl… 0s, apertus-v1.5-70b Tu es le conseiller en as… 1s, apertus-v1.5-70b Tu es le conseiller en as… 1s
+PERSONNE : [clique « C'est correct, lancer la comparaison »]
+-> profil compris : {'canton': 'GR', 'age': 1990, 'franchise': 2500, 'accidents': True}
+-> réponses : 5, dont phrases de secours : 0 | 19 s
+-> PROBLÈMES : profil faux : age = 1990 au lieu de 10 | profil faux : franchise = 2500 au lieu de 0
+
+RÉSUMÉ : 16/34 conversations sans problème | 111 réponses, dont 0 phrases de secours

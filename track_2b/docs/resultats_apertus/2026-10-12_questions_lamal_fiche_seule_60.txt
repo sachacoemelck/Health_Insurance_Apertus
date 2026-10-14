@@ -1,0 +1,354 @@
+Modèle : apertus-v1.5-70b | recherche dans les lois : non
+
+Q01 [fr] REPONDU | 4.9 s | avec source
+  Question : Ma fille va avoir 19 ans, est-ce que sa prime va changer ?
+  Attendu  : Oui : elle passe de la catégorie enfants à jeunes adultes (19-25 ans), prime plus élevée.
+  Réponse  : À 19 ans, votre fille passe de la catégorie « enfant » à celle de « jeune adulte », ce qui peut entraîner un changement de prime selon l'assureur et le modèle choisi. La prime dépend aussi du canton, de la région de primes, de la franchise et de l'inclusion des accidents. Les prestations de base restent les mêmes pour tous les assureurs, mais les coûts varient d'un assureur à l'autre. Il n'y a pas de changement automatique de prime lié à l'âge seul, mais le passage à la catégorie d'âge « jeune adulte » peut modifier le montant selon les tarifs de l'assureur. Pour connaître la prime exacte de votre fille, il faut consulter les offres actuelles avec sa nouvelle catégorie d'âge, sa franchise et son modèle d'assurance.  
+*Source : [OFSP](https://www.priminfo.admin.ch) ; [LAMal art. 34](https://www.fedlex.admin.ch/eli/cc/1995/1328_1328_1328/fr) ; [LSAMal art. 16](https://www.fedlex.admin.ch/eli/cc/2015/839/fr)*
+
+Q02 [fr] REPONDU | 4.9 s | avec source
+  Question : Est-ce qu'un accouchement me coûte la franchise ou la quote-part ?
+  Attendu  : Non : prestations de maternité sans franchise ni quote-part (LAMal art. 64 al. 7).
+  Réponse  : Selon la LAMal, la maternité est une prestation obligatoire couverte par l'assurance de base, sans distinction entre franchise et quote-part pour les soins liés à l'accouchement. La franchise que vous avez choisie (1500 CHF) s'applique à l'ensemble des frais médicaux de l'année, y compris les frais liés à la maternité, jusqu'à ce qu'elle soit entièrement atteinte. Une fois cette franchise franchie, vous devrez payer une quote-part de 10 % sur les frais restants, jusqu'à un maximum annuel de 700 CHF pour un adulte. Par ailleurs, aucune règle spécifique ne modifie ce fonctionnement pour l'accouchement: il est traité comme n'importe quel soin médical remboursé par l'assurance de base. Pour une réponse précise sur votre situation personnelle, il est recommandé de consulter votre assureur ou le site priminfo.admin.ch.  
+*Source : [LAMal art. 24–31](https://www.fedlex.admin.ch/eli/cc/1995/1328_1328_1328/fr) ; [LAMal art. 64](https://www.fedlex.admin.ch/eli/cc/1995/1328_1328_1328/fr) ; [OAMal art. 93](https://www.fedlex.admin.ch/eli/cc/1995/3867_3867_3867/fr) ; [OAMal art. 103](https://www.fedlex.admin.ch/eli/cc/1995/3867_3867_3867/fr)*
+
+Q03 [fr] REPONDU | 4.6 s | avec source
+  Question : Je pars en vacances en Espagne, suis-je couvert en cas d'urgence ?
+  Attendu  : Oui pour les urgences, au maximum le double de ce que coûterait le traitement en Suisse.
+  Réponse  : Votre assurance de base (LAMal) vous couvre en cas d'urgence médicale en Espagne, car elle s'applique aux personnes domiciliées en Suisse, quel que soit le lieu où survient l'urgence. Les prestations sont identiques pour tous les assureurs, donc votre couverture est valable à l'étranger pour les soins nécessaires. Cela inclut les consultations, les hospitalisations en division commune et les médicaments prescrits, mais pas la chambre privée ou les soins purement esthétiques. Notez que la prime varie selon votre canton, votre âge et votre modèle d'assurance, mais cela n'affecte pas la prise en charge des soins urgents à l'étranger. Pour les détails exacts de remboursement à l'étranger, il est recommandé de vérifier les conditions de votre assureur ou de consulter priminfo.admin.ch.  
+*Source : [LAMal art. 34](https://www.fedlex.admin.ch/eli/cc/1995/1328_1328_1328/fr) ; [LAMal art. 24–31](https://www.fedlex.admin.ch/eli/cc/1995/1328_1328_1328/fr) ; [OFSP](https://www.priminfo.admin.ch)*
+
+Q04 [fr] REPONDU | 4.7 s | avec source
+  Question : La psychothérapie est-elle remboursée par l'assurance de base ?
+  Attendu  : Oui, sur prescription médicale, par un psychothérapeute reconnu (OPAS).
+  Réponse  : L'assurance de base rembourse les soins en cas de maladie, ce qui inclut les consultations médicales et les traitements prescrits. Cependant, elle ne couvre pas la psychothérapie, sauf si elle est pratiquée par un médecin ayant une formation reconnue dans l'une des cinq méthodes spécifiques (acupuncture, médecine anthroposophique, médecine traditionnelle chinoise, homéopathie ou phytothérapie). L'ostéopathie n'est pas remboursée par la LAMal. Pour une psychothérapie classique, il faut généralement souscrire une assurance complémentaire. Je ne peux pas vous dire quels assureurs proposent ces couvertures complémentaires, car les offres affichées ne concernent que la LAMal.  
+*Source : [LAMal art. 24–31](https://www.fedlex.admin.ch/eli/cc/1995/1328_1328_1328/fr) ; [OPAS art. 4a](https://www.fedlex.admin.ch/eli/cc/1995/4964_4964_4964/fr)*
+
+Q05 [fr] REPONDU | 3.6 s | avec source
+  Question : Est-ce que la physiothérapie est remboursée ?
+  Attendu  : Oui, sur prescription médicale (séries de séances prescrites).
+  Réponse  : La physiothérapie est remboursée par l'assurance maladie de base (LAMal), à condition qu'elle soit prescrite par un médecin pour traiter une maladie ou une blessure. Vous devrez d'abord payer votre franchise annuelle et ensuite une quote-part de 10 % sur les frais, jusqu'à un plafond annuel. Les résultats affichés ne concernent pas cette prestation spécifique, car ils ne mentionnent que les primes selon votre profil. Pour connaître le montant exact remboursé par votre assureur, il faut consulter les conditions de remboursement de votre modèle d'assurance ou demander à votre médecin de prescrire la physiothérapie.  
+*Source : [LAMal art. 24–31](https://www.fedlex.admin.ch/eli/cc/1995/1328_1328_1328/fr) ; [LAMal art. 64](https://www.fedlex.admin.ch/eli/cc/1995/1328_1328_1328/fr) ; [OAMal art. 93](https://www.fedlex.admin.ch/eli/cc/1995/3867_3867_3867/fr) ; [OAMal art. 103](https://www.fedlex.admin.ch/eli/cc/1995/3867_3867_3867/fr)*
+
+Q06 [fr] REPONDU | 3.9 s | avec source
+  Question : Les frais d'ambulance sont-ils couverts ?
+  Attendu  : En partie : 50 %, au maximum 500 CHF par an pour le transport (5000 CHF pour un sauvetage).
+  Réponse  : Les frais d'ambulance sont couverts par l'assurance maladie de base (LAMal), car ils font partie des prestations obligatoires en cas de maladie ou d'accident. Il n'y a pas de distinction selon le modèle d'assurance choisi, car les prestations de base sont identiques pour tous les assureurs. Vous devrez toutefois payer la franchise choisie (ici 1500 CHF) ainsi la quote-part de 10 % sur les frais restants, jusqu'à un maximum annuel. Pour être certain des détails (par exemple si un transport privé est requis ou si des frais supplémentaires sont possibles), il est recommandé de vérifier directement auprès de votre assureur ou sur priminfo.admin.ch.  
+*Source : [LAMal art. 24–31](https://www.fedlex.admin.ch/eli/cc/1995/1328_1328_1328/fr) ; [LAMal art. 34](https://www.fedlex.admin.ch/eli/cc/1995/1328_1328_1328/fr) ; [LAMal art. 64](https://www.fedlex.admin.ch/eli/cc/1995/1328_1328_1328/fr) ; [OAMal art. 103](https://www.fedlex.admin.ch/eli/cc/1995/3867_3867_3867/fr)*
+
+Q07 [fr] REPONDU | 4.8 s | avec source
+  Question : Que se passe-t-il si je ne paie pas mes primes ?
+  Attendu  : Rappels puis poursuites ; on ne peut pas changer d'assureur tant que les dettes ne sont pas payées.
+  Réponse  : Si vous ne payez pas vos primes de l'assurance maladie de base (LAMal), l'assureur doit d'abord vous envoyer des rappels et des sommations. Si vous ne régularisez pas la situation, l'assureur peut engager une procédure de poursuite pour les montants impayés, y compris les frais administratifs. L'assurance est obligatoire, donc vous ne pouvez pas vous en désengager simplement en ne payant pas. Le montant de la prime dépend de votre canton, de votre âge, de votre franchise et de votre modèle d'assurance, mais cela n'exempte pas du paiement. Si vos revenus sont modestes, vous pouvez demander une réduction individuelle des primes (subside) auprès de votre canton, ce qui allégerait votre charge financière.  
+*Source : [LAMal art. 3](https://www.fedlex.admin.ch/eli/cc/1995/1328_1328_1328/fr) ; [OFSP](https://www.priminfo.admin.ch) ; [LAMal art. 65](https://www.fedlex.admin.ch/eli/cc/1995/1328_1328_1328/fr)*
+
+Q08 [fr] REPONDU | 3.3 s | sans source
+  Question : Est-ce que je peux changer de franchise en cours d'année ?
+  Attendu  : Non, en principe pour le 1er janvier ; la franchise est choisie pour l'année civile.
+  Réponse  : Selon les règles de l'assurance maladie de base (LAMal), la franchise choisie au début de l'année reste valable pour toute l'année civile. Il n'est pas possible de la modifier en cours d'année pour l'assurance de base. Si vous souhaitez changer de franchise, vous devrez attendre la prochaine échéance de résiliation, qui est généralement le 30 novembre pour un changement au 1er janvier, ou le 31 mars pour un changement au 1er juillet, selon les conditions de résiliation. Pour toute information précise sur votre situation actuelle, je vous invite à consulter votre assureur ou le site priminfo.admin.ch.
+
+Q09 [fr] REPONDU | 3.1 s | avec source
+  Question : Quel est le délai pour résilier mon assurance de base ?
+  Attendu  : Lettre reçue au plus tard le dernier jour ouvrable de novembre (changement au 1er janvier).
+  Réponse  : Selon LAMal art. 7; OAMal art. 94, 100 de la LAMal, pour changer d'assureur au 1er janvier, la résiliation doit parvenir à l'assureur au plus tard le dernier jour ouvrable de novembre. Si vous souhaitez changer pour le 30 juin, la lettre doit être reçue avant le 31 mars. Vous pouvez donc résilier votre assurance de base en respectant l'un de ces deux délais, selon votre souhait de changement. Pour toute autre situation ou modification, il est recommandé de vérifier les conditions exactes sur priminfo.admin.ch ou auprès de votre assureur actuel.  
+*Source : [LAMal art. 7](https://www.fedlex.admin.ch/eli/cc/1995/1328_1328_1328/fr) ; [OAMal art. 94, 100](https://www.fedlex.admin.ch/eli/cc/1995/3867_3867_3867/fr)*
+
+Q10 [fr] REPONDU | 4.0 s | avec source
+  Question : Les vaccins sont-ils remboursés ?
+  Attendu  : Oui pour les vaccins de la liste de l'OPAS (selon les recommandations), pas les vaccins de voyage.
+  Réponse  : Les vaccins sont remboursés par l'assurance maladie de base (LAMal) car ils font partie des prestations obligatoires en cas de maladie, selon LAMal art. 24–31. Chaque assureur doit prendre en charge les vaccins prescrits, sans distinction entre eux, car la loi fixe une liste uniforme des prestations. Il n'y a donc pas de différence selon l'assureur choisi pour cette couverture. Vous devrez toutefois payer la franchise choisie avant que l'assurance intervienne, puis la quote-part de 10 % sur les frais restants et. Pour vérifier les détails exacts (par exemple si un vaccin spécifique est concerné), il est recommandé de consulter le site priminfo.admin.ch ou de demander à votre assureur.  
+*Source : [LAMal art. 24–31](https://www.fedlex.admin.ch/eli/cc/1995/1328_1328_1328/fr) ; [LAMal art. 34](https://www.fedlex.admin.ch/eli/cc/1995/1328_1328_1328/fr) ; [LAMal art. 64](https://www.fedlex.admin.ch/eli/cc/1995/1328_1328_1328/fr) ; [OAMal art. 93](https://www.fedlex.admin.ch/eli/cc/1995/3867_3867_3867/fr) ; [OAMal art. 103](https://www.fedlex.admin.ch/eli/cc/1995/3867_3867_3867/fr)*
+
+Q11 [fr] NE SAIT PAS | 3.7 s | avec source
+  Question : Une visite chez le dentiste est-elle prise en charge ?
+  Attendu  : Non en général ; seulement maladies graves du système de mastication ou suites d'une maladie grave.
+  Réponse  : Selon la LAMal, les soins dentaires ne sont pas pris en charge dans la plupart des cas. En effet, l'assurance de base ne rembourse les traitements dentaires que si ceux-ci sont la conséquence d'une maladie grave et inévitable de la mastication, d'une maladie générale grave ou d'un accident. Les caries, le détartrage et les appareils dentaires ne sont pas couverts par l'assurance de base. Pour savoir si une visite chez le dentiste est remboursée dans votre situation spécifique, il faut vérifier si elle est liée à l'une de ces exceptions précises. Je ne peux pas répondre de façon fiable sans plus de détails sur la raison de la visite.  
+*Source : [LAMal art. 31](https://www.fedlex.admin.ch/eli/cc/1995/1328_1328_1328/fr)*
+
+Q12 [fr] REPONDU | 3.8 s | avec source
+  Question : Les lunettes de mon fils de 10 ans sont-elles remboursées ?
+  Attendu  : Oui pour les enfants jusqu'à 18 ans, avec un montant maximal par année (180 CHF).
+  Réponse  : Les lunettes de votre fils de 10 ans ne sont pas remboursées par l'assurance maladie de base, sauf si un changement de la vue est lié à une maladie (ce qui n'est pas indiqué ici). Selon OPAS annexe 2, la LAMal rembourse environ 180 CHF par année civile pour les lunettes et lentilles uniquement pour les enfants jusqu'à 18 ans révolus. Pour les adultes, aucun remboursement n'est prévu en dehors de ce cas très spécifique. Les offres affichées ne concernent que les primes et modèles d'assurance, pas les prestations remboursées. Pour être certain, vérifiez les conditions exactes de votre assureur ou consultez priminfo.admin.ch.  
+*Source : [OPAS annexe 2](https://www.fedlex.admin.ch/eli/cc/1995/4964_4964_4964/fr)*
+
+Q13 [fr] NE SAIT PAS | 2.9 s | avec source
+  Question : Je suis frontalier et j'habite en France, dois-je prendre la LAMal ?
+  Attendu  : Droit d'option : LAMal ou système français, choix à faire dans les 3 mois.
+  Réponse  : Vous n'êtes pas domicilié en Suisse, car vous habitez en France, donc l'obligation de vous assurer selon la LAMal ne s'applique pas à vous. Cette assurance est réservée aux personnes qui résident en Suisse. Vous devriez vérifier les obligations d'assurance maladie dans votre pays de résidence. Je ne peux pas répondre de façon fiable à votre situation spécifique sans ces informations. Pour tout renseignement officiel, consultez le site priminfo.admin.ch ou les autorités compétentes de votre canton de travail ou de résidence.  
+*Source : [LAMal art. 3](https://www.fedlex.admin.ch/eli/cc/1995/1328_1328_1328/fr)*
+
+Q14 [fr] REPONDU | 9.1 s | avec source
+  Question : Les médicaments génériques me coûtent-ils moins cher ?
+  Attendu  : Oui : si l'original est choisi alors qu'un générique existe, la quote-part peut monter à 40 %.
+  Réponse  : Les médicaments prescrits par un médecin sont remboursés par l'assurance de base, quel que soit l'assureur, selon les tarifs fixés par la loi. Les génériques sont des versions moins chères des médicaments originaux, contenant les mêmes principes actifs. L'assurance de base rembourse les médicaments figurant sur la liste officielle, et les génériques y sont inclus au même tarif que les originaux. Ainsi, en choisissant un médicament générique, vous payez exactement la même quote-part que pour l'original, mais vous bénéficiez d'une économie sur le prix du médicament lui-même, qui est à la charge du fabricant ou du pharmacien selon les conventions. Cette économie ne change pas la prime de votre assurance de base, car celle-ci dépend de votre franchise, de votre modèle et de votre assureur, pas du choix du médicament.  
+*Source : [LAMal art. 24–31](https://www.fedlex.admin.ch/eli/cc/1995/1328_1328_1328/fr) ; [LAMal art. 64](https://www.fedlex.admin.ch/eli/cc/1995/1328_1328_1328/fr) ; [OAMal art. 103](https://www.fedlex.admin.ch/eli/cc/1995/3867_3867_3867/fr)*
+
+Q15 [fr] REPONDU | 3.6 s | avec source
+  Question : Suis-je obligé d'avoir un médecin de famille ?
+  Attendu  : Non, seulement si on choisit le modèle médecin de famille.
+  Réponse  : L'assurance maladie de base (LAMal) est obligatoire pour toute personne domiciliée en Suisse, mais elle ne vous impose pas de choisir un médecin de famille. Vous avez la liberté de choisir le modèle d'assurance qui vous convient: libre choix, médecin de famille, HMO, télémédecine ou pharmacie, selon vos préférences et votre budget. Les prestations de base sont identiques chez tous les assureurs; seul le modèle influence la prime. Les modèles avec restriction (comme médecin de famille) sont généralement moins chers, mais vous restez libre de décider si vous souhaitez en utiliser un.  
+*Source : [LAMal art. 3](https://www.fedlex.admin.ch/eli/cc/1995/1328_1328_1328/fr) ; [OAMal art. 99–101](https://www.fedlex.admin.ch/eli/cc/1995/3867_3867_3867/fr) ; [LAMal art. 34](https://www.fedlex.admin.ch/eli/cc/1995/1328_1328_1328/fr)*
+
+Q16 [fr] REPONDU | 4.4 s | avec source
+  Question : Puis-je me faire soigner dans n'importe quel hôpital de Suisse ?
+  Attendu  : Libre choix parmi les hôpitaux de la liste ; hors canton, remboursé au tarif du canton de domicile.
+  Réponse  : Selon la LAMal, l'assurance de base rembourse les soins nécessaires en cas de maladie, mais elle ne garantit pas un libre choix absolu de l'établissement hospitalier. Elle couvre l'hospitalisation en division commune, ce qui signifie que vous êtes soigné dans un hôpital public ou reconnu par le canton, mais pas nécessairement dans n'importe quel hôpital privé ou spécialisé sans convention. Les prestations sont identiques chez tous les assureurs, mais les modalités d'accès aux établissements peuvent varier selon les conventions tarifaires passées par chaque assureur avec les hôpitaux. Pour connaître les hôpitaux conventionnés par votre assureur actuel, il faut consulter les informations de votre contrat ou demander à votre assureur. Je ne peux pas vous dire quels hôpitaux sont acceptés sans ces données spécifiques.  
+*Source : [LAMal art. 24–31](https://www.fedlex.admin.ch/eli/cc/1995/1328_1328_1328/fr) ; [LAMal art. 34](https://www.fedlex.admin.ch/eli/cc/1995/1328_1328_1328/fr)*
+
+Q17 [fr] REPONDU | 3.7 s | avec source
+  Question : L'assurance de base paie-t-elle un séjour en EMS ?
+  Attendu  : Elle paie une partie des soins, pas l'hébergement ni la pension.
+  Réponse  : L'assurance de base (LAMal) ne couvre pas les frais de séjour en établissement médico-social (EMS) comme prestation obligatoire. Elle rembourse les soins en cas de maladie, mais un séjour en EMS relève généralement de l'aide et des soins à long terme, qui ne sont pas inclus dans la liste légale des prestations de base. Les assureurs sont tenus de proposer les mêmes prestations, et l'absence de mention du remboursement des EMS dans les faits fournis confirme qu'il ne s'agit pas d'une prestation obligatoire. Pour connaître les options de couverture complémentaire ou les aides cantonales, il faut vérifier auprès de l'assureur ou du canton de Vaud.  
+*Source : [LAMal art. 24–31](https://www.fedlex.admin.ch/eli/cc/1995/1328_1328_1328/fr) ; [LAMal art. 34](https://www.fedlex.admin.ch/eli/cc/1995/1328_1328_1328/fr)*
+
+Q18 [fr] REPONDU | 4.2 s | sans source
+  Question : Si je suis hospitalisé, combien je paie au maximum ?
+  Attendu  : Franchise + quote-part (max 700 CHF) + contribution de 15 CHF par jour d'hôpital.
+  Réponse  : Pour l'assurance de base obligatoire, en cas d'hospitalisation, vous devez d'abord payer votre franchise annuelle de 1500 CHF, puis 10 % des frais restants (la quote-part), plafonnée à 700 CHF par an pour un adulte. De plus, vous payez 15 CHF par jour d'hospitalisation. Les enfants et les jeunes adultes en formation sont exemptés de cette taxe journalière. Les informations affichées ne contiennent pas de détails spécifiques sur les coûts d'une hospitalisation particulière, car ceux-ci dépendent du traitement et de l'hôpital choisi. Pour connaître le coût exact d'un séjour prévu, il est recommandé de demander un devis à l'établissement hospitalier ou de consulter votre assureur avec les détails du traitement.
+
+Q19 [fr] REPONDU | 3.1 s | avec source
+  Question : Un assureur peut-il refuser de m'assurer à cause de mon âge ou de ma santé ?
+  Attendu  : Non : pour l'assurance de base, tout assureur doit accepter toute personne (LAMal art. 4).
+  Réponse  : Selon la LAMal, chaque assureur doit accepter toute personne pour l'assurance de base, sans questionnaire de santé ni possibilité de refus lié à l'âge ou à l'état de santé. Les assurances complémentaires peuvent en revanche poser des conditions, mais ce n'est pas le cas ici. Vous avez donc le droit d'être assuré(e) par n'importe quel assureur admis en Suisse pour la LAMal, indépendamment de votre âge ou de votre santé. Si vous avez un revenu modeste, vous pouvez aussi demander une réduction de prime auprès de votre canton.  
+*Source : [LAMal art. 4](https://www.fedlex.admin.ch/eli/cc/1995/1328_1328_1328/fr) ; [LAMal art. 65](https://www.fedlex.admin.ch/eli/cc/1995/1328_1328_1328/fr)*
+
+Q20 [fr] REPONDU | 3.2 s | avec source
+  Question : Une mammographie de dépistage est-elle remboursée ?
+  Attendu  : Oui dans le cadre des programmes cantonaux de dépistage (parfois sans franchise).
+  Réponse  : La mammographie de dépistage est une prestation médicale qui relève des soins en cas de maladie. Selon LAMal art. 24–31, l'assurance de base rembourse les consultations médicales et les analyses nécessaires au diagnostic et au traitement. Cependant, la prise en charge dépend de l'indication médicale: elle est remboursée si elle est prescrite par un médecin dans le cadre d'un dépistage recommandé ou d'une suspicion de pathologie. Sans prescription médicale, elle ne serait pas couverte par la LAMal. Pour votre situation précise, il faut vérifier auprès de votre médecin ou de votre assureur si une prescription existe.  
+*Source : [LAMal art. 24–31](https://www.fedlex.admin.ch/eli/cc/1995/1328_1328_1328/fr)*
+
+Q21 [de] REPONDU | 4.0 s | avec source
+  Question : Bezahlt die Grundversicherung eine Brille für Erwachsene?
+  Attendu  : Nein, grundsätzlich nicht (nur bei bestimmten Krankheiten).
+  Réponse  : Die Grundversicherung (LAMal) übernimmt bei Erwachsenen keine Brillenkosten, es sei denn, die Sehverschlechterung ist auf eine Krankheit zurückzuführen. Für Kinder bis 18 Jahre werden pro Kalenderjahr etwa 180 CHF für Brillen und Kontaktlinsen übernommen. Zahnbehandlungen werden nur übernommen, wenn sie auf eine schwere, unausweichliche Kauerkrankung, eine schwere Allgemeinerkrankung oder einen Unfall zurückzuführen sind; Karies, Zahnreinigung oder Zahnspangen sind nicht versichert. Für eine genaue Prüfung Ihrer Situation empfehle ich, die Details direkt auf priminfo.admin.ch zu prüfen oder Ihren aktuellen Versicherer zu fragen.  
+*Quelle : [KLV Anhang 2](https://www.fedlex.admin.ch/eli/cc/1995/4964_4964_4964/de) ; [KVG Art. 31](https://www.fedlex.admin.ch/eli/cc/1995/1328_1328_1328/de)*
+
+Q22 [de] REPONDU | 8.0 s | sans source
+  Question : Bis wann muss ich kündigen, um die Krankenkasse auf Januar zu wechseln?
+  Attendu  : Kündigung muss bis zum letzten Arbeitstag im November eingetroffen sein.
+  Réponse  : Um Ihre Krankenkasse per 1. Januar zu wechseln, muss die Kündigung spätestens am letzten Werktag im November bei Ihrem aktuellen Versicherer eintreffen. Für einen Wechsel per 30. Juni gilt eine Frist bis spätestens 31. März, wobei Sie dann eine höhere Franchise wählen müssen, um den Wechsel zu ermöglichen.
+
+Q23 [de] REPONDU | 11.9 s | avec source
+  Question : Werden bei einer Geburt Franchise und Selbstbehalt verrechnet?
+  Attendu  : Nein, Mutterschaftsleistungen sind von Franchise und Selbstbehalt befreit.
+  Réponse  : Die Frage nach der Verrechnung von Franchise und Selbstbehalt bei einer Geburt lässt sich mit den vorliegenden Fakten nicht eindeutig beantworten. Die Franchise ist der Betrag, den Sie pro Jahr selbst tragen müssen, bevor die Versicherung Leistungen übernimmt. Der Selbstbehalt ist ein prozentualer Anteil an den Kosten, den Sie nach der Franchise bezahlen, maximal 700 CHF pro Jahr für Erwachsene. Beide Beträge werden bei medizinischen Leistungen kumulativ fällig: Zuerst wird die Franchise abgezogen, danach tragen Sie den Selbstbehalt bis zum jährlichen Höchstbetrag. Bei einer Geburt werden die Kosten für die medizinische Versorgung (z.  
+*Quelle : [KVG Art. 64](https://www.fedlex.admin.ch/eli/cc/1995/1328_1328_1328/de) ; [KVV Art. 93](https://www.fedlex.admin.ch/eli/cc/1995/3867_3867_3867/de) ; [KVV Art. 103](https://www.fedlex.admin.ch/eli/cc/1995/3867_3867_3867/de)*
+
+Q24 [de] REPONDU | 5.3 s | avec source
+  Question : Ich ziehe in einen anderen Kanton. Was passiert mit meiner Prämie?
+  Attendu  : Die Prämie richtet sich nach dem neuen Wohnort (Kanton/Region).
+  Réponse  : Wenn Sie in einen anderen Kanton ziehen, ändert sich Ihre Prämie, weil die Prämien je nach Kanton und Region festgelegt werden. Die Höhe hängt zudem von Ihrer Kategorie (Alter), dem gewählten Modell, der Franchise und davon ab, ob Sie die Unfallversicherung in der Grundversicherung behalten oder ausschliessen. Ein Wechsel des Wohnkantons allein führt nicht automatisch zu einer Änderung, aber die Prämie wird neu berechnet, sobald Sie sich im neuen Kanton anmelden und die Versicherung aktualisiert wird. Für einen Wechsel zum 1. Januar muss die Kündigung beim aktuellen Versicherer spätestens Ende November eingehen.  
+*Quelle : [BAG](https://www.priminfo.admin.ch) ; [KVG Art. 7](https://www.fedlex.admin.ch/eli/cc/1995/1328_1328_1328/de) ; [KVV Art. 94, 100](https://www.fedlex.admin.ch/eli/cc/1995/3867_3867_3867/de)*
+
+Q25 [it] REPONDU | 8.6 s | avec source
+  Question : La fisioterapia è rimborsata dall'assicurazione di base?
+  Attendu  : Sì, su prescrizione medica.
+  Réponse  : La fisioterapia è una prestazione rimborsata dall'assicurazione di base (LAMal), a condizione che sia prescritta da un medico e necessaria per il trattamento di una malattia o di un infortunio. Lei deve pagare la franchigia scelta (nel suo caso 1500 CHF) e successivamente la quota parte del 10% sui costi, fino al massimo di 700 CHF per un adulto. Le modalità di rimborso e i costi restanti dipendono dall'assicuratore e dal modello scelto, ma la fisioterapia prescritta è sempre inclusa nelle prestazioni obbligatorie. Se desidera verificare i dettagli specifici per il suo caso o confrontare le quote parte tra gli assicuratori, può consultare priminfo.admin.ch o contattare direttamente la sua cassa malati.  
+*Fonte : [LAMal art. 24–31](https://www.fedlex.admin.ch/eli/cc/1995/1328_1328_1328/it) ; [LAMal art. 64](https://www.fedlex.admin.ch/eli/cc/1995/1328_1328_1328/it) ; [OAMal art. 103](https://www.fedlex.admin.ch/eli/cc/1995/3867_3867_3867/it) ; [LAMal art. 34](https://www.fedlex.admin.ch/eli/cc/1995/1328_1328_1328/it)*
+
+Q26 [it] REPONDU | 7.2 s | avec source
+  Question : Quanto è la quota parte massima per i bambini?
+  Attendu  : 10 %, al massimo 350 CHF all'anno.
+  Réponse  : Lei chiede la quota parte massima per i bambini nell'assicurazione di base (LAMal). Secondo la conoscenza, per un bambino la quota parte è limitata a 350 CHF all'anno, dopo aver pagato la franchigia. Questo importo massimo copre il 10% dei costi rimanenti, a differenza degli adulti che arrivano fino a 700 CHF. Le offerte visualizzate non contengono questi dettagli specifici sulle quote parti per bambini, quindi per confermare l'importo esatto per il suo caso, le consiglio di verificare sul sito priminfo.admin.ch o di contattare direttamente l'assicuratore.  
+*Fonte : [LAMal art. 64](https://www.fedlex.admin.ch/eli/cc/1995/1328_1328_1328/it) ; [OAMal art. 103](https://www.fedlex.admin.ch/eli/cc/1995/3867_3867_3867/it)*
+
+Q27 [it] SECOURS | 6.6 s | sans source
+  Question : Posso scegliere una franchigia di 2500 franchi per mio figlio?
+  Attendu  : No: per i bambini la franchigia massima è 600 CHF.
+  Réponse  : (aucune réponse fiable)
+
+Q28 [en] REPONDU | 2.5 s | avec source
+  Question : Is a dental cleaning covered by basic insurance?
+  Attendu  : No.
+  Réponse  : Dental cleanings, fillings, and orthodontic devices are not covered by basic insurance. The law only covers dental care if it is due to a serious and unavoidable disease of the jaw, a severe general illness, or an accident. Routine cleanings and caries treatment are not included. Furthermore, alternative treatments like osteopathy are not covered by basic insurance either. For these services, you would need a complementary insurance or pay out of pocket.  
+*Source : [KVG/LAMal Art. 31](https://www.fedlex.admin.ch/eli/cc/1995/1328_1328_1328/fr) ; [KLV/OPAS Art. 4a](https://www.fedlex.admin.ch/eli/cc/1995/4964_4964_4964/fr)*
+
+Q29 [en] REPONDU | 3.8 s | avec source
+  Question : I'm unemployed. Am I covered if I have an accident?
+  Attendu  : Yes: if receiving unemployment benefits, through the unemployment accident insurance (Suva); otherwise through the accident cover of the basic insurance.
+  Réponse  : You are covered by your basic health insurance (LAMal) for accidents if you are unemployed. According to KVG/LAMal Art. 8; UVG/LAA Art. 1a, 8, people receiving unemployment benefits are insured against accidents through the unemployment insurance (Suva), so your basic insurance includes accident coverage. This means if you have an accident, your basic insurance will cover the medical costs related to it, subject to your chosen franchise and the 10% co-payment after the franchise is met. Remember that your premium is set based on your canton, age, model, and franchise, and you may be eligible for a premium reduction if your income is modest. For precise details on your specific situation, you can check the official premium comparison tool at priminfo.admin.ch or contact your insurer directly.  
+*Source : [KVG/LAMal Art. 8](https://www.fedlex.admin.ch/eli/cc/1995/1328_1328_1328/fr) ; [UVG/LAA Art. 1a, 8](https://www.fedlex.admin.ch/eli/cc/1982/1676_1676_1676/fr)*
+
+Q30 [en] REPONDU | 2.5 s | avec source
+  Question : Can my insurer cancel my basic insurance because I got sick?
+  Attendu  : No: basic insurance cannot be refused or cancelled for health reasons.
+  Réponse  : Your insurer cannot cancel your basic insurance (LAMal) because you got sick. According to KVG/LAMal Art. 4, every insurer must accept any person for the basic insurance without a health questionnaire. The law guarantees this right regardless of your health status or medical history. Your coverage continues as long as you pay your premiums and meet the annual deductible. If you have questions about your specific situation or need help with a subsidy, you can check the cantonal requirements or contact your insurer directly.  
+*Source : [KVG/LAMal Art. 4](https://www.fedlex.admin.ch/eli/cc/1995/1328_1328_1328/fr)*
+
+C01 [fr] REPONDU | 4.0 s | avec source
+  Question : Ma mère est en EMS, qui paie les soins ?
+  Attendu  : L'assurance de base paie une contribution aux soins ; le reste des soins est réglé par le canton, la pension non.
+  Réponse  : Ma mère étant en EMS (établissement médico-social), ce n'est pas l'assurance maladie de base qui paie l'intégralité des frais d'hébergement et de soins résidentiels. Selon les connaissances LAMal, l'assurance de base couvre les soins en cas de maladie, mais les frais d'un séjour en EMS sont principalement à la charge de l'assuré ou de l'aide sociale, car ils relèvent de l'hébergement et des soins de longue durée qui ne sont pas entièrement pris en charge par la LAMal. Pour connaître les coûts exacts et les possibilités de financement, il faut se renseigner auprès de l'EMS et du canton de Vaud, car les règles varient selon les situations financières et les prestations complémentaires éventuelles.  
+*Source : [LAMal art. 24–31](https://www.fedlex.admin.ch/eli/cc/1995/1328_1328_1328/fr)*
+
+C02 [fr] REPONDU | 5.4 s | avec source
+  Question : Je déménage de Genève à Zurich en cours d'année, je dois changer d'assurance ?
+  Attendu  : Non, sauf si l'assureur n'est pas actif dans le nouveau canton ; la prime change selon le nouveau lieu.
+  Réponse  : Vous devez changer d'assureur de base LAMal car votre domicile change de canton (Genève à Zurich), et l'assurance maladie de base est obligatoire pour toute personne domiciliée en Suisse. Vous pouvez résilier votre contrat actuel pour le 30 juin, mais la lettre de résiliation doit être reçue par votre assureur actuel au plus tard le 31 mars. Les prestations de base restent identiques quel que soit l'assureur, seule la prime, le modèle d'assurance et la franchise influencent le coût. Vérifiez aussi si vous êtes toujours couvert contre les accidents par votre employeur ou l'assurance-chômage, car cela peut modifier votre besoin d'inclure cette couverture dans votre nouvelle LAMal et. Pour connaître la prime exacte à Zurich, il faut comparer les offres en fonction de votre nouvelle région de primes, de votre franchise actuelle de 1500 CHF et de votre modèle d'assurance.  
+*Source : [LAMal art. 3](https://www.fedlex.admin.ch/eli/cc/1995/1328_1328_1328/fr) ; [LAMal art. 7](https://www.fedlex.admin.ch/eli/cc/1995/1328_1328_1328/fr) ; [OAMal art. 94, 100](https://www.fedlex.admin.ch/eli/cc/1995/3867_3867_3867/fr) ; [LAMal art. 34](https://www.fedlex.admin.ch/eli/cc/1995/1328_1328_1328/fr) ; [LAMal art. 1a, 8](https://www.fedlex.admin.ch/eli/cc/1995/1328_1328_1328/fr) ; [LAMal art. 8](https://www.fedlex.admin.ch/eli/cc/1995/1328_1328_1328/fr) ; [LAA art. 1a, 8](https://www.fedlex.admin.ch/eli/cc/1982/1676_1676_1676/fr) ; [OFSP](https://www.priminfo.admin.ch)*
+
+C03 [fr] NE SAIT PAS | 3.0 s | sans source
+  Question : Le podologue est-il remboursé pour un diabétique ?
+  Attendu  : Oui, sur prescription médicale, pour les diabétiques à risque (podologue admis).
+  Réponse  : Je ne trouve pas d'information précise dans les faits fournis sur la prise en charge des soins podologiques pour un diabétique par l'assurance de base. Les règles générales indiquent que la LAMal couvre les soins en cas de maladie, mais elle ne liste pas spécifiquement les podologues ni les soins liés au diabète. Pour savoir si les consultations ou traitements podologiques sont remboursés dans votre situation, il faut vérifier les conditions de l'assureur ou consulter le site priminfo.admin.ch. Je ne peux pas affirmer oui ou non sans ces détails.
+
+C04 [fr] NE SAIT PAS | 2.6 s | sans source
+  Question : Est-ce que l'avortement est remboursé ?
+  Attendu  : Oui, l'interruption de grossesse non punissable est prise en charge comme une maladie.
+  Réponse  : Je ne trouve pas d'information spécifique sur le remboursement de l'avortement dans les faits fournis. La LAMal couvre les soins en cas de maladie et de maternité, mais ne détaille pas les prestations liées à l'interruption de grossesse dans ces extraits. Pour une réponse fiable, il faut consulter le site priminfo.admin.ch ou demander directement à l'assureur, car les détails de prise en charge peuvent varier selon les circonstances médicales et les pratiques cantonales.
+
+C05 [fr] REPONDU | 3.6 s | sans source
+  Question : Mon bébé vient de naître, combien de temps ai-je pour l'assurer ?
+  Attendu  : 3 mois après la naissance ; l'assurance part alors dès la naissance.
+  Réponse  : Vous avez trois mois à compter de la naissance de votre bébé pour l'affilier à l'assurance maladie de base obligatoire (LAMal). Il n'y a pas de délai plus court pour les nouveau-nés. Vous pouvez choisir n'importe quel assureur et n'importe quel modèle d'assurance, car tous doivent accepter les enfants sans questionnaire de santé et couvrir les mêmes prestations de base. Pour réduire la prime, vous pouvez opter pour une franchise plus élevée (par exemple 600 CHF pour un enfant), sachant que la franchise maximale pour un enfant est de 600 CHF. Vérifiez aussi si vous avez droit à un subside cantonal en fonction de vos revenus.
+
+C06 [fr] REPONDU | 3.2 s | avec source
+  Question : Les conseils en allaitement sont-ils payés ?
+  Attendu  : Oui (par une sage-femme ou une infirmière formée, nombre de séances limité).
+  Réponse  : Les conseils en allaitement sont des prestations médicales liées à la maternité, donc ils sont couverts par l'assurance de base (LAMal). Comme tous les soins en cas de maladie, ils sont remboursés selon les tarifs officiels, après franchise et quote-part. Les offres affichées ne concernent pas cette prestation spécifique, car elles ne mentionnent pas les services de conseil. Pour savoir exactement comment cela se passe avec votre assureur, il est recommandé de consulter votre médecin ou votre assureur directement, car les modalités de prise en charge peuvent varier selon les pratiques.  
+*Source : [LAMal art. 24–31](https://www.fedlex.admin.ch/eli/cc/1995/1328_1328_1328/fr)*
+
+C07 [fr] NE SAIT PAS | 4.0 s | avec source
+  Question : Puis-je avoir un bonus si je ne vais jamais chez le médecin ?
+  Attendu  : Oui si l'assureur propose l'assurance avec bonus : la prime baisse les années sans prestations.
+  Réponse  : Je ne trouve pas d'information dans les faits fournis qui parle d'un « bonus » pour ne pas consulter de médecin. La LAMal ne prévoit pas de prime ou de réduction pour l'absence de recours aux soins. Les prestations sont identiques pour tous les assureurs; seuls la prime, le modèle et la franchise influencent le coût. Les primes varient selon les coûts de l'assureur et les choix de franchise/modèle, mais pas en fonction de l'utilisation des soins. Pour savoir si une réduction est possible dans votre situation, il faut vérifier les subsides cantonaux ou les conditions spécifiques de l'assureur, mais aucun « bonus » lié à l'absence de consultation n'existe dans l'assurance de base.  
+*Source : [LAMal art. 34](https://www.fedlex.admin.ch/eli/cc/1995/1328_1328_1328/fr) ; [LSAMal art. 16](https://www.fedlex.admin.ch/eli/cc/2015/839/fr) ; [LAMal art. 65](https://www.fedlex.admin.ch/eli/cc/1995/1328_1328_1328/fr)*
+
+C08 [fr] REPONDU | 3.0 s | avec source
+  Question : Combien de séances de logopédie sont remboursées ?
+  Attendu  : Au plus 12 séances par prescription médicale (nouvelle prescription ensuite).
+  Réponse  : Je ne peux pas vous dire combien de séances de logopédie sont remboursées, car les connaissances fournies ne précisent pas ce nombre. L'assurance de base couvre la logopédie prescrite médicalement, mais la durée et le nombre de séances dépendent de l'évaluation du médecin traitant et des besoins thérapeutiques du patient. Pour connaître le remboursement exact dans votre situation, il faut consulter votre médecin ou votre assureur, car les prestations sont fixées par la loi mais leur ampleur dépend du cas individuel.  
+*Source : [LAMal art. 24–31](https://www.fedlex.admin.ch/eli/cc/1995/1328_1328_1328/fr)*
+
+C09 [de] REPONDU | 8.0 s | avec source
+  Question : Zahlt die Krankenkasse die Physiotherapie nach einem Unfall?
+  Attendu  : Ja, wenn keine Unfallversicherung zahlt, gleich wie bei Krankheit (mit ärztlicher Verordnung).
+  Réponse  : Die obligatorische Krankenpflegeversicherung (LAMal) übernimmt die Kosten für Physiotherapie, wenn diese ärztlich verordnet ist. Da Sie in Lausanne wohnen und die Unfallversicherung in Ihrer Grundversicherung eingeschlossen ist, gilt dies auch für Unfallfolgen, sofern die Physiotherapie medizinisch notwendig ist. Die Kostenbeteiligung (Franchise und Selbstbehalt) bleibt jedoch bestehen. Für eine verbindliche Auskunft zu Ihrem konkreten Fall und den genauen Kostenübernahmen empfehle ich Ihnen, die Verordnung Ihres Arztes sowie die Versicherungsbedingungen Ihres Anbieters zu prüfen oder direkt bei Ihrer Krankenkasse nachzufragen.  
+*Quelle : [KVG Art. 24–31](https://www.fedlex.admin.ch/eli/cc/1995/1328_1328_1328/de)*
+
+C10 [de] REPONDU | 8.1 s | avec source
+  Question : Wie hoch ist der Spitalbeitrag pro Tag?
+  Attendu  : 15 Franken pro Tag (nicht für Kinder, junge Erwachsene in Ausbildung, Mutterschaft).
+  Réponse  : Ich kann Ihnen keine genaue Zahl für den Spitalbeitrag pro Tag nennen, da die offiziellen Tarife nicht in den angezeigten Ergebnissen enthalten sind und ich keine aktuellen Tariflisten vergleichen kann. Gemäss KVG Art. 64; KVV Art. 104 zahlen Erwachsene bei einer Hospitalisation zusätzlich zur Franchise und der 10%igen Kostenbeteiligung einen täglichen Beitrag von 15 CHF. Dieser Betrag ist gesetzlich festgelegt, aber die Gesamtkosten hängen von der Spitalkategorie und den Leistungen ab. Für eine präzise Berechnung Ihrer persönlichen Kosten müssten wir die aktuellen Spitaltarife des Kantons Waadt und die Leistungen Ihres gewählten Modells kennen. Ich empfehle Ihnen, die Details direkt auf priminfo.admin.ch oder bei Ihrem gewünschten Versicherer zu prüfen.  
+*Quelle : [KVG Art. 64](https://www.fedlex.admin.ch/eli/cc/1995/1328_1328_1328/de) ; [KVV Art. 104](https://www.fedlex.admin.ch/eli/cc/1995/3867_3867_3867/de)*
+
+C11 [de] REPONDU | 7.0 s | avec source
+  Question : Muss ich als Grenzgänger in der Schweiz versichert sein?
+  Attendu  : Grundsätzlich ja, mit Optionsrecht für das Wohnland (z. B. Frankreich, Italien).
+  Réponse  : Als Grenzgänger mit Wohnsitz im Ausland, aber Arbeitstätigkeit in der Schweiz, ist die Versicherungspflicht nach der LAMal nicht eindeutig durch die angezeigten Fakten geklärt. besagt, dass die Versicherungspflicht für Personen mit Wohnsitz in der Schweiz gilt. Als Grenzgänger haben Sie in der Regel keinen Wohnsitz in der Schweiz, weshalb die allgemeine Versicherungspflicht nach KVG Art. 3 nicht automatisch greift. Bitte prüfen Sie auf priminfo.admin.ch oder bei der zuständigen kantonalen Ausgleichskasse, welche Regelungen für Ihre spezifische Situation als Grenzgänger gelten.  
+*Quelle : [KVG Art. 3](https://www.fedlex.admin.ch/eli/cc/1995/1328_1328_1328/de)*
+
+C12 [it] REPONDU | 7.3 s | avec source
+  Question : Le vaccinazioni per i viaggi sono coperte?
+  Attendu  : No, in generale solo le vaccinazioni elencate nell'OPre (non quelle per i viaggi).
+  Réponse  : La LAMal obbligatoria copre le vaccinazioni necessarie per i viaggi, come quelle richieste per entrare in certi Paesi, purché siano prescritte da un medico e rientrino nelle prestazioni di base. Non copre invece i costi di consulenze private, assicurazioni viaggio o spese non mediche legate al viaggio. Le prestazioni sono identiche presso tutti gli assicuratori, quindi la scelta dipende solo dalla franchigia, dal modello e dalla regione. Per verificare l'importo esatto del rimborso per un vaccino specifico, Lei deve consultare il suo assicuratore o il sito priminfo.admin.ch, poiché i dettagli variano.  
+*Fonte : [LAMal art. 24–31](https://www.fedlex.admin.ch/eli/cc/1995/1328_1328_1328/it) ; [LAMal art. 34](https://www.fedlex.admin.ch/eli/cc/1995/1328_1328_1328/it) ; [LAMal art. 3](https://www.fedlex.admin.ch/eli/cc/1995/1328_1328_1328/it)*
+
+C13 [it] REPONDU | 8.5 s | avec source
+  Question : Cosa succede se mi assicuro in ritardo?
+  Attendu  : La copertura inizia dall'affiliazione e si paga un supplemento di premio se il ritardo non è scusabile.
+  Réponse  : Se Lei si assicura in ritardo rispetto ai termini previsti dalla legge, l'assicurazione di base (LAMal) deve comunque accettarla, poiché ogni assicuratore è obbligato ad accettare ogni persona senza alcun questionario di salute. Tuttavia, Lei dovrà pagare le prime per l'intero periodo di ritardo, senza alcuna riduzione o eccezione legata al momento dell'iscrizione. Non esiste una sanzione specifica per il ritardo nell'iscrizione obbligatoria, ma l'obbligo di assicurarsi entro tre mesi dall'arrivo o dalla nascita rimane valido. Per evitare costi aggiuntivi, è consigliabile assicurarsi il prima possibile. Se desidera verificare le condizioni esatte o eventuali riduzioni di premio, può consultare il sito priminfo.admin.ch o contattare direttamente l'assureur.  
+*Fonte : [LAMal art. 4](https://www.fedlex.admin.ch/eli/cc/1995/1328_1328_1328/it) ; [LAMal art. 3](https://www.fedlex.admin.ch/eli/cc/1995/1328_1328_1328/it)*
+
+C14 [en] REPONDU | 1.6 s | sans source
+  Question : Does basic insurance pay for an abortion?
+  Attendu  : Yes, a legal termination of pregnancy is covered like an illness.
+  Réponse  : I cannot find any information in the provided facts about whether basic insurance covers abortion. The facts list covered services like maternity care, but they do not specify whether abortion is included or excluded. To get an accurate answer, you should check the official list of benefits on priminfo.admin.ch or ask your insurance provider directly.
+
+C15 [en] REPONDU | 2.4 s | sans source
+  Question : How long do I have to get insured after moving to Switzerland?
+  Attendu  : 3 months; then cover applies from arrival.
+  Réponse  : You must get insured within three months after moving to Switzerland or after your birth. This is a legal requirement for anyone domiciled in the country. There is no grace period beyond this three-month window to join the mandatory basic health insurance. For your specific situation in Lausanne, you should arrange your insurance before the three-month mark from your date of arrival. If you need help finding an insurer or understanding the process, you can check priminfo.admin.ch or contact your cantonal authority.
+
+N01 [fr] REPONDU | 3.4 s | avec source
+  Question : Les frais de transport pour aller à mes séances de chimiothérapie sont-ils remboursés ?
+  Attendu  : En partie : 50 % des frais de transport médicalement nécessaires, au maximum 500 CHF par an.
+  Réponse  : Les frais de transport liés à des traitements médicaux prescrits sont généralement remboursés par l'assurance de base, mais uniquement s'ils sont nécessaires pour suivre un traitement médical et prescrits par un médecin. Les déplacements pour des séances de chimiothérapie, qui sont un traitement médical obligatoire, entrent dans cette catégorie. Cependant, les détails du remboursement (montant, fréquence, conditions) ne sont pas précisés dans les extraits fournis. Pour connaître le montant exact remboursé et les modalités, il faut se référer aux conditions spécifiques de votre assureur ou consulter priminfo.admin.ch.  
+*Source : [LAMal art. 24–31](https://www.fedlex.admin.ch/eli/cc/1995/1328_1328_1328/fr)*
+
+N02 [fr] REPONDU | 2.6 s | avec source
+  Question : Est-ce que l'acupuncture est remboursée ?
+  Attendu  : Oui si elle est pratiquée par un médecin avec la formation reconnue (médecine complémentaire).
+  Réponse  : L'assurance maladie de base rembourse l'acupuncture, mais uniquement si elle est pratiquée par un médecin disposant d'une formation reconnue dans cette méthode. Elle fait partie des prestations prises en charge pour les soins en cas de maladie, à condition que ces critères soient remplis. Pour savoir exactement quels frais sont remboursés et dans quelle mesure, il faut consulter les conditions de l'assureur ou demander un devis détaillé au praticien.  
+*Source : [OPAS art. 4a](https://www.fedlex.admin.ch/eli/cc/1995/4964_4964_4964/fr) ; [LAMal art. 24–31](https://www.fedlex.admin.ch/eli/cc/1995/1328_1328_1328/fr)*
+
+N03 [fr] NE SAIT PAS | 3.0 s | avec source
+  Question : Ma fille de 16 ans peut-elle avoir une franchise de 1000 francs ?
+  Attendu  : Non : pour les enfants (jusqu'à 18 ans), la franchise va de 0 à 600 CHF.
+  Réponse  : Selon la LAMal, pour les enfants, la franchise est limitée à un maximum de 600 CHF par année civile. Une franchise de 1000 CHF n'est donc pas autorisée pour une personne de 16 ans. Les options de franchise pour un enfant sont comprises entre 0 et 600 CHF. Je ne peux pas répondre de façon fiable sur d'autres aspects de son assurance sans plus de détails sur son profil exact. Veuillez vérifier ces informations sur priminfo.admin.ch ou auprès de l'assureur.  
+*Source : [LAMal art. 64](https://www.fedlex.admin.ch/eli/cc/1995/1328_1328_1328/fr) ; [OAMal art. 93](https://www.fedlex.admin.ch/eli/cc/1995/3867_3867_3867/fr)*
+
+N04 [fr] NE SAIT PAS | 9.9 s | avec source
+  Question : Je n'ai pas payé mes primes, mon assureur peut-il refuser de rembourser mes soins ?
+  Attendu  : En principe non ; seulement si le canton tient une liste des mauvais payeurs (sauf urgences).
+  Réponse  : Je ne peux pas répondre précisément à votre question car les faits fournis ne contiennent pas d'information sur les conséquences du non-paiement des primes sur le remboursement des soins. Selon LAMal art. 34, les prestations de l'assurance de base sont les mêmes chez tous les assureurs, mais cela ne précise pas ce qui arrive en cas de retard de paiement. Pour savoir si un assureur peut refuser de rembourser vos soins à cause de primes impayées, il faut consulter les conditions générales de votre assureur ou les règles cantonales en matière de recouvrement. Je vous invite à vérifier ces informations directement auprès de votre assureur ou sur priminfo.admin.ch.  
+*Source : [LAMal art. 34](https://www.fedlex.admin.ch/eli/cc/1995/1328_1328_1328/fr)*
+
+N05 [fr] REPONDU | 3.7 s | avec source
+  Question : Jusqu'à quand dois-je résilier pour changer d'assureur au 30 juin ?
+  Attendu  : Préavis de 3 mois (fin mars), possible seulement avec la franchise de 300 CHF et le libre choix.
+  Réponse  : Pour changer d'assureur de base au 30 juin, la lettre de résiliation doit être reçue par votre assureur actuel au plus tard le 31 mars. Cette règle s'applique pour un changement de date d'effet au 30 juin, à condition de respecter le délai de résiliation. Veuillez vérifier que votre courrier soit bien remis à temps, car une date de réception tardive rend le changement impossible pour cette échéance. Si vous avez des questions sur votre franchise actuelle de 1500 CHF ou sur l'inclusion des accidents, n'hésitez pas à le préciser pour que je puisse vous confirmer si cela influence votre situation.  
+*Source : [LAMal art. 7](https://www.fedlex.admin.ch/eli/cc/1995/1328_1328_1328/fr) ; [OAMal art. 94, 100](https://www.fedlex.admin.ch/eli/cc/1995/3867_3867_3867/fr)*
+
+N06 [fr] REPONDU | 4.5 s | avec source
+  Question : Les soins à domicile par une infirmière sont-ils pris en charge ?
+  Attendu  : Oui, une contribution aux soins sur prescription ou mandat médical (besoin évalué).
+  Réponse  : Les soins à domicile par une infirmière sont pris en charge par l'assurance de base, car la LAMal couvre les prestations fournies par des professionnels de la santé en cas de maladie, y compris les soins infirmiers à domicile prescrits médicalement. Il n'y a pas de distinction selon le lieu de soins tant que ceux-ci sont nécessaires et ordonnés. Toutefois, les règles de franchise et de quote-part s'appliquent: vous payez d'abord votre franchise annuelle, puis 10 % des frais restants jusqu'à un plafond. Pour connaître le montant exact remboursé par votre assureur, il faut consulter les conditions de remboursement spécifiques de votre modèle d'assurance, car les assureurs appliquent la loi mais peuvent avoir des pratiques légèrement différentes. Je ne peux pas vous donner un chiffre précis sans ces informations.  
+*Source : [LAMal art. 24–31](https://www.fedlex.admin.ch/eli/cc/1995/1328_1328_1328/fr) ; [LAMal art. 64](https://www.fedlex.admin.ch/eli/cc/1995/1328_1328_1328/fr) ; [OAMal art. 93](https://www.fedlex.admin.ch/eli/cc/1995/3867_3867_3867/fr) ; [OAMal art. 103](https://www.fedlex.admin.ch/eli/cc/1995/3867_3867_3867/fr)*
+
+N07 [fr] NE SAIT PAS | 4.2 s | avec source
+  Question : Est-ce que la pilule contraceptive est remboursée ?
+  Attendu  : Non en général. « Je ne peux pas répondre de façon fiable » est acceptable ; « oui » est faux.
+  Réponse  : La LAMal rembourse les prestations médicales nécessaires au traitement d'une maladie ou d'un accident, mais elle ne couvre pas les contraceptifs hormonaux comme la pilule. Elle prend en charge les consultations médicales, les médicaments prescrits sur la liste officielle, la maternité et certaines mesures de prévention, mais les moyens de contraception ne figurent pas dans cette liste obligatoire. De plus, les médecines alternatives remboursées sont limitées à cinq méthodes spécifiques et ne concernent pas la contraception. Pour savoir si un assureur propose une couverture complémentaire pour la pilule, il faut consulter les offres d'assurance complémentaire (LCA), qui varient selon les compagnies. Je ne peux pas répondre de façon fiable sans ces informations spécifiques.  
+*Source : [LAMal art. 24–31](https://www.fedlex.admin.ch/eli/cc/1995/1328_1328_1328/fr) ; [OPAS art. 4a](https://www.fedlex.admin.ch/eli/cc/1995/4964_4964_4964/fr)*
+
+N08 [fr] REPONDU | 3.7 s | avec source
+  Question : Puis-je supprimer la couverture accidents si je travaille à 50 % chez un seul employeur ?
+  Attendu  : Oui si c'est au moins 8 heures par semaine chez cet employeur (assuré par la LAA).
+  Réponse  : Selon la loi, vous pouvez exclure la couverture accidents de votre LAMal uniquement si vous êtes assuré contre les accidents par votre employeur, ce qui nécessite de travailler au moins 8 heures par semaine chez le même employeur (article). Votre situation actuelle, à 50 % chez un seul employeur, ne remplit pas cette condition obligatoire pour l'exclusion. Par conséquent, vous ne pouvez pas supprimer cette couverture pour le moment. Si votre taux d'activité ou votre employeur change, vous pourrez alors demander cette exclusion à votre assureur pour réduire votre prime. Pour vérifier les primes exactes avec ou sans accidents, il faut consulter les offres actuelles sur priminfo.admin.ch ou auprès de votre assureur.  
+*Source : [LAMal art. 8](https://www.fedlex.admin.ch/eli/cc/1995/1328_1328_1328/fr) ; [LAA art. 1a, 8](https://www.fedlex.admin.ch/eli/cc/1982/1676_1676_1676/fr)*
+
+N09 [de] REPONDU | 9.3 s | avec source
+  Question : Übernimmt die Grundversicherung eine Ernährungsberatung?
+  Attendu  : Ja, auf ärztliche Verordnung bei bestimmten Krankheiten (z. B. Diabetes, Adipositas).
+  Réponse  : Die Grundversicherung (LAMal) übernimmt keine Ernährungsberatung als Pflichtleistung. Nach den mir vorliegenden Fakten umfasst die obligatorische Grundversicherung die Kosten für medizinische Behandlungen bei Krankheit, wie Arztbesuche, Spitalaufenthalte in der allgemeinen Abteilung, verschriebene Medikamente und bestimmte Therapien. Ernährungsberatung wird in der gesetzlichen Liste der Pflichtleistungen nicht genannt. Sie wird nur unter sehr spezifischen Bedingungen übernommen, etwa wenn sie direkt im Zusammenhang mit einer schweren Krankheit steht und ärztlich verordnet ist. Ohne eine solche Verordnung und einen krankheitsbedingten Zusammenhang ist die Kostenübernahme durch die Grundversicherung nicht vorgesehen.  
+*Quelle : [KVG Art. 24–31](https://www.fedlex.admin.ch/eli/cc/1995/1328_1328_1328/de)*
+
+N10 [de] REPONDU | 6.5 s | avec source
+  Question : Ich bin schwanger. Muss ich die Kontrolluntersuchungen selber bezahlen?
+  Attendu  : Nein: Kontrolluntersuchungen sind gedeckt, ohne Kostenbeteiligung (ab der 13. Woche ganz ohne).
+  Réponse  : Die obligatorische Krankenpflegeversicherung (LAMal) übernimmt die Kosten für die medizinische Versorgung bei Schwangerschaft und Geburt, also auch für die Kontrolluntersuchungen während der Schwangerschaft. Sie müssen jedoch zuerst Ihre Jahresfranchise bezahlen, bevor die Versicherung die Kosten übernimmt. Zudem zahlen Sie nach Erreichen der Franchise 10 % der Kosten selbst (die sogenannte Selbstbehalt), maximal 700 CHF pro Jahr für Erwachsene. Für den Aufenthalt im Spital zahlen Erwachsene zusätzlich 15 CHF pro Tag, was bei Ihrer Franchise von 1500 CHF jedoch erst nach deren Ausschöpfung relevant wird. Die Höhe der Prämie hängt vom Kanton, der Region, Ihrem Alter und dem gewählten Versicherungsmodell ab, nicht von der Schwangerschaft selbst.  
+*Quelle : [KVG Art. 24–31](https://www.fedlex.admin.ch/eli/cc/1995/1328_1328_1328/de) ; [KVG Art. 64](https://www.fedlex.admin.ch/eli/cc/1995/1328_1328_1328/de) ; [KVV Art. 103](https://www.fedlex.admin.ch/eli/cc/1995/3867_3867_3867/de) ; [KVV Art. 93](https://www.fedlex.admin.ch/eli/cc/1995/3867_3867_3867/de) ; [KVV Art. 104](https://www.fedlex.admin.ch/eli/cc/1995/3867_3867_3867/de) ; [BAG](https://www.priminfo.admin.ch)*
+
+N11 [de] REPONDU | 7.8 s | avec source
+  Question : Kann ich mitten im Jahr vom Hausarztmodell zur freien Arztwahl wechseln?
+  Attendu  : Grundsätzlich nur auf Ende des Kalenderjahres (Frist des Versicherers beachten).
+  Réponse  : Sie können das Versicherungsmodell während des Jahres grundsätzlich wechseln, aber es gelten Fristen und Bedingungen. Gemäss KVG Art. 7; KVV Art. 94, 100 ist ein Wechsel mit einer neuen Franchise und einem neuen Modell wie dem freien Arztwahlmodell nur zum 30. Juni möglich, und die Kündigung muss dem aktuellen Versicherer spätestens am 31. März zugestellt werden. Ein Wechsel mitten im Jahr ohne diese Frist ist für die Änderung des Modells nicht vorgesehen.  
+*Quelle : [KVG Art. 7](https://www.fedlex.admin.ch/eli/cc/1995/1328_1328_1328/de) ; [KVV Art. 94, 100](https://www.fedlex.admin.ch/eli/cc/1995/3867_3867_3867/de)*
+
+N12 [it] REPONDU | 7.2 s | avec source
+  Question : Il dentista mi ha tolto un dente del giudizio, paga l'assicurazione di base?
+  Attendu  : No in generale; solo in caso di malattia grave del sistema masticatorio.
+  Réponse  : Lei mi chiede se l'assicurazione di base (LAMal) paga l'estrazione di un dente del giudizio. Secondo la conoscenza, la LAMal non copre le cure dentarie come le carie, il detartrage o l'installazione di apparecchi ortodontici, a meno che non siano causate da una malattia grave e inevitabile della masticazione, da una malattia generale grave o da un infortunio. L'estrazione di un dente del giudizio per motivi di spazio o di prevenzione non rientra in queste eccezioni. Pertanto, l'assicurazione di base non paga questa prestazione. Per verificare se un caso specifico è coperto, Lei dovrebbe chiedere al suo dentista di documentare la necessità medica e consultare l'assicuratore.  
+*Fonte : [LAMal art. 31](https://www.fedlex.admin.ch/eli/cc/1995/1328_1328_1328/it)*
+
+N13 [it] REPONDU | 5.0 s | avec source
+  Question : La psicoterapia con uno psicologo è rimborsata?
+  Attendu  : Sì, su prescrizione medica, da uno psicologo-psicoterapeuta autorizzato (numero di sedute limitato).
+  Réponse  : La psicoterapia con uno psicologo non è esplicitamente menzionata nelle prestazioni obbligatorie della LAMal. L'assicurazione di base copre le cure in caso di malattia, come consultazioni mediche, ospedalizzazione in divisione comune, farmaci prescritti e fisioterapia prescritta, ma non include specificamente la psicoterapia. Inoltre, la LAMal riconosce solo cinque metodi di medicina complementare (acupuntura, medicina antroposofica, medicina tradizionale cinese, omeopatia e fitoterapia), e solo se praticati da un medico con formazione riconosciuta. L'osteopatia non è coperta. Per sapere se la psicoterapia è rimborsata, bisogna verificare presso l'assicuratore o sul sito priminfo.admin.ch, poiché le prestazioni complementari o specifiche non sono regolate uniformemente dalla legge di base.  
+*Fonte : [LAMal art. 24–31](https://www.fedlex.admin.ch/eli/cc/1995/1328_1328_1328/it) ; [OPre art. 4a](https://www.fedlex.admin.ch/eli/cc/1995/4964_4964_4964/it)*
+
+N14 [en] REPONDU | 4.2 s | avec source
+  Question : Is a stay in a rehabilitation clinic covered?
+  Attendu  : Yes, medical rehabilitation carried out or prescribed by a doctor is covered.
+  Réponse  : The basic health insurance (LAMal) covers hospital stays in the general ward for medical reasons. Rehabilitation clinics are considered part of medical treatment when prescribed by a doctor to treat an illness or injury. The exact premium depends on your canton (VD), region, age category, chosen model, and franchise — but coverage itself is the same across all insurers for the same conditions. If you have a modest income, you may qualify for a premium reduction (subsidy) from your canton, which would lower your cost. Remember, you must be insured with a Swiss provider within three months of moving here.  
+*Source : [KVG/LAMal Art. 24–31](https://www.fedlex.admin.ch/eli/cc/1995/1328_1328_1328/fr) ; [FOPH](https://www.priminfo.admin.ch) ; [KVG/LAMal Art. 65](https://www.fedlex.admin.ch/eli/cc/1995/1328_1328_1328/fr) ; [KVG/LAMal Art. 3](https://www.fedlex.admin.ch/eli/cc/1995/1328_1328_1328/fr)*
+
+N15 [en] REPONDU | 2.1 s | sans source
+  Question : What happens if I need emergency care while visiting the US?
+  Attendu  : Emergencies abroad are covered, up to at most twice what the treatment would cost in Switzerland.
+  Réponse  : The basic health insurance (LAMal) covers medical care in Switzerland only. It does not cover emergency care received while you are visiting the United States. For medical treatment abroad, you would need to rely on private travel insurance or your credit card's travel insurance benefits, as LAMal does not extend coverage outside Switzerland. You should check your supplementary insurance or purchase a separate travel insurance policy that includes emergency medical evacuation and treatment abroad.
+
+RÉSUMÉ : 51/60 répondues, 8 « ne sait pas », 1 sans réponse fiable | temps médian 4.0 s, maximum 11.9 s
+(La justesse de chaque réponse se vérifie ensuite à la main avec la ligne « Attendu ».)

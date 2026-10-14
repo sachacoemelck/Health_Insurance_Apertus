@@ -12,8 +12,11 @@ Le parcours partage le contrat de profil de chatbot.py avec la CLI :
 - filtrage des catégories acceptées avant classement, puis explication vérifiée ;
 - module complémentaires (faits agrégés, résumé vérifié, produits à vérifier).
 """
+import html
 import re
 import json
+import time
+from concurrent.futures import ThreadPoolExecutor
 from copy import deepcopy
 
 import streamlit as st
@@ -22,15 +25,27 @@ from openai import OpenAI
 import chatbot
 import complementaires as compl
 import sante
+import changement
+import conversation
+import langues
+import lois
+from langues import tr
 import regles
 import soins
+import style
+import subsides
 from chatbot import (Profile, State, CARE_TYPES, CARE_LABELS, QUESTIONS,
                      FRANCHISES, NOMS_PRIORITE, PROMPT_INTRO, extraire_json,
                      faits_propositions, lire_config, localiser, nom_simple)
-from comparateur import classe_age, propositions
+from comparateur import classe_age, communes_du_npa, propositions
 
-# Langue des explications d'Apertus (paramètre conservé pour ajouter d'autres langues plus tard)
-LANGUE = "français"
+def L():
+    """Langue de la conversation : détectée dans les messages, ou choisie dans la barre latérale."""
+    return st.session_state.get("langue", "fr")
+
+
+def nom_langue():
+    return langues.NOMS_POUR_APERTUS[L()]
 
 AVERTISSEMENT = ("Outil d'orientation, pas un conseil personnalisé ; vérifiez sur "
                  "priminfo.admin.ch avant de décider.")
@@ -46,7 +61,45 @@ class ErreurLLM(Exception):
 # --------------------------------------------------------------------------------------
 @st.cache_resource
 def client_llm(base_url, api_key):
-    return OpenAI(base_url=base_url, api_key=api_key)
+    # Pas de nouvel essai automatique de la bibliothèque (il doublait l'attente quand le serveur est lent) :
+    # chaque appel a son propre délai (DELAI_8B, DELAI_70B) et l'application sait continuer sans réponse.
+    return OpenAI(base_url=base_url, api_key=api_key, timeout=60, max_retries=0)
+
+
+# Délais : lecture d'un message par Apertus 8B, rédaction par Apertus 70B, et durée maximale d'un tour.
+# Au-delà de LIMITE_TOUR, Apertus 70B n'est plus appelé : la personne reçoit la question sans attendre.
+DELAI_8B, DELAI_70B, LIMITE_TOUR = 20, 25, 45
+
+# Assurances complémentaires et analyse de santé : modules d'une première version, dont les données
+# (produits de 6 caisses, textes de santé) n'ont pas été vérifiées et mesurées comme le reste.
+# Désactivés pour la version remise ; le code reste dans le dépôt (complementaires.py, sante.py).
+MODULES_COMPLEMENTAIRES = False
+
+
+def appel(fonction, modele, delai):
+    """Fonction (systeme, message) -> texte, pour un modèle et un délai donnés. Préparée dans le fil
+    principal : elle peut ensuite être utilisée en parallèle (sans accès à l'état Streamlit)."""
+    c = client().with_options(timeout=delai)
+
+    def appeler(systeme, message):
+        try:
+            return getattr(chatbot, fonction)(c, modele, systeme, message)
+        except Exception as erreur:
+            raise ErreurLLM(str(erreur)) from erreur
+    return appeler
+
+
+def en_parallele(**taches):
+    """Lance les lectures d'Apertus en même temps ; une lecture en échec ou trop lente vaut None."""
+    with ThreadPoolExecutor(max_workers=max(1, len(taches))) as pool:
+        futurs = {nom: pool.submit(f) for nom, f in taches.items()}
+        resultats = {}
+        for nom, futur in futurs.items():
+            try:
+                resultats[nom] = futur.result()
+            except Exception:
+                resultats[nom] = None
+        return resultats
 
 
 def config():
@@ -62,27 +115,14 @@ def client():
     return client_llm(cfg["LLM_BASE_URL"], cfg["LLM_API_KEY"])
 
 
-def llm(modele, systeme, message):
-    try:
-        return chatbot.demander_llm(client(), modele, systeme, message)
-    except Exception as erreur:
-        raise ErreurLLM(str(erreur)) from erreur
-
-
-def llm_json(modele, systeme, message):
-    try:
-        return chatbot.demander_llm_json(client(), modele, systeme, message)
-    except Exception as erreur:
-        raise ErreurLLM(str(erreur)) from erreur
-
-
 # --------------------------------------------------------------------------------------
 # État de la session (en mémoire seulement)
 # --------------------------------------------------------------------------------------
 def profil_vide():
     return {"contract": Profile(), "comparison": None, "npa": None, "commune_citee": None, "commune": None, "canton": None,
             "region": None, "age": None, "franchise": None, "travaille_8h": None,
-            "plusieurs_personnes": False, "priorite": None, "besoins": [], "soins": {}}
+            "plusieurs_personnes": False, "priorite": None, "besoins": [], "soins": {},
+            "budget": None}  # budget : ("montant", n), ("petit", None) ou ("aucun", None)
 
 
 def etat():
@@ -97,8 +137,15 @@ def etat():
         s.choix_communes = None  # communes entre lesquelles choisir
         s.lieu_inconnu = False
         s.textes_besoins = []    # phrases où des besoins ont été exprimés
+        s.messages.append({"role": "assistant", "type": "accueil"})
         s.sante = []             # éléments de santé classés (en mémoire seulement)
     return s
+
+
+AUTRES_LANGUES = "Sie können auch Deutsch schreiben · Può scrivere anche in italiano · You can also write in English."
+ACCUEIL = ("Bonjour ! Je suis votre conseiller pour l'assurance maladie de base (LAMal), avec Apertus. "
+           "Parlez-moi de vous : votre âge, votre commune, et ce qui compte pour vous (budget, choix du "
+           "médecin…). Vous pouvez aussi me poser vos questions sur la LAMal à tout moment.")
 
 
 def dire(texte):
@@ -108,30 +155,55 @@ def dire(texte):
 # --------------------------------------------------------------------------------------
 # Compréhension des messages : extraction 8B + contrôles Python existants
 # --------------------------------------------------------------------------------------
-def integrer(texte, champ=None):
-    """Ajoute au profil ce que l'utilisateur vient de dire. Renvoie True si le profil a changé."""
+def integrer(texte, champ=None, question=False, suivi=False):
+    """Ajoute au profil ce que l'utilisateur vient de dire. Renvoie True si le profil a changé.
+    Si la personne pose une question, la lecture d'Apertus du champ demandé est ignorée : seules
+    les valeurs écrites explicitement (relues par les règles Python) comptent. `suivi` : message
+    écrit après les résultats (« et avec une franchise de 300 ? ») ; c'est un changement voulu."""
     s, cfg = st.session_state, config()
     p = s.profil
     contract = p["contract"]
     message = json.dumps({"profile": contract.context(), "question": s.question if champ else None,
                           "target": champ, "user_message": texte}, ensure_ascii=False)
-    try:
-        updates = chatbot.extraire_mises_a_jour(
-            lambda prompt, message: llm(cfg["LLM_NAME"], prompt, message), message)
-    except ValueError as error:
-        raise ErreurLLM("Réponse structurée invalide après deux essais") from error
+    # Toutes les lectures d'Apertus 8B partent en même temps (profil, soins, besoins, santé) : la personne
+    # attend la plus lente, pas la somme. Une lecture qui échoue ou dépasse son délai est simplement
+    # ignorée : les règles Python lisent alors les formulations explicites, sans message d'erreur.
+    lire = appel("demander_llm", cfg["LLM_NAME"], DELAI_8B)
+    lire_json = appel("demander_llm_json", cfg["LLM_NAME"], DELAI_8B)
+    taches = {"profil": lambda: chatbot.extraire_mises_a_jour(lire, message)}
+    if not question and (champ == "care_access" or soins.parle_de_soins(texte)):
+        taches["soins"] = lambda: soins.extraire_soins(lire_json, texte)
+    # besoins et santé : seulement dans les descriptions libres, et si les modules sont activés
+    libre = champ is None and not question and MODULES_COMPLEMENTAIRES
+    if libre:
+        taches["besoins"] = lambda: compl.categories_finales(
+            extraire_json(lire(compl.PROMPT_BESOINS, texte)).get("categories"), texte)
+        taches["sante"] = lambda: sante.classer(texte, lire)
+    if question or suivi:  # question : Apertus 8B traduit en mots-clés juridiques, en même temps (lois.py)
+        taches["mots_cles"] = lambda: lois.mots_cles(lire, texte)
+    lu = en_parallele(**taches)
+    s.mots_cles = lu.get("mots_cles") or ""
+    updates = lu["profil"] or {}
+    updates = conversation.mises_a_jour_hors_question(updates, champ, question)
+    budget = conversation.lire_budget(texte, champ)
+    if budget and not (budget[0] == "petit" and p["budget"] and p["budget"][0] == "montant"):
+        p["budget"] = budget
+    elif champ == "budget" and not question:
+        p["budget"] = ("aucun", None)  # budget facultatif : on n'insiste pas
     selecting_person = (contract.known("multiple_people") is True
                         and updates.get("multiple_people", {}).get("value") is False
                         and updates.get("multiple_people", {}).get("status") == "known")
     # Préférences de soins : positions d'Apertus contrôlées par Python (module soins). Une
     # condition ou une hésitation ne suspend plus la comparaison : elle est chiffrée à part.
-    positions = {}
-    if champ == "care_access" or soins.parle_de_soins(texte):
-        positions = soins.extraire_soins(
-            lambda systeme, message: llm_json(cfg["LLM_NAME"], systeme, message), texte)
+    positions = lu.get("soins") or {}
+    if champ in (None, "care_access") and not question and not positions and soins.accepte_tout(texte):
+        # « tous les modèles », « alle Modelle », « all models » : lu par Python si Apertus l'a manqué
+        positions = {m: {"stance": "accepted", "condition": None, "evidence": None} for m in soins.NOMS_MODES}
     # Formulations explicites que Python lit lui-même si Apertus les a manquées (module regles)
-    updates = regles.completer_par_regles(updates, texte, champ)
+    updates = regles.completer_par_regles(updates, texte, champ, suivi=suivi, question=question and not suivi)
     updates.pop("care_conditions", None)
+    if suivi:  # après les résultats, une nouvelle valeur remplace l'ancienne au lieu de créer un conflit
+        updates = {k: {**v, "correction": True} for k, v in updates.items()}
     if positions or champ != "care_access":
         # Sans position contrôlée, seule une réponse directe à la question des modèles peut
         # encore renseigner les catégories par l'ancienne extraction.
@@ -148,16 +220,15 @@ def integrer(texte, champ=None):
     if change:
         synchroniser_profil()
 
-    if champ is None:  # besoins et priorité : seulement dans les messages libres
-        besoins = compl.categories_finales(
-            extraire_json(llm(cfg["LLM_NAME"], compl.PROMPT_BESOINS, texte)).get("categories"), texte)
+    if libre:
+        besoins = lu.get("besoins") or []
         nouveaux = [b for b in besoins if b not in p["besoins"]]
         if nouveaux:
             p["besoins"] += nouveaux
             s.textes_besoins.append(texte)
             change = True
         # Santé : Apertus classe seulement ; les réponses sont des textes fixes et des calculs
-        for element in sante.classer(texte, lambda systeme, message: llm(cfg["LLM_NAME"], systeme, message)):
+        for element in lu.get("sante") or []:
             if element not in s.sante:
                 s.sante.append(element)
                 change = True
@@ -197,13 +268,15 @@ def champ_manquant():
     s = st.session_state
     p = s.profil
     issue = p["contract"].issue()
-    if issue:
+    if issue and issue != "deductible":
         return issue
     if s.choix_communes:
         return "commune"
     if not p["canton"]:
         return "municipality" if p["npa"] is not None else "postal_code"
-    return None
+    if issue == "deductible" and (p["budget"] is None or p["budget"][0] == "petit"):
+        return "budget"  # facultatif, demandé avant la franchise pour pouvoir en tenir compte
+    return issue
 
 
 def libelle_commune(c):
@@ -216,60 +289,159 @@ EXEMPLES_REPONSE = {
     "care_access": "tous les modèles me conviennent", "multiple_people": "seulement moi, 35 ans",
     "hours_per_week_one_employer": "42 heures par semaine chez le même employeur",
     "employed": "oui, je suis salarié", "nonoccupational_covered": "oui, c'est confirmé par mon employeur",
+    "budget": "250 CHF par mois, ou pas de limite",
 }
 
 
-def poser_question(champ):
-    """Ask the single unresolved question selected by the deterministic contract."""
+def preparer_question(champ, question_posee=False):
+    """Question fixe pour le champ choisi par le contrat (Python). Renvoie None si le champ a été
+    réglé sans question (repli après plusieurs incompréhensions) : il faut alors passer au suivant."""
     s = st.session_state
     p = s.profil
+    explique = False  # la raison du refus est déjà dite : pas de « je n'ai pas compris »
     if champ == "commune":
-        question = "Quelle commune faut-il retenir : " + ", ".join(
-            libelle_commune(c) for c in s.choix_communes) + " ?"
+        question = tr("Quelle commune faut-il retenir : {liste} ?", L(),
+                      liste=", ".join(libelle_commune(c) for c in s.choix_communes))
+    elif champ == "budget":
+        question = tr(conversation.QUESTION_BUDGET, L())
     else:
-        question = QUESTIONS[champ]
+        question = tr(QUESTIONS[champ], L())
         fact = p["contract"].facts[champ]
         if fact.state == State.CONFLICT:
-            question = (f"Deux réponses diffèrent : {fact.previous!s} et {fact.value!s}. " + question)
+            question = tr("Deux réponses diffèrent : {a} et {b}. ", L(), a=fact.previous, b=fact.value) + question
         elif fact.state == State.INVALID:
-            question = "Cette valeur n'est pas valide. " + question
+            question = tr("Cette valeur n'est pas valide. ", L()) + question
         elif fact.state == State.AMBIGUOUS:
-            question = "Cette information reste incertaine. " + question
+            question = tr("Cette information reste incertaine. ", L()) + question
+        elif (champ == "deductible" and fact.state == State.KNOWN and isinstance(fact.value, int)
+              and p["contract"].rating_age() is not None):
+            # Montant légal en soi, mais pas pour cet âge (ex. 0 CHF pour un adulte) : on dit pourquoi
+            permises = FRANCHISES[classe_age(p["contract"].rating_age())]
+            explique = True
+            question = tr("Une franchise de {v} CHF n'existe pas pour votre âge : les franchises possibles sont "
+                          "{liste} CHF. ", L(), v=fact.value, liste=", ".join(map(str, permises))) + question
     if s.lieu_inconnu and champ in ("postal_code", "municipality"):
-        question = "Le lieu est inconnu ou le code postal et la commune ne correspondent pas. " + question
+        question = tr("Le lieu est inconnu ou le code postal et la commune ne correspondent pas. ", L()) + question
         s.lieu_inconnu = False
     repetitions = s.get("repetitions", {})
-    repetitions = {champ: repetitions.get(champ, 0) + 1}
+    # Une question de la personne n'est pas une incompréhension : on y répond, puis on redemande
+    repetitions = {champ: repetitions.get(champ, 0) + (0 if question_posee else 1)}
     s.repetitions = repetitions
+    if champ == "budget" and repetitions[champ] >= 2:
+        p["budget"] = ("aucun", None)  # facultatif : demandé une fois, jamais imposé
+        s.repetitions = {}
+        return None
     if champ == "care_access" and repetitions[champ] >= 3:
         # Sans réponse comprise, jamais de restriction acceptée à la place de la personne : on compare
         # le modèle standard, et les autres modèles sont chiffrés dans « Ce que coûtent vos préférences ».
         p["contract"].set("care_access", ["unrestricted"])
         synchroniser_profil()
-        dire("Je n'ai pas compris quels modèles vous acceptez : je compare le modèle standard (libre choix) "
-             "et je vous montre ensuite ce que coûteraient les autres. Vous pourrez préciser après.")
+        dire(tr("Je n'ai pas compris quels modèles vous acceptez : je compare le modèle standard (libre choix) et je "
+                "vous montre ensuite ce que coûteraient les autres. Vous pourrez préciser après.", L()))
         s.repetitions = {}
-        avancer()
-        return
-    if repetitions[champ] >= 2 and champ in EXEMPLES_REPONSE:
-        question = ("Je n'ai pas compris votre réponse. " + question
-                    + f" Par exemple : « {EXEMPLES_REPONSE[champ]} ».")
+        return None
+    if (repetitions[champ] >= 2 and champ in EXEMPLES_REPONSE and not question_posee
+            and not explique):
+        question = (tr("Je n'ai pas compris votre réponse. ", L()) + question
+                    + tr(" Par exemple : « {ex} ».", L(), ex=tr(EXEMPLES_REPONSE[champ], L())))
     s.question, s.attente = question, champ
-    dire(question)
+    return question
 
 
-def avancer():
-    """Demande le prochain champ non résolu, sinon confirmation, y compris en suivi."""
+LIBELLES_FAITS = {"age": "âge", "birth_year": "année de naissance", "postal_code": "code postal",
+                  "municipality": "commune", "deductible": "franchise", "include_accident": "accidents inclus",
+                  "care_access": "modèles acceptés", "employed": "emploi salarié",
+                  "hours_per_week_one_employer": "heures par semaine chez un même employeur",
+                  "nonoccupational_covered": "couverture accidents non professionnels confirmée"}
+
+
+def faits_connus():
+    """Le profil en mots, pour qu'Apertus confirme ce qui a été noté sans rien inventer."""
+    p = st.session_state.profil
+    c = p["contract"]
+    faits = {}
+    for champ, libelle in LIBELLES_FAITS.items():
+        v = c.known(champ)
+        if v is None:
+            continue
+        if champ == "care_access":
+            v = ", ".join(CARE_LABELS[k] for k in v)
+        elif champ == "deductible":
+            v = {"all": "comparer toutes", "lowest": "la plus basse", "highest": "la plus haute"}.get(v, f"{v} CHF")
+        elif isinstance(v, bool):
+            v = "oui" if v else "non"
+        faits[libelle] = str(v)
+    if p.get("commune"):
+        faits["commune retenue"] = f"{p['commune']} ({p['canton']}, région de primes {p['region']})"
+    b = p.get("budget")
+    if b:
+        faits["budget"] = {"montant": f"{b[1]} CHF par mois au maximum", "petit": "petit budget",
+                           "aucun": "pas de limite indiquée"}[b[0]]
+    return faits
+
+
+def chiffres_franchise():
+    """Conseil de franchise chiffré par Python, dès que le lieu et l'âge sont connus."""
+    p = st.session_state.profil
+    c = p["contract"]
+    if not p.get("canton") or c.rating_age() is None:
+        return ""
+    care = c.known("care_access")
+    budget = p["budget"][1] if p.get("budget") and p["budget"][0] == "montant" else None
+    try:
+        return conversation.faits_franchise(
+            p["canton"], p["region"], c.rating_age(), c.accident(),
+            [CARE_TYPES[k] for k in care] if care else None, budget,
+            chatbot.no_ofs_de(p["commune"], p["canton"]))
+    except Exception:
+        return ""
+
+
+def appeler_70b(systeme, message):
+    """Rédaction par Apertus 70B, seulement s'il reste du temps dans ce tour (sinon : question seule)."""
+    if time.time() > st.session_state.get("echeance", float("inf")):
+        raise ErreurLLM("délai du tour dépassé")
+    return appel("demander_llm", config()["LLM_NAME_RESTITUTION"], DELAI_70B)(systeme, message)
+
+
+def avancer(tour=None):
+    """Demande le prochain champ non résolu, sinon le résumé à confirmer. Avec `tour` (un message
+    tapé par la personne), c'est Apertus qui écrit la réponse : il réagit, répond à la question
+    éventuelle, puis pose la question choisie par Python. Sans `tour` (bouton), question fixe."""
     s = st.session_state
-    resoudre_lieu()
-    champ = champ_manquant()
+    question_posee = bool(tour and tour["question"])
+    while True:
+        resoudre_lieu()
+        champ = champ_manquant()
+        question = preparer_question(champ, question_posee) if champ else None
+        if not champ or question is not None:
+            break
     if champ:
         s.etape = "collecte"
-        poser_question(champ)
     else:
         s.etape, s.attente = "confirmation", "confirmation"
-        s.messages.append({"role": "assistant", "type": "profil", "profil": deepcopy(s.profil),
-                           "sante": len(s.sante)})
+    if tour is None:
+        if question:
+            dire(question)
+    else:
+        apres = faits_connus()
+        notes = [f"{k} : {v}" for k, v in apres.items() if tour["avant"].get(k) != v]
+        # Chiffres de franchise et de budget dès que la personne en parle ou pose une question
+        parle_franchise = (champ == "deductible" or question_posee
+                           or re.search(r"franchise|budget|prime|co[uû]t|cher|payer|possible", tour["texte"], re.I))
+        dire(conversation.repondre_tour(
+            appeler_70b, tour["texte"], notes, question_posee, question,
+            chiffres=chiffres_franchise() if parle_franchise else "",
+            contexte="; ".join(f"{k} : {v}" for k, v in apres.items()),
+            passe=conversation.historique(s.messages[:-1]), langue=nom_langue(), code=L(),
+            passages=articles_de_loi(tour["texte"]) if question_posee else ()))
+    if not champ:
+        if s.get("profil_formulaire"):
+            # Profil venu du formulaire : pas de résumé « Est-ce correct ? », on recalcule directement
+            calculer()
+        else:
+            s.messages.append({"role": "assistant", "type": "profil", "profil": deepcopy(s.profil),
+                               "sante": len(s.sante)})
 
 
 def choisir_commune(c):
@@ -293,18 +465,79 @@ def choisir_commune_texte(texte):
 
 def traiter_message(texte):
     s = st.session_state
+    s.echeance = time.time() + LIMITE_TOUR
     s.messages.append({"role": "user", "type": "texte", "contenu": texte})
+    detectee = langues.detecter(texte)
+    if detectee:
+        s.langue = detectee  # la personne écrit dans une autre langue : on lui répond dans celle-ci
+    question = conversation.est_question(texte)
+    tour = {"texte": texte, "question": question, "avant": faits_connus()}
     if s.attente == "commune" and choisir_commune_texte(texte):
         avancer()
+    elif s.etape == "resultats" and not question and (
+            s.attente in ("caisse", "caisse_choix") or changement.trouver_caisses(texte)) and traiter_caisse(texte):
+        pass
+    elif s.etape == "resultats" and s.attente == "lettre" and (_OUI.search(texte) or _NON.search(texte)):
+        repondre_lettre_texte(bool(_OUI.search(texte)))
+    elif s.etape == "resultats" and (s.get("economie") or {}).get("caisse") and demande_lettre(texte):
+        ecrire_lettre()
     elif s.etape == "resultats":
-        if integrer(texte):
-            avancer()
+        if s.attente in ("caisse", "caisse_choix", "lettre"):
+            s.attente = None  # la personne passe à autre chose : on ne réinsiste pas
+        avant = s.profil["contract"].context(), s.profil["budget"]
+        integrer(texte, question=question, suivi=True)
+        if (s.profil["contract"].context(), s.profil["budget"]) != avant:
+            avancer(tour)  # une information change : nouveau résumé à confirmer, puis nouveau calcul
         else:
-            dire("Je n'ai pas compris ce qu'il faut changer. Exemple : « et avec une franchise "
-                 "de 300 ? » ou « j'habite à 1003 ».")
+            repondre_apres_resultats(texte)
+            ligne = subsides.office(s.profil["canton"], L()) if subsides.PARLE_DE_SUBSIDE.search(texte) else None
+            if ligne:  # question sur les subsides : l'office de son canton, lien officiel (liste OFSP)
+                dire(ligne)
     else:
-        integrer(texte, champ=s.attente if s.attente not in (None, "confirmation") else None)
-        avancer()
+        integrer(texte, champ=s.attente if s.attente not in (None, "confirmation") else None,
+                 question=question)
+        avancer(tour)
+
+
+def articles_de_loi(texte):
+    """Alinéas des vrais textes de loi les plus proches de la question (recherche Python, lois.py)."""
+    try:
+        return lois.chercher(texte, L(), st.session_state.get("mots_cles", ""))
+    except Exception:
+        return []
+
+
+def demande_lettre(texte):
+    """« Rédigez-moi la lettre de résiliation » (une demande), mais pas « comment l'envoyer ? »."""
+    if not re.search(r"lettre|r[ée]siliation|k[üu]ndigung|disdetta|lettera|cancellation|letter", texte, re.IGNORECASE):
+        return False
+    return bool(len(texte.split()) <= 4 or re.search(
+        r"r[ée]dig|[ée]cri[sv]|refai|fai[st]es|donne|veux|voudrais|schreib|verfass|scriv|redig|write|draft|redo|"
+        r"again|nouvelle|neue|nuova|another", texte, re.IGNORECASE))
+
+
+def repondre_lettre_texte(oui):
+    s = st.session_state
+    if oui:
+        ecrire_lettre()
+    else:
+        s.attente = None
+        dire(tr("D'accord. Vous pouvez me la demander plus tard en écrivant « lettre de résiliation ».", L()))
+
+
+def repondre_apres_resultats(texte):
+    """Conversation libre après les résultats : Apertus répond avec les chiffres affichés et la fiche LAMal."""
+    s = st.session_state
+    bloc = s.resultats[-1] if s.resultats else None
+    reponse = None
+    if bloc is not None:
+        reponse = conversation.repondre_libre(
+            appeler_70b, texte, bloc.get("faits", ""), bloc.get("chiffres_franchise", ""),
+            passe=conversation.historique(s.messages[:-1]), langue=nom_langue(), code=L(),
+            passages=articles_de_loi(texte))
+    dire(reponse or tr("Je ne peux pas répondre de façon fiable à cette question ici ; vous pouvez vérifier sur "
+                       "priminfo.admin.ch. Pour changer une information, écrivez par exemple « et avec une "
+                       "franchise de 300 ? » ou « j'habite à 1003 ».", L()))
 
 
 # --------------------------------------------------------------------------------------
@@ -327,9 +560,9 @@ def calculer():
     bloc = {"offres": offres, "propositions": props, "intro": None, "compl": None,
             "preferences": chatbot.couts_des_preferences(c), "soins": dict(p["soins"])}
     if props:
-        bloc["intro"] = chatbot.expliquer(client(), cfg["LLM_NAME_RESTITUTION"],
-                                          faits_propositions(props, p["priorite"]), LANGUE,
-                                          prompt=PROMPT_INTRO, secours=INTRO_DE_SECOURS)
+        bloc["intro"] = chatbot.expliquer(client().with_options(timeout=DELAI_70B), cfg["LLM_NAME_RESTITUTION"],
+                                          faits_propositions(props, p["priorite"]), nom_langue(),
+                                          prompt=PROMPT_INTRO, secours=tr(INTRO_DE_SECOURS, L()))
     if s.sante and p["franchise"] is not None:
         reference = (props[0]["assureur"], props[0]["produit"]) if props else None
         bloc["sante"] = sante.analyser(p, s.sante, reference)
@@ -338,47 +571,191 @@ def calculer():
         bloc["compl"] = {
             "categories": list(p["besoins"]), "choix": choix,
             "meilleurs": {c: compl.meilleurs_produits(choix, c, p["age"]) for c in p["besoins"]}}
+    bloc["budget"] = p["budget"]
+    bloc["canton"] = p["canton"]
+    bloc["faits"] = faits_resultats(bloc)
+    bloc["chiffres_franchise"] = chiffres_franchise()
     s.resultats.append(bloc)
     s.messages.append({"role": "assistant", "type": "resultats", "index": len(s.resultats) - 1})
     s.etape, s.attente = "resultats", None
+    if props and s.get("caisse_lue") is None and not s.get("caisse_demandee"):
+        s.caisse_demandee = True
+        dire(tr(QUESTION_CAISSE, L()))
+        s.attente = "caisse"
+    elif props and s.get("caisse_lue"):  # nouvelle comparaison : l'économie est recalculée (Python seul)
+        montrer_economie(**s.caisse_lue, rediger=False)
+
+
+# --------------------------------------------------------------------------------------
+# Caisse actuelle, économie et lettre de résiliation (module changement)
+# --------------------------------------------------------------------------------------
+QUESTION_CAISSE = ("Chez quelle caisse maladie êtes-vous assuré(e) aujourd'hui, et avec quel modèle (libre choix, "
+                   "médecin de famille, télémédecine…) ? Je calcule ce que vous économiseriez en changeant. "
+                   "C'est facultatif.")
+_OUI = re.compile(r"^\s*(?:oui|ouais|volontiers|avec plaisir|d'accord|ok|okay|yes|yep|sure|please|ja|gerne|bitte|"
+                  r"s[iì]|certo|volentieri|va bene)\b", re.IGNORECASE)
+_NON = re.compile(r"^\s*(?:non|nein|no|nope|pas besoin|pas maintenant|nicht nötig|niente|no grazie)\b", re.IGNORECASE)
+
+
+def traiter_caisse(texte):
+    """Réponse à la question sur la caisse actuelle. True si le message a été traité ici."""
+    s, cfg = st.session_state, config()
+    lu = changement.lire_caisse(appel("demander_llm_json", cfg["LLM_NAME"], DELAI_8B), texte)
+    if len(lu["caisses"]) > 1:
+        s.choix_caisses, s.caisse_partielle = lu["caisses"], lu
+        dire(tr("Plusieurs caisses portent ce nom. Laquelle figure sur votre police d'assurance ?", L()))
+        s.attente = "caisse_choix"
+        return True
+    if not lu["caisses"] and lu["prime_mois"] is None:
+        return False
+    return montrer_economie(lu["caisses"][0] if lu["caisses"] else None, lu["modele"], lu["prime_mois"])
+
+
+def montrer_economie(numero=None, modele=None, prime_mois=None, rediger=True):
+    """Paragraphe d'économie : chiffres calculés par Python, texte rédigé par Apertus 70B et vérifié."""
+    s = st.session_state
+    bloc, profil = s.resultats[-1], s.profil["comparison"]
+    e = changement.calculer_economie(profil, bloc["offres"], numero, modele, prime_mois,
+                                     chatbot.no_ofs_de(profil.municipality, profil.canton))
+    if e is None:
+        return False
+    s.caisse_lue = {"numero": numero, "modele": modele, "prime_mois": prime_mois}
+    s.attente = None
+    if e.get("absente"):
+        dire(tr("{caisse} ne propose pas d'assurance de base pour votre profil dans votre région en 2027 : vous "
+                "devrez de toute façon choisir une autre caisse.", L(), caisse=e["caisse"]))
+        s.economie = dict(e, autre_caisse={"caisse": bloc["offres"].iloc[0]["Assureur"]})
+    else:
+        texte = None
+        if rediger:
+            try:
+                brut = conversation.demander_verifie(
+                    appeler_70b, changement.PROMPT_ECONOMIE.replace("{langue}", nom_langue()),
+                    changement.faits_economie(e), doit_questionner=False, code=L())
+                texte = conversation.raccourcir(conversation.nettoyer(brut), 4) if brut else None
+            except ErreurLLM:
+                texte = None
+        dire(texte or changement.texte_economie_secours(e, L()))
+        s.economie = e
+    if rediger and e["caisse"] and s.economie.get("autre_caisse"):
+        dire(tr("Souhaitez-vous que je rédige votre lettre de résiliation pour {caisse} ?", L(), caisse=e["caisse"]))
+        s.attente = "lettre"
+    return True
+
+
+def choisir_caisse(numero):
+    s = st.session_state
+    s.messages.append({"role": "user", "type": "texte", "contenu": changement.CAISSES[numero]})
+    lu = s.get("caisse_partielle") or {}
+    montrer_economie(numero, lu.get("modele"), lu.get("prime_mois"))
+
+
+def ecrire_lettre():
+    """Lettre de résiliation rédigée par Apertus 70B ; Python vérifie les éléments obligatoires."""
+    s, cfg = st.session_state, config()
+    e, profil = s.economie, s.profil["comparison"]
+    langue = changement.langue_lettre(L(), profil.canton)
+    # La lettre est la tâche principale de ce tour : un délai à elle (deux essais au plus)
+    rediger = appel("demander_llm", cfg["LLM_NAME_RESTITUTION"], 40)
+    lettre, par = changement.rediger_lettre(rediger, e["caisse"], langue, profil.premium_year)
+    s.messages.append({"role": "assistant", "type": "lettre", "texte": lettre, "langue": langue, "par": par,
+                       "annee": profil.premium_year})
+    s.attente = None
+
+
+def repondre_lettre(oui):
+    s = st.session_state
+    l = L()
+    s.messages.append({"role": "user", "type": "texte",
+                       "contenu": tr("Oui, rédigez ma lettre", l) if oui else tr("Non merci", l)})
+    if oui:
+        ecrire_lettre()
+    else:
+        s.attente = None
+        dire(tr("D'accord. Vous pouvez me la demander plus tard en écrivant « lettre de résiliation ».", l))
+
+
+def passer_caisse():
+    s = st.session_state
+    s.messages.append({"role": "user", "type": "texte", "contenu": tr("Passer", L())})
+    s.attente = None
+
+
+def faits_resultats(bloc):
+    """Ce qui est affiché, en texte, pour que les réponses d'Apertus s'appuient dessus."""
+    p = st.session_state.profil
+    lignes = ["Profil : " + "; ".join(f"{k} : {v}" for k, v in faits_connus().items())]
+    if bloc["propositions"]:
+        lignes.append(faits_propositions(bloc["propositions"], p["priorite"]))
+    for l in bloc.get("preferences") or []:
+        lignes.append(f"Modèle non retenu {l['modele']} : dès {l['prime_mois']:.2f} CHF par mois "
+                      f"({l['assureur']}), écart de {l['ecart_an']:.2f} CHF par an avec l'offre retenue.")
+    if not bloc["offres"].empty:
+        o = bloc["offres"].iloc[0]
+        qp = int(o["Coût max/an"] - o["Prime/an"] - o["Franchise"])
+        lignes.append(f"Au pire (frais médicaux élevés), l'offre la moins chère ({o['Assureur']}, franchise "
+                      f"{int(o['Franchise'])} CHF) coûte au maximum {o['Coût max/an']:.2f} CHF dans l'année : "
+                      f"{o['Prime/an']:.2f} CHF de primes + {int(o['Franchise'])} CHF de franchise + {qp} CHF de "
+                      f"quote-part maximale (plus 15 CHF par jour d'hôpital pour un adulte).")
+    resume = resume_budget(bloc)
+    if resume:
+        lignes.append(resume)
+    lignes.append(f"Nombre d'offres comparées : {len(bloc['offres'])}.")
+    return "\n".join(lignes)
+
+
+def resume_budget(bloc):
+    b = bloc.get("budget")
+    if not b or b[0] != "montant" or bloc["offres"].empty:
+        return ""
+    n = int((bloc["offres"]["Prime/mois"] <= b[1]).sum())
+    return tr("Votre budget : {b} CHF par mois au maximum. {n} offre(s) sur {total} le respectent.", L(),
+              b=b[1], n=n, total=len(bloc["offres"]))
 
 
 # --------------------------------------------------------------------------------------
 # Affichage
 # --------------------------------------------------------------------------------------
 def afficher_profil(p, nb_sante=0):
-    c = p["contract"]
-    accident = "incluse" if c.accident() else "exclue"
+    c, l = p["contract"], L()
+    sep = " :" if l == "fr" else ":"  # espace avant les deux-points seulement en français
+    accident = tr("incluse" if c.accident() else "exclue", l)
     if c.known("include_accident") is not None:
-        accident += " — selon votre choix de comparaison"
+        accident += tr(" — selon votre choix de comparaison", l)
     elif c.known("nonoccupational_covered") is not None:
-        accident += " — selon la couverture non professionnelle déclarée"
+        accident += tr(" — selon la couverture non professionnelle déclarée", l)
     else:
-        accident += f" — emploi salarié déclaré, {c.known('hours_per_week_one_employer'):g} h/semaine chez un même employeur"
-    age_label = (f"Année de naissance : {c.known('birth_year')}" if c.known("birth_year") is not None
-                 else f"Âge déclaré : {c.known('age')} ans")
+        accident += tr(" — emploi salarié déclaré, {h} h/semaine chez un même employeur", l,
+                       h=f"{c.known('hours_per_week_one_employer'):g}")
+    age_label = (tr("Année de naissance : {v}", l, v=c.known("birth_year")) if c.known("birth_year") is not None
+                 else tr("Âge déclaré : {v} ans", l, v=c.known("age")))
     franchises = ", ".join(map(str, c.deductibles()))
-    care = ", ".join(CARE_LABELS[k] for k in c.known("care_access"))
+    care = ", ".join(tr(CARE_LABELS[k], l) for k in c.known("care_access"))
     positions_soins = []
     for position, titre in (("rejected", "Refusé"), ("conditional", "Selon le prix"), ("unsure", "Incertain")):
         modes = soins.par_position(p.get("soins", {}), position)
         if modes:
-            positions_soins.append(f"- **{titre}** : " + ", ".join(
-                nom + (f" (« {citation} »)" if citation else "") for nom, citation in modes))
-    besoins = ", ".join(compl.CATEGORIES[b] for b in p["besoins"]) or "aucun"
+            positions_soins.append(f"- **{tr(titre, l)}**{sep} " + ", ".join(
+                tr(nom, l) + (f" (« {citation} »)" if citation else "") for nom, citation in modes))
+    besoins = ", ".join(compl.CATEGORIES[b] for b in p["besoins"]) or tr("aucun", l)
     commune = p["commune"] + (f" ({p['npa']})" if p["npa"] else "")
-    st.markdown("**Voici ce que j'ai compris. Est-ce correct ?**")
+    b = p.get("budget") or ("", None)
+    budget = {"montant": tr("{v} CHF par mois au maximum", l, v=b[1]), "petit": tr("petit budget", l),
+              "aucun": tr("pas de limite indiquée", l)}.get(b[0], tr("non indiqué", l))
+    priorite = tr(NOMS_PRIORITE[p["priorite"]], l) if p["priorite"] in NOMS_PRIORITE else tr("aucune indiquée", l)
+    st.markdown("**" + tr("Voici ce que j'ai compris. Est-ce correct ?", l) + "**")
     st.markdown("\n".join([
-        f"- **{age_label}** (catégorie tarifaire vérifiée pour {c.premium_year})",
-        f"- **Commune** : {commune}",
-        f"- **Canton** : {p['canton']}",
-        f"- **Région de primes** : {p['region']}",
-        f"- **Franchise(s)** : {franchises} CHF",
-        f"- **Modèles acceptés** : {care}",
+        f"- **{age_label}** ({tr('catégorie tarifaire vérifiée pour {annee}', l, annee=c.premium_year)})",
+        f"- **{tr('Commune', l)}**{sep} {commune}",
+        f"- **{tr('Canton', l)}**{sep} {p['canton']}",
+        f"- **{tr('Région de primes', l)}**{sep} {p['region']}",
+        f"- **{tr('Franchise(s)', l)}**{sep} {franchises} CHF",
+        f"- **{tr('Modèles acceptés', l)}**{sep} {care}",
     ] + positions_soins + [
-        f"- **Couverture accident** : {accident}",
-        f"- **Besoins en complémentaires** : {besoins}",
-    ] + ([f"- **Santé** : {nb_sante} élément(s) pris en compte"] if nb_sante else [])))
+        f"- **{tr('Couverture accident', l)}**{sep} {accident}",
+        f"- **{tr('Priorité', l)}**{sep} {priorite}",
+        f"- **{tr('Budget', l)}**{sep} {budget}",
+    ] + ([f"- **{tr('Besoins en complémentaires', l)}**{sep} {besoins}"] if MODULES_COMPLEMENTAIRES else []) + ([f"- **{tr('Santé', l)}**{sep} {tr('{n} élément(s) pris en compte', l, n=nb_sante)}"] if nb_sante else [])))
 
 
 def chf(montant):
@@ -447,34 +824,26 @@ def texte_produit(prod, avec_conditions=True):
     return texte
 
 
-def nom_court(assureur):
-    """« Atupri Gesundheitsversicherung AG » -> « Atupri », « Assura-Basis SA » -> « Assura »
-    (pour les cartes ; le nom officiel reste dans le tableau complet)."""
-    nom = re.sub(r"[- ](?:Basis|Gesundheitsversicherung|Krankenversicherung|Kranken-?\s*versicherung)\b.*$",
-                 "", assureur, flags=re.IGNORECASE)
-    return re.sub(r"\s+(?:AG|SA)$", "", nom).strip() or assureur
-
-
 def afficher_propositions(bloc):
     props = bloc["propositions"]
     if not props:
-        st.write("Aucune prime trouvée pour ce profil.")
+        st.write(tr("Aucune prime trouvée pour ce profil.", L()))
         return
     st.write(bloc["intro"])
+    l = L()
     for colonne, p in zip(st.columns(len(props)), props):
-        with colonne, st.container(border=True):
-            st.caption(p["titre"])
-            ecart = p["ecart_mois"]
-            st.metric(label=f"{nom_court(p['assureur'])} · {p['modele']}",
-                      value=f"CHF {p['prime_mois']:.2f}",
-                      delta=None if ecart == 0 else f"+{ecart:.2f} CHF / mois",
-                      delta_color="inverse")
-            st.markdown("⭐ **La moins chère**" if ecart == 0 else "par mois, par rapport à la moins chère")
-            st.caption(f"Soit CHF {chf(p['prime_mois'] * 12)} par an · franchise {p['franchise']} CHF  \n"
-                       f"*{p['produit']}* — {p['contrepartie']}")
-    st.caption("Compatibilité par catégorie seulement : réseau de médecins, application et conditions du produit à vérifier. " + RAPPEL_LAMAL)
+        with colonne:
+            style.carte(tr(p["titre"], l), f"{p['prime_mois']:.2f}", tr("CHF / mois", l), p["assureur"],
+                        f"{p['produit']} — {tr(p['modele'], l)}",
+                        tr("La moins chère", l) if p["ecart_mois"] == 0
+                        else tr("+{x} CHF / mois par rapport à la moins chère", l, x=f"{p['ecart_mois']:.2f}"),
+                        tr("Franchise : {f} CHF. Contrepartie : {c}", l, f=p["franchise"], c=tr(p["contrepartie"], l)),
+                        meilleure=p["ecart_mois"] == 0)
+    st.caption(tr("Compatibilité par catégorie seulement : réseau de médecins, application et conditions du produit à "
+                  "vérifier. " + RAPPEL_LAMAL, L()))
     if bloc["offres"]["Franchise"].nunique() > 1:
-        st.caption("Plusieurs franchises sont comparées : la prime la plus basse ne signifie pas le coût total de soins le plus bas.")
+        st.caption(tr("Plusieurs franchises sont comparées : la prime la plus basse ne signifie pas le coût total de "
+                      "soins le plus bas.", L()))
 
 
 def afficher_meilleurs_complementaires(c):
@@ -508,14 +877,15 @@ def afficher_meilleurs_complementaires(c):
 
 
 def afficher_toutes_les_offres(bloc):
-    with st.container():
+    with st.expander(tr("Voir toutes les offres", L())):
         offres = bloc["offres"].drop(columns="Tariftyp")
         if not offres.empty:
-            st.markdown(f"**Assurance de base (LAMal) : {len(offres)} offres, de la moins "
-                        f"chère à la plus chère (CHF)**")
+            st.markdown(f"**{tr('Assurance de base (LAMal) : {n} offres, de la moins chère à la plus chère (CHF)', L(), n=len(offres))}**")
+            offres = offres.assign(Modèle=offres["Modèle"].map(lambda m: tr(m, L())))
+            offres = offres.rename(columns={c: tr(c, L()) for c in offres.columns})
             montants = offres.select_dtypes("number").columns
             st.dataframe(offres.style.format({c: "{:.2f}" for c in montants}),
-                         hide_index=True, use_container_width=True)
+                         hide_index=True, width="stretch")
         c = bloc["compl"]
         if c:
             st.markdown("**Assurances complémentaires : liste complète**")
@@ -532,43 +902,61 @@ def afficher_toutes_les_offres(bloc):
 
 def afficher_preferences(lignes, positions=None):
     """Ce que coûtent les préférences : uniquement des montants calculés par Python."""
-    st.markdown("### Ce que coûtent vos préférences")
-    st.write("Pour le même profil, voici l'offre la moins chère de chaque modèle que vous "
-             "n'avez pas retenu, comparée à votre offre la moins chère.")
+    lg = L()
+    st.markdown("### " + tr("Ce que coûtent vos préférences", lg))
+    st.write(tr("Pour le même profil, voici l'offre la moins chère de chaque modèle que vous n'avez pas retenu, "
+                "comparée à votre offre la moins chère.", lg))
     for l in lignes:
         if l["ecart_an"] < 0:
-            ecart = f"**{chf(-l['ecart_an'])} CHF de moins par an**"
+            ecart = "**" + tr("{x} CHF de moins par an", lg, x=chf(-l["ecart_an"])) + "**"
         elif l["ecart_an"] > 0:
-            ecart = f"**{chf(l['ecart_an'])} CHF de plus par an**"
+            ecart = "**" + tr("{x} CHF de plus par an", lg, x=chf(l["ecart_an"])) + "**"
         else:
-            ecart = "**même prime annuelle**"
+            ecart = "**" + tr("même prime annuelle", lg) + "**"
         raison = soins.raison_non_retenu(l["tariftyp"], positions or {})
-        st.markdown(f"- **{l['modele']}**" + (f" ({raison})" if raison else "")
-                    + f" : dès {chf(l['prime_mois'])} CHF / mois "
-                    f"({l['assureur']}, *{l['produit']}*), soit {ecart}.")
-    st.caption("Écarts de primes uniquement, source OFSP 2027. Chaque modèle a des contraintes "
-               "propres : vérifiez les conditions du produit avant de changer.")
+        st.markdown(f"- **{tr(l['modele'], lg)}**" + (f" ({tr(raison, lg)})" if raison else "")
+                    + tr(" : dès {x} CHF / mois ({assureur}, *{produit}*), soit {ecart}.", lg,
+                         x=chf(l["prime_mois"]), assureur=l["assureur"], produit=l["produit"], ecart=ecart))
+    st.caption(tr("Écarts de primes uniquement, source OFSP 2027. Chaque modèle a des contraintes propres : vérifiez "
+                  "les conditions du produit avant de changer.", lg))
+
+
+def afficher_lettre(m, i):
+    l = L()
+    st.markdown(f"**{tr('Votre lettre de résiliation', l)}**")
+    if m["par"] == "apertus":
+        st.caption(tr("Rédigée par Apertus ; les éléments obligatoires ont été vérifiés par l'application.", l))
+    else:
+        st.caption(tr("Lettre modèle de l'application (la lettre d'Apertus n'était pas complète).", l))
+    if m["langue"] != l:
+        st.caption(tr("La lettre est écrite dans une langue officielle de votre canton, celle que votre caisse "
+                      "utilise.", l))
+    st.code(m["texte"], language=None, wrap_lines=True)
+    st.download_button(tr("Télécharger la lettre (.txt)", l), data=m["texte"].encode("utf-8"),
+                       file_name="resiliation_assurance_de_base.txt", mime="text/plain", key=f"lettre_{i}")
+    st.info(changement.conseils_envoi(l, m["annee"]), icon="📮")
 
 
 def afficher_resultats(bloc):
-    """Résultats en onglets : l'essentiel d'abord, le détail à un clic."""
-    onglets = ["Assurance de base"] + (["Complémentaires"] if bloc["compl"] else []) \
-        + (["Votre santé"] if bloc.get("sante") else []) + ["Toutes les offres"]
-    zones = dict(zip(onglets, st.tabs(onglets)))
-    with zones["Assurance de base"]:
-        afficher_propositions(bloc)
-        if bloc.get("preferences"):
-            afficher_preferences(bloc["preferences"], bloc.get("soins"))
-    if bloc["compl"]:
-        with zones["Complémentaires"]:
-            afficher_meilleurs_complementaires(bloc["compl"])
+    afficher_propositions(bloc)
+    resume = resume_budget(bloc)
+    if resume:
+        st.markdown(f"**{resume}**")
+    b = bloc.get("budget")
+    hors_budget = (b and b[0] == "montant" and not bloc["offres"].empty
+                   and bloc["offres"]["Prime/mois"].min() > b[1])
+    if b and (b[0] == "petit" or hors_budget):
+        ligne = subsides.office(bloc.get("canton") or st.session_state.profil.get("canton"), L())
+        st.info(tr(conversation.TEXTE_SUBSIDES, L()) + (f"\n\n{ligne}" if ligne else ""), icon="💡")
+    if bloc.get("preferences"):
+        afficher_preferences(bloc["preferences"], bloc.get("soins"))
     if bloc.get("sante"):
-        with zones["Votre santé"]:
-            afficher_sante(bloc["sante"])
-    with zones["Toutes les offres"]:
-        afficher_toutes_les_offres(bloc)
-    st.caption("Vous pouvez poser une question de suivi, par exemple « et avec une franchise de 300 ? » "
-               "ou « je veux garder le libre choix du médecin ».")
+        afficher_sante(bloc["sante"])
+    if bloc["compl"]:
+        afficher_meilleurs_complementaires(bloc["compl"])
+    afficher_toutes_les_offres(bloc)
+    st.caption(tr("Posez-moi vos questions (« quelle franchise me conviendrait ? », « que couvre la LAMal ? ») ou "
+                  "changez une information (« et avec une franchise de 300 ? »).", L()))
 
 
 def bouton(libelle, action, *args, cle):
@@ -577,7 +965,7 @@ def bouton(libelle, action, *args, cle):
         try:
             action(*args)
         except ErreurLLM:
-            dire("Apertus ne répond pas pour le moment. Réessayez dans un instant.")
+            dire(tr("Apertus ne répond pas pour le moment. Réessayez dans un instant.", L()))
     st.button(libelle, key=cle, on_click=rappel)
 
 
@@ -618,19 +1006,192 @@ def reponses_rapides():
         for colonne, v in zip(st.columns(len(valeurs)), valeurs):
             with colonne:
                 bouton(f"{v} CHF", repondre_bouton, f"{v} CHF", "deductible", v, cle=f"franchise_{v}")
-        bouton("Comparer toutes les franchises", repondre_bouton, "Toutes les franchises", "deductible", "all", cle="franchises_all")
+        l = L()
+        bouton(tr("Comparer toutes les franchises", l), repondre_bouton, tr("Toutes les franchises", l), "deductible",
+               "all", cle="franchises_all")
+        bouton(tr("Laquelle est la plus avantageuse pour moi ?", l), traiter_message,
+               tr("Quelle franchise est la plus avantageuse pour moi ?", l), cle="franchise_conseil")
     elif s.attente == "include_accident":
-        bouton("Accidents inclus", repondre_bouton, "Comparer avec accidents inclus", "include_accident", True, cle="accident_yes")
-        bouton("Accidents exclus (couverture vérifiée)", repondre_bouton,
-               "Comparer avec accidents exclus, couverture vérifiée", "include_accident", False, cle="accident_no")
+        l = L()
+        bouton(tr("Accidents inclus", l), repondre_bouton, tr("Comparer avec accidents inclus", l), "include_accident",
+               True, cle="accident_yes")
+        bouton(tr("Accidents exclus (couverture vérifiée)", l), repondre_bouton,
+               tr("Comparer avec accidents exclus, couverture vérifiée", l), "include_accident", False, cle="accident_no")
     elif s.attente == "care_access":
-        bouton("Libre choix uniquement", repondre_bouton, "Libre choix uniquement", "care_access", ["unrestricted"], cle="care_base")
-        bouton("J'accepte tous les modèles", repondre_bouton, "J'accepte tous les modèles", "care_access", list(CARE_TYPES), cle="care_all")
+        l = L()
+        bouton(tr("Libre choix uniquement", l), repondre_bouton, tr("Libre choix uniquement", l), "care_access",
+               ["unrestricted"], cle="care_base")
+        bouton(tr("J'accepte tous les modèles", l), repondre_bouton, tr("J'accepte tous les modèles", l), "care_access",
+               list(CARE_TYPES), cle="care_all")
+    elif s.attente == "caisse":
+        bouton(tr("Passer", L()), passer_caisse, cle="caisse_passer")
+    elif s.attente == "caisse_choix" and s.get("choix_caisses"):
+        colonnes = st.columns(min(len(s.choix_caisses), 3))
+        for i, n in enumerate(s.choix_caisses):
+            with colonnes[i % len(colonnes)]:
+                bouton(changement.CAISSES[n], choisir_caisse, n, cle=f"caisse_{n}")
+    elif s.attente == "lettre":
+        l = L()
+        bouton(tr("Oui, rédigez ma lettre", l), repondre_lettre, True, cle="lettre_oui")
+        bouton(tr("Non merci", l), repondre_lettre, False, cle="lettre_non")
     elif s.attente == "confirmation":
-        st.multiselect("Besoins en assurances complémentaires", options=list(compl.CATEGORIES),
-                       default=p["besoins"], format_func=compl.CATEGORIES.get, key="choix_besoins")
-        bouton("C'est correct, lancer la comparaison", confirmer, cle="confirmer")
-        st.caption("Sinon, écrivez votre correction dans le chat (ex. « j'ai 31 ans »).")
+        l = L()
+        if MODULES_COMPLEMENTAIRES:
+            st.multiselect(tr("Besoins en assurances complémentaires", l), options=list(compl.CATEGORIES),
+                           default=p["besoins"], format_func=compl.CATEGORIES.get, key="choix_besoins",
+                           placeholder=tr("Choisissez…", l))
+        bouton(tr("C'est correct, lancer la comparaison", l), confirmer, cle="confirmer")
+        st.caption(tr("Sinon, écrivez votre correction dans le chat (ex. « j'ai 31 ans »).", l))
+
+
+# --------------------------------------------------------------------------------------
+# Écran de profil : les faits de base sont saisis dans des champs (lus sans erreur par Python),
+# puis le conseiller (chat) part d'un profil déjà juste et aide à choisir la franchise
+# --------------------------------------------------------------------------------------
+SITUATIONS = {
+    "salarie_8h": "Salarié(e), au moins 8 h par semaine chez un même employeur",
+    "salarie_moins": "Salarié(e), moins de 8 h par semaine chez un même employeur",
+    "independant": "Indépendant(e)",
+    "sans_emploi": "Sans emploi, étudiant(e) ou retraité(e)",
+    "ne_sait_pas": "Je ne sais pas",
+}
+# Après le formulaire, l'assistant se présente : c'est là que commence la conversation avec Apertus
+APRES_FORMULAIRE = ("Merci d'avoir rempli le formulaire ! 👋 Je suis votre conseiller LAMal, propulsé par Apertus, le "
+                    "modèle de langue suisse. Je compare les primes officielles, je réponds à vos questions à partir "
+                    "de la loi, et je peux rédiger votre lettre de résiliation. Voici vos offres, avec toutes les "
+                    "franchises comparées. Posez-moi vos questions, par exemple « quelle franchise est la plus "
+                    "avantageuse pour moi ? » ou « c'est quoi le modèle médecin de famille ? ».")
+
+
+def enregistrer_situation(c, situation):
+    """Couverture accident : un employeur assure ses salariés travaillant au moins 8 h par semaine."""
+    if situation == "salarie_8h":
+        c.set("employed", True)
+        c.set("nonoccupational_covered", True)
+    elif situation == "salarie_moins":
+        c.set("employed", True)
+        c.set("nonoccupational_covered", False)
+    elif situation in ("independant", "sans_emploi"):
+        c.set("employed", False)
+        c.set("nonoccupational_covered", False)
+    # « Je ne sais pas » (ou rien) : rien n'est déduit, le conseiller posera la question dans le chat
+
+
+def valider_formulaire(annee, npa, commune, situation, modeles, besoins):
+    """Enregistre les champs dans le contrat de profil, puis calcule les offres directement."""
+    s = st.session_state
+    p = s.profil
+    c = p["contract"]
+    c.set("birth_year", int(annee))
+    c.set("postal_code", int(npa))
+    c.set("municipality", commune)
+    enregistrer_situation(c, situation)
+    c.set("care_access", list(modeles))
+    c.set("deductible", "all")  # le conseiller aide à choisir la franchise dans le chat
+    p["besoins"] = list(besoins)
+    synchroniser_profil()
+    s.formulaire_valide = s.profil_formulaire = True
+    s.messages = [{"role": "assistant", "type": "texte", "contenu": tr(APRES_FORMULAIRE, L())}]
+    avancer()  # résout le lieu, puis calcule les offres ; s'il manque quelque chose, le chat le demande
+
+
+def passer_au_chat():
+    """« Je préfère décrire ma situation dans le chat » : ce qui est déjà rempli dans le formulaire est
+    gardé (le conseiller ne le redemande pas), puis le chat pose directement la question suivante."""
+    s = st.session_state
+    s.formulaire_valide = True
+    c = s.profil["contract"]
+    l = L()
+    notes = []
+    if s.get("f_naissance"):
+        c.set("birth_year", int(s.f_naissance))
+        notes.append(tr("né(e) en {annee}", l, annee=int(s.f_naissance)))
+    npa = npa_saisi()
+    commune = commune_choisie(npa)
+    if commune:
+        c.set("postal_code", npa)
+        c.set("municipality", commune)
+        notes.append(f"{commune} ({npa})")
+    situation = s.get("f_situation")
+    if situation and situation != "ne_sait_pas":
+        enregistrer_situation(c, situation)
+        notes.append(tr(SITUATIONS[situation], l).lower())
+    modeles = s.get("f_modeles")
+    if modeles and set(modeles) != set(CARE_TYPES):  # seulement si la personne a changé la liste
+        c.set("care_access", list(modeles))
+    if not notes:
+        return  # rien de rempli : accueil habituel du chat
+    synchroniser_profil()
+    s.messages = [{"role": "assistant", "type": "texte",
+                   "contenu": tr("J'ai bien noté : {faits}.", l, faits=", ".join(notes))}]
+    avancer()  # pose la question suivante (ou propose le résumé si tout est connu)
+
+
+def commune_choisie(npa):
+    """Commune du formulaire : la seule commune du NPA, ou celle choisie dans la liste."""
+    communes = communes_du_npa(npa) if npa is not None else None
+    if communes is None or communes.empty:
+        return None
+    if len(communes) == 1:
+        return communes.iloc[0]["commune"]
+    return st.session_state.get("f_commune")
+
+
+def npa_saisi():
+    texte = str(st.session_state.get("f_npa") or "").strip()
+    return int(texte) if texte.isdigit() and len(texte) == 4 else None
+
+
+def soumettre_formulaire():
+    """Rappel du bouton « Voir mes offres » : s'exécute avant l'affichage suivant."""
+    s = st.session_state
+    npa = npa_saisi()
+    try:
+        valider_formulaire(s["f_naissance"], npa, commune_choisie(npa), s["f_situation"],
+                           s["f_modeles"], s.get("f_besoins", []))
+    except ErreurLLM:
+        dire(tr("Apertus ne répond pas pour le moment. Réessayez dans un instant.", L()))
+
+
+def ecran_profil():
+    """Formulaire de départ : année de naissance, NPA et commune, situation professionnelle,
+    modèles acceptés et besoins facultatifs."""
+    l = L()
+    st.subheader(tr("Votre profil", l))
+    st.caption(tr("Ces informations servent uniquement à calculer vos primes. Elles ne sont pas enregistrées.", l))
+    annee = st.number_input(tr("Année de naissance", l) + " :red[*]", min_value=1920, max_value=2027, value=None, step=1,
+                            placeholder="1994", key="f_naissance")
+    npa_texte = st.text_input(tr("Code postal (NPA)", l) + " :red[*]", max_chars=4, placeholder="1260", key="f_npa").strip()
+    npa = npa_saisi()
+    if npa_texte and npa is None:
+        st.caption(tr("Le code postal suisse a 4 chiffres.", l))
+    elif npa is not None:
+        communes = communes_du_npa(npa)
+        if communes.empty:
+            st.error(tr("Code postal inconnu en Suisse.", l))
+        elif len(communes) == 1:
+            st.caption(f"{communes.iloc[0]['commune']} ({communes.iloc[0]['canton']})")
+        else:
+            st.selectbox(tr("Commune de domicile", l), list(communes["commune"]), key="f_commune")
+    commune = commune_choisie(npa)
+    situation = st.radio(tr("Situation professionnelle", l) + " :red[*]", list(SITUATIONS), index=None,
+                         format_func=lambda k: tr(SITUATIONS[k], l), key="f_situation")
+    st.caption(tr("Elle indique si la couverture accident doit être incluse : un employeur assure contre les "
+                  "accidents ses salariés qui travaillent au moins 8 h par semaine chez lui.", l))
+    modeles = st.multiselect(tr("Modèles d'assurance acceptés", l), list(CARE_TYPES), default=list(CARE_TYPES),
+                             format_func=lambda k: tr(CARE_LABELS[k], l), key="f_modeles", placeholder=tr("Choisissez…", l))
+    if MODULES_COMPLEMENTAIRES:
+        st.multiselect(tr("Besoins en assurances complémentaires (facultatif)", l), list(compl.CATEGORIES),
+                       format_func=compl.CATEGORIES.get, key="f_besoins", placeholder=tr("Choisissez…", l))
+    manquants = [nom for nom, ok in ((tr("année de naissance", l), annee is not None),
+                                     (tr("code postal", l), commune is not None),
+                                     (tr("situation professionnelle", l), situation is not None),
+                                     (tr("au moins un modèle", l), bool(modeles))) if not ok]
+    st.button(tr("Voir mes offres", l), type="primary", disabled=bool(manquants), key="f_valider",
+              on_click=soumettre_formulaire)
+    if manquants:
+        st.caption(tr("À compléter : {champs}", l, champs=", ".join(manquants)))
+    st.button(tr("Je préfère décrire ma situation dans le chat", l), on_click=passer_au_chat, key="f_chat")
 
 
 def recommencer():
@@ -640,42 +1201,72 @@ def recommencer():
 
 def main():
     st.set_page_config(page_title="Health Insurance Apertus", page_icon="🩺", layout="centered")
+    style.appliquer()
     config()  # arrête l'app avec un message clair si une variable LLM_* manque
     s = etat()
 
-    texte = st.chat_input("Ex. : et avec une franchise de 300 ?" if s.etape == "resultats"
-                          else "Ex. : j'ai 30 ans, j'habite à Nyon, je travaille à plein temps…")
+    if not s.get("formulaire_valide"):  # écran de profil avant le conseiller
+        afficher_entete()
+        ecran_profil()
+        afficher_sources()
+        return
+
+    # Texte d'exemple fixe : s'il changeait d'une étape à l'autre, Streamlit recréerait la zone de
+    # saisie et le premier message écrit après le changement d'étape serait perdu.
+    texte = st.chat_input(langues.PLACEHOLDER)
     if texte:
         try:
-            with st.spinner("Apertus réfléchit…"):
+            with st.spinner(tr("Apertus réfléchit…", L())):
                 traiter_message(texte.strip())
         except ErreurLLM:
-            dire("Apertus ne répond pas pour le moment. Réessayez dans un instant.")
+            dire(tr("Apertus ne répond pas pour le moment. Réessayez dans un instant.", L()))
 
-    st.title("Comparateur d'assurance maladie")
-    st.write("Décrivez votre situation en quelques mots : je compare les primes officielles de "
-             "l'assurance de base (LAMal) 2027 et je vous explique les différences.")
-    st.warning(AVERTISSEMENT, icon="⚠️")
-    st.caption("Les informations de santé ne sont pas enregistrées.")
-    with st.sidebar:
-        st.button("Nouvelle comparaison", on_click=recommencer)
+    afficher_entete()
 
-    for m in s.messages:
+    for i, m in enumerate(s.messages):
         with st.chat_message(m["role"]):
-            if m["type"] == "texte":
+            if m["type"] == "accueil":
+                st.markdown(tr(ACCUEIL, L()))
+                if L() == "fr":
+                    st.caption(AUTRES_LANGUES)
+            elif m["type"] == "texte":
                 st.markdown(m["contenu"])
             elif m["type"] == "profil":
                 afficher_profil(m["profil"], m.get("sante", 0))
+            elif m["type"] == "lettre":
+                afficher_lettre(m, i)
             else:
                 afficher_resultats(s.resultats[m["index"]])
     reponses_rapides()
 
+    afficher_sources()
+
+
+def afficher_entete():
+    with st.sidebar:
+        st.selectbox(tr("Langue", L()), langues.CODES, key="langue",
+                     format_func={"fr": "Français", "de": "Deutsch", "it": "Italiano", "en": "English"}.get)
+        st.button(tr("Nouvelle comparaison", L()), on_click=recommencer)
+    l = L()
+    style.entete(tr("Assurance de base LAMal 2027", l), tr("Votre assurance maladie.", l),
+                 tr("Comparée simplement.", l),
+                 tr("Les primes officielles de toutes les caisses, puis un conseiller qui répond à vos questions.", l),
+                 note=html.escape(tr(AVERTISSEMENT, l)) + "<br>"
+                 + html.escape(tr("Les informations de santé ne sont pas enregistrées.", l)))
+
+
+def afficher_sources():
     st.divider()
     caisses = ", ".join(sorted(compl.produits["assureur"].unique()))
-    st.caption("Sources : primes LAMal 2027, régions de primes et liste des assureurs admis : "
-               "Office fédéral de la santé publique (OFSP), via opendata.swiss et "
-               f"priminfo.admin.ch. Assurances complémentaires : sites des caisses ({caisses}), "
-               f"vérifiés le {compl.produits['date_verification'].max()}.")
+    if not MODULES_COMPLEMENTAIRES:
+        st.caption(tr("Sources : primes LAMal 2027, régions de primes et liste des assureurs admis : Office fédéral de "
+                      "la santé publique (OFSP), via opendata.swiss et priminfo.admin.ch. Textes de loi : fedlex.admin.ch "
+                      "(LAMal, OAMal, OPAS, LAA). Offices des subsides : liste de l'OFSP.", L()))
+        return
+    st.caption(tr("Sources : primes LAMal 2027, régions de primes et liste des assureurs admis : Office fédéral de "
+                  "la santé publique (OFSP), via opendata.swiss et priminfo.admin.ch. Assurances complémentaires : "
+                  "sites des caisses ({caisses}), vérifiés le {date}.", L(), caisses=caisses,
+                  date=compl.produits["date_verification"].max()))
 
 
 if __name__ == "__main__":
