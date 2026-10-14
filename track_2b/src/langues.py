@@ -670,4 +670,38 @@ _("Avec la franchise de 300 CHF et le modèle libre choix, vous pouvez aussi cha
   "by {limite}): then adjust the date in the letter.")
 
 
+_("Merci d'avoir rempli le formulaire ! 👋 Je suis votre conseiller LAMal, propulsé par Apertus, le modèle de langue "
+  "suisse. Une précision avant de calculer vos offres :",
+  "Danke, dass Sie das Formular ausgefüllt haben! 👋 Ich bin Ihr Berater für die Grundversicherung, angetrieben von "
+  "Apertus, dem Schweizer Sprachmodell. Eine Präzisierung, bevor ich Ihre Angebote berechne:",
+  "Grazie per aver compilato il modulo! 👋 Sono il suo consulente LAMal, basato su Apertus, il modello linguistico "
+  "svizzero. Una precisazione prima di calcolare le sue offerte:",
+  "Thank you for filling in the form! 👋 I'm your basic health insurance advisor, powered by Apertus, the Swiss "
+  "language model. One detail before I calculate your offers:")
+
+_("Votre conseiller LAMal", "Ihr Berater für die Grundversicherung", "Il suo consulente LAMal",
+  "Your health insurance advisor")
+_("Apertus · en ligne", "Apertus · online", "Apertus · online", "Apertus · online")
+_("D'après votre formulaire", "Laut Ihrem Formular", "Secondo il suo modulo", "From your form")
+_("{age} ans en {annee}", "{age} Jahre im Jahr {annee}", "{age} anni nel {annee}", "{age} years old in {annee}")
+_("Accidents exclus (employeur)", "Ohne Unfalldeckung (Arbeitgeber)", "Infortuni esclusi (datore di lavoro)",
+  "Accidents excluded (employer)")
+_("Tous les modèles", "Alle Modelle", "Tutti i modelli", "All models")
+_("Toutes les franchises comparées", "Alle Franchisen verglichen", "Tutte le franchigie confrontate",
+  "All deductibles compared")
+_("Comment fonctionne le modèle médecin de famille ?", "Wie funktioniert das Hausarztmodell?",
+  "Come funziona il modello del medico di famiglia?", "How does the family doctor model work?")
+_("Comment fonctionne la télémédecine ?", "Wie funktioniert das Telmed-Modell?", "Come funziona la telemedicina?",
+  "How does the telemedicine model work?")
+_("Comment fonctionne le modèle pharmacie ?", "Wie funktioniert das Apothekenmodell?",
+  "Come funziona il modello farmacia?", "How does the pharmacy model work?")
+_("Ai-je droit à un subside pour payer ma prime ?", "Habe ich Anspruch auf eine Prämienverbilligung?",
+  "Ho diritto a un sussidio per pagare il premio?", "Am I entitled to a premium subsidy?")
+_("Que se passe-t-il pour les accidents si je quitte mon emploi ?",
+  "Was passiert mit der Unfalldeckung, wenn ich meine Stelle verlasse?",
+  "Cosa succede per gli infortuni se lascio il mio lavoro?",
+  "What happens with accident cover if I leave my job?")
+_("Jusqu'à quand puis-je changer de caisse ?", "Bis wann kann ich die Krankenkasse wechseln?",
+  "Entro quando posso cambiare cassa malati?", "Until when can I switch insurer?")
+
 TRAD = {fr: dict(zip(("de", "it", "en"), v)) for fr, v in T.items()}

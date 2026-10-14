@@ -10,6 +10,7 @@ import chatbot, changement
 from streamlit.testing.v1 import AppTest
 
 MODE = {"lettre": "bonne"}
+OUVERTURES = []
 APPELS = []
 
 def fake(client, modele, systeme, message):
@@ -39,6 +40,14 @@ def fake(client, modele, systeme, message):
         eco = re.search(r"soit (\d+\.\d\d) CHF par an", message)
         return (f"En restant chez votre caisse, vous paieriez {prime.group(1)} CHF par mois. "
                 + (f"En changeant, vous économiseriez {eco.group(1)} CHF par an." if eco else "Aucune économie possible."))
+    if systeme.startswith("Tu ouvres la conversation"):  # ouverture après le formulaire
+        OUVERTURES.append(message)
+        if MODE.get("ouverture") == "inventee":
+            return "Merci ! Vous paierez 99.95 CHF par mois."  # montant absent des faits -> secours
+        age = re.search(r"(\d+) ans en 2027", message).group(1)
+        commune = re.search(r"Domicile : ([^(]+) \(", message).group(1).strip()
+        return (f"Merci d'avoir rempli le formulaire ! Je suis votre conseiller, propulsé par Apertus. Vous aurez "
+                f"{age} ans en 2027 et vous habitez à {commune}, donc la couverture accidents est incluse.")
     if systeme.startswith("Tu es le conseiller"):
         q = re.search(r"Question à poser à la fin : « (.*) »", message, re.S)
         return "Bonne question. " + (q.group(1) if q else "Voici le résumé.")
@@ -56,8 +65,17 @@ at.radio(key="f_situation").set_value("sans_emploi").run()
 at.button(key="f_valider").click().run()
 s = at.session_state
 assert s.etape == "resultats", s.etape
-assert s.messages[0]["contenu"].startswith("Merci d'avoir rempli") and "Apertus" in s.messages[0]["contenu"]  # présentation
-assert sum("Je suis votre conseiller" in m.get("contenu", "") for m in s.messages) == 1  # une seule fois
+# Apertus ouvre la conversation en reprenant le formulaire, juste au-dessus des offres
+assert [m["type"] for m in s.messages[:2]] == ["ouverture", "resultats"], s.messages[:2]
+intro = s.ouverture["texte"]
+assert s.ouverture["suggestions"][0] == "Quelle franchise est la plus avantageuse pour moi ?"
+assert "Comment fonctionne le modèle médecin de famille ?" in s.ouverture["suggestions"]   # offre la moins chère : HMO
+assert "Ai-je droit à un subside pour payer ma prime ?" in s.ouverture["suggestions"]      # sans emploi
+assert at.button(key="suggestion_0") and not s.resultats[0]["intro"]
+assert intro.startswith("Merci d'avoir rempli") and "36 ans" in intro and "Lausanne" in intro, intro
+faits = OUVERTURES[-1]
+assert "Année de naissance 1991 : 36 ans en 2027" in faits and "Sans emploi" in faits and "incluse" in faits, faits
+assert "Proposition 1" in faits and "toutes les franchises sont comparées" in faits, faits
 assert s.attente == "caisse", s.attente
 assert any(m["type"] == "resultats" for m in s.messages)
 assert not [w for w in at.multiselect if w.key == "f_besoins"]   # complémentaires désactivées
@@ -69,4 +87,25 @@ assert m["type"] == "lettre", m["type"]
 at.chat_input[0].set_value("Ai-je droit à un subside ?").run()
 assert "Office vaudois" in at.session_state.messages[-1]["contenu"]
 assert not at.exception, [e.value for e in at.exception]
+# Ouverture avec un montant inventé : refusée deux fois par Python, texte de secours fixe
+MODE["ouverture"] = "inventee"
+at6 = AppTest.from_file(os.path.abspath("src/app.py"), default_timeout=120).run()
+at6.number_input(key="f_naissance").set_value(1991).run()
+at6.text_input(key="f_npa").set_value("1004").run()
+at6.radio(key="f_situation").set_value("salarie_8h").run()
+at6.button(key="f_valider").click().run()
+assert at6.session_state.ouverture["texte"].startswith("Merci d'avoir rempli le formulaire ! 👋 Je suis votre conseiller")
+assert "exclue" in OUVERTURES[-1], OUVERTURES[-1]                 # salarié 8 h : accidents exclus
+assert "Que se passe-t-il pour les accidents si je quitte mon emploi ?" in at6.session_state.ouverture["suggestions"]
+at6.button(key="suggestion_0").click().run()                       # question proposée -> réponse dans le chat
+assert at6.session_state.messages[-2]["contenu"] == "Quelle franchise est la plus avantageuse pour moi ?", at6.session_state.messages[-2]
+# « Je ne sais pas » : une précision d'abord, puis l'ouverture quand les offres sont calculées
+MODE["ouverture"] = None
+at7 = AppTest.from_file(os.path.abspath("src/app.py"), default_timeout=120).run()
+at7.number_input(key="f_naissance").set_value(1991).run()
+at7.text_input(key="f_npa").set_value("1004").run()
+at7.radio(key="f_situation").set_value("ne_sait_pas").run()
+at7.button(key="f_valider").click().run()
+assert at7.session_state.messages[0]["contenu"].startswith("Merci d'avoir rempli le formulaire") and not at7.session_state.resultats
+assert not at6.exception and not at7.exception
 print("1 parcours avec le formulaire réussi")

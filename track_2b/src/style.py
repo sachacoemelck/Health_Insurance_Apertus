@@ -5,6 +5,7 @@ Les couleurs de base sont dans .streamlit/config.toml ([theme]) ; ce fichier ajo
 Sélecteurs vérifiés avec Streamlit 1.65.0.
 """
 import html
+import re
 
 import streamlit as st
 
@@ -123,6 +124,66 @@ section[data-testid="stSidebar"] { background: var(--surface); border-right: 1px
 .carte .ecart { font-size: 0.85rem; color: var(--texte); margin: 0.9rem 0 0; }
 .carte .meilleure-ecart { color: var(--accent); font-weight: 600; }
 .carte .note { font-size: 0.78rem; color: var(--texte-3); margin: 0.6rem 0 0; line-height: 1.4; }
+/* Carte d'ouverture après le formulaire : le conseiller reprend les réponses, puis Apertus parle */
+.st-key-ouverture {
+    position: relative; overflow: hidden; background: var(--surface); border: 1px solid var(--filet);
+    border-radius: 24px; padding: 1.4rem 1.5rem 1.2rem; margin: 0.5rem 0 1rem;
+    box-shadow: 0 24px 48px -32px var(--ombre);
+}
+.st-key-ouverture::before {
+    content: ""; position: absolute; inset: 0 0 auto 0; height: 3px;
+    background: linear-gradient(90deg, var(--accent), #5e5ce6, var(--orange));
+}
+.conseiller-tete { display: flex; align-items: center; gap: 0.8rem; margin-bottom: 1rem; }
+.conseiller-avatar {
+    flex: none; width: 44px; height: 44px; border-radius: 50%; display: grid; place-items: center;
+    background: linear-gradient(135deg, var(--accent), #5e5ce6); color: #ffffff; font-weight: 700;
+    font-size: 1.2rem; box-shadow: 0 4px 14px rgba(41, 151, 255, 0.35);
+}
+.conseiller-nom { margin: 0; font-weight: 600; font-size: 1rem; line-height: 1.25; color: var(--texte); }
+.conseiller-statut { margin: 0.1rem 0 0; display: flex; align-items: center; gap: 0.45rem;
+                     font-size: 0.8rem; color: var(--texte-3); }
+.conseiller-statut .point { width: 8px; height: 8px; border-radius: 50%; background: #30d158;
+                            animation: pouls 2.2s ease-out infinite; }
+@keyframes pouls {
+    0% { box-shadow: 0 0 0 0 rgba(48, 209, 88, 0.55); }
+    70%, 100% { box-shadow: 0 0 0 8px rgba(48, 209, 88, 0); }
+}
+.recap-titre { margin: 0 0 0.45rem; font-size: 0.78rem; font-weight: 600; letter-spacing: 0.02em;
+               text-transform: uppercase; color: var(--texte-3); }
+.recap { display: flex; flex-wrap: wrap; gap: 0.45rem; margin: 0 0 1rem; }
+.recap span {
+    display: inline-flex; align-items: center; gap: 0.35rem; padding: 0.3rem 0.75rem; border-radius: 980px;
+    background: var(--fond); border: 1px solid var(--bord); font-size: 0.86rem; color: var(--texte);
+    opacity: 0; animation: apparait 0.35s ease forwards;
+}
+.recap span:nth-child(2) { animation-delay: 0.08s; } .recap span:nth-child(3) { animation-delay: 0.16s; }
+.recap span:nth-child(4) { animation-delay: 0.24s; } .recap span:nth-child(5) { animation-delay: 0.32s; }
+.conseiller-bulle {
+    position: relative; margin: 0 0 1rem; padding: 0.9rem 1.05rem; min-height: 3rem;
+    background: var(--fond); border-radius: 6px 18px 18px 18px; color: var(--texte);
+    font-size: 1rem; line-height: 1.6;
+}
+/* Apertus « écrit » un instant, puis son message apparaît (une seule fois) */
+.conseiller-bulle .points { position: absolute; top: 1.15rem; left: 1.05rem; display: flex; gap: 5px;
+                            animation: efface 0.2s ease 1.1s forwards; }
+.conseiller-bulle .points span { width: 7px; height: 7px; border-radius: 50%; background: var(--texte-3);
+                                 animation: saut 1s ease-in-out infinite; }
+.conseiller-bulle .points span:nth-child(2) { animation-delay: 0.15s; }
+.conseiller-bulle .points span:nth-child(3) { animation-delay: 0.3s; }
+.conseiller-bulle .message { opacity: 0; animation: apparait 0.5s ease 1.2s forwards; }
+@keyframes saut { 0%, 60%, 100% { transform: translateY(0); opacity: 0.5; } 30% { transform: translateY(-4px); opacity: 1; } }
+@keyframes efface { to { opacity: 0; visibility: hidden; } }
+@keyframes apparait { from { opacity: 0; transform: translateY(4px); } to { opacity: 1; transform: none; } }
+@media (prefers-reduced-motion: reduce) {
+    .conseiller-bulle .points { display: none; }
+    .conseiller-bulle .message, .recap span { opacity: 1; animation: none; }
+}
+.st-key-suggestions .stButton > button {
+    padding: 0.38rem 0.95rem; font-size: 0.86rem; font-weight: 400; text-align: left;
+    background: var(--fond); color: var(--texte-2); border-color: var(--bord);
+}
+.st-key-suggestions .stButton > button:hover { color: var(--accent); border-color: var(--accent); background: var(--accent-doux); }
 </style>
 """
 
@@ -151,4 +212,21 @@ def carte(titre, prix, unite, assureur, produit, ecart, note, meilleure=False):
         f'<p class="assureur" lang="de">{e(assureur)}</p><p class="produit">{e(produit)}</p>'
         f'<p class="ecart{" meilleure-ecart" if meilleure else ""}">{e(ecart)}</p>'
         f'<p class="note">{e(note)}</p></div>',
+        unsafe_allow_html=True)
+
+
+def ouverture(nom, statut, titre_recap, etiquettes, message):
+    """Haut de la carte d'ouverture : avatar et statut, réponses du formulaire en étiquettes, puis le message
+    d'Apertus (Markdown simple : gras et italique gardés, tout le reste échappé)."""
+    e = html.escape
+    recap = "".join(f"<span>{e(icone)} {e(texte)}</span>" for icone, texte in etiquettes)
+    corps = re.sub(r"\*\*(.+?)\*\*", r"<b>\1</b>", e(message))
+    corps = re.sub(r"(?<!\*)\*(?!\s)(.+?)(?<!\s)\*(?!\*)", r"<i>\1</i>", corps).replace("\n", "<br>")
+    st.markdown(
+        f'<div class="conseiller-tete"><div class="conseiller-avatar">A</div><div>'
+        f'<p class="conseiller-nom">{e(nom)}</p>'
+        f'<p class="conseiller-statut"><span class="point"></span>{e(statut)}</p></div></div>'
+        f'<p class="recap-titre">{e(titre_recap)}</p><div class="recap">{recap}</div>'
+        f'<div class="conseiller-bulle"><div class="points"><span></span><span></span><span></span></div>'
+        f'<div class="message">{corps}</div></div>',
         unsafe_allow_html=True)

@@ -545,6 +545,102 @@ def repondre_apres_resultats(texte):
 # --------------------------------------------------------------------------------------
 INTRO_DE_SECOURS = "Voici les offres retenues selon vos catégories acceptées. Comparez les primes, franchises et conditions."
 
+PROMPT_OUVERTURE = """Tu ouvres la conversation : la personne vient de remplir le formulaire de l'application, et tu es
+son conseiller en assurance maladie de base (LAMal), propulsé par Apertus, le modèle de langue suisse. Ses offres
+sont affichées juste en dessous de ton texte.
+Écris un seul paragraphe de 4 à 6 phrases, dans cet ordre :
+1. Remercie-la d'avoir rempli le formulaire et présente-toi en une phrase.
+2. Reprends ce qu'elle a indiqué dans le formulaire (âge en 2027, commune, situation professionnelle, modèles
+   acceptés) et dis ce que cela change pour elle, d'après les faits (catégorie d'âge, couverture accidents).
+3. Présente l'offre la moins chère et le compromis entre le prix et les contraintes, d'après les faits.
+4. Dis que toutes les franchises ont été comparées et donne le seuil de frais indiqué dans les faits, s'il y en a un.
+5. Termine en l'invitant à te poser ses questions, par exemple sur la franchise ou sur un modèle.
+Règles strictes :
+- Utilise UNIQUEMENT les faits fournis. N'ajoute aucune information extérieure.
+- Ne fais AUCUN calcul. Recopie les montants exactement (avec les centimes) ou n'en cite pas.
+- Ne recommande aucune offre : présente les compromis, la décision reste à la personne.
+- Vouvoie la personne. Écris en {langue} simple et chaleureux, sans liste ni titre."""
+
+_CATEGORIES_AGE = {"AKA_01_KIN": "enfant (jusqu'à 18 ans)", "AKA_02_JUG": "jeune adulte (19 à 25 ans)",
+                   "AKA_03_ERW": "adulte (26 ans et plus)"}
+
+
+def recapitulatif_formulaire(l):
+    """Les réponses du formulaire en étiquettes courtes, affichées dans la carte d'ouverture."""
+    p = st.session_state.profil
+    c = p["contract"]
+    modeles = c.known("care_access") or []
+    etiquettes = [("🎂", tr("{age} ans en {annee}", l, age=p["age"], annee=c.premium_year)),
+                  ("📍", f"{p['commune']} ({p['canton']})")]
+    if c.accident() is not None:
+        etiquettes.append(("🩹", tr("Accidents inclus", l) if c.accident() else tr("Accidents exclus (employeur)", l)))
+    etiquettes.append(("🩺", tr("Tous les modèles", l) if set(modeles) == set(CARE_TYPES)
+                       else ", ".join(tr(CARE_LABELS[k], l) for k in modeles)))
+    etiquettes.append(("💰", tr("Toutes les franchises comparées", l)))
+    return etiquettes
+
+
+def suggestions_formulaire(props):
+    """Questions proposées d'après le formulaire et les offres (textes français, traduits à l'affichage)."""
+    p = st.session_state.profil
+    c = p["contract"]
+    questions = ["Quelle franchise est la plus avantageuse pour moi ?"]
+    modele = props[0]["modele"] if props else ""
+    if modele.startswith("Médecin de famille"):
+        questions.append("Comment fonctionne le modèle médecin de famille ?")
+    elif modele.startswith("Télémédecine"):
+        questions.append("Comment fonctionne la télémédecine ?")
+    elif modele.startswith("Pharmacie"):
+        questions.append("Comment fonctionne le modèle pharmacie ?")
+    if st.session_state.get("f_situation") in ("sans_emploi", "salarie_moins") or (p["age"] or 99) <= 25:
+        questions.append("Ai-je droit à un subside pour payer ma prime ?")
+    elif c.accident() is False:
+        questions.append("Que se passe-t-il pour les accidents si je quitte mon emploi ?")
+    questions.append("Jusqu'à quand puis-je changer de caisse ?")
+    return questions[:4]
+
+
+def afficher_ouverture():
+    """Carte d'ouverture : le conseiller reprend le formulaire (étiquettes), puis le message d'Apertus et des
+    questions proposées d'après les réponses."""
+    s, l = st.session_state, L()
+    with st.container(key="ouverture"):
+        style.ouverture(tr("Votre conseiller LAMal", l), tr("Apertus · en ligne", l),
+                        tr("D'après votre formulaire", l), recapitulatif_formulaire(l), s.ouverture["texte"])
+        with st.container(horizontal=True, key="suggestions"):
+            for i, q in enumerate(s.ouverture["suggestions"]):
+                bouton(tr(q, l), traiter_message, tr(q, l), cle=f"suggestion_{i}")
+
+
+def faits_formulaire(props):
+    """Ce que la personne a rempli dans le formulaire et ce que cela change, puis ses offres : la base de
+    l'ouverture rédigée par Apertus. Tout vient du formulaire et des calculs Python."""
+    s = st.session_state
+    p = s.profil
+    c = p["contract"]
+    lignes = ["Ce que la personne a rempli dans le formulaire, et ce que cela change :",
+              f"- Année de naissance {c.known('birth_year')} : {p['age']} ans en {c.premium_year}, catégorie de "
+              f"primes {_CATEGORIES_AGE[classe_age(p['age'])]}.",
+              f"- Domicile : {p['commune']} ({p['canton']}), code postal {p['npa']}, région de primes {p['region']}."]
+    if s.get("f_situation") in SITUATIONS:
+        lignes.append(f"- Situation professionnelle : {SITUATIONS[s.f_situation]}.")
+    if c.accident() is True:
+        lignes.append("- Couverture accidents : incluse dans l'assurance de base, car aucun employeur ne l'assure "
+                      "contre les accidents non professionnels (il faut au moins 8 h par semaine chez un même "
+                      "employeur pour cela).")
+    elif c.accident() is False:
+        lignes.append("- Couverture accidents : exclue de l'assurance de base, car son employeur l'assure déjà contre "
+                      "les accidents non professionnels (au moins 8 h par semaine chez lui) ; la prime est plus basse.")
+    modeles = c.known("care_access") or []
+    lignes.append("- Modèles acceptés : " + ("tous (" if set(modeles) == set(CARE_TYPES) else "")
+                  + ", ".join(CARE_LABELS[k] for k in modeles) + (")" if set(modeles) == set(CARE_TYPES) else "") + ".")
+    lignes.append("- Franchise : le formulaire ne la demande pas ; toutes les franchises sont comparées.")
+    lignes += ["Offres affichées sous ton texte :", faits_propositions(props, p["priorite"])]
+    retenir = [l.replace("À RETENIR : ", "- ") for l in chiffres_franchise().splitlines() if l.startswith("À RETENIR")]
+    if retenir:
+        lignes += ["Franchise (calculs de l'application) :"] + retenir
+    return "\n".join(lignes)
+
 
 def calculer():
     """3 propositions LAMal (Python), introduction vérifiée (70B), meilleurs produits complémentaires."""
@@ -559,7 +655,15 @@ def calculer():
     props = propositions(offres, p["priorite"])
     bloc = {"offres": offres, "propositions": props, "intro": None, "compl": None,
             "preferences": chatbot.couts_des_preferences(c), "soins": dict(p["soins"])}
-    if props:
+    ouverture = bool(props and s.get("profil_formulaire") and not s.resultats)
+    if ouverture:
+        # Juste après le formulaire : Apertus ouvre la conversation en reprenant ce qui a été rempli
+        s.ouverture = {"texte": chatbot.expliquer(
+                           client().with_options(timeout=DELAI_70B), cfg["LLM_NAME_RESTITUTION"],
+                           faits_formulaire(props), nom_langue(), prompt=PROMPT_OUVERTURE,
+                           secours=tr(APRES_FORMULAIRE, L())),
+                       "suggestions": suggestions_formulaire(props)}
+    elif props:
         bloc["intro"] = chatbot.expliquer(client().with_options(timeout=DELAI_70B), cfg["LLM_NAME_RESTITUTION"],
                                           faits_propositions(props, p["priorite"]), nom_langue(),
                                           prompt=PROMPT_INTRO, secours=tr(INTRO_DE_SECOURS, L()))
@@ -576,6 +680,8 @@ def calculer():
     bloc["faits"] = faits_resultats(bloc)
     bloc["chiffres_franchise"] = chiffres_franchise()
     s.resultats.append(bloc)
+    if ouverture:
+        s.messages.append({"role": "assistant", "type": "ouverture"})
     s.messages.append({"role": "assistant", "type": "resultats", "index": len(s.resultats) - 1})
     s.etape, s.attente = "resultats", None
     if props and s.get("caisse_lue") is None and not s.get("caisse_demandee"):
@@ -829,7 +935,8 @@ def afficher_propositions(bloc):
     if not props:
         st.write(tr("Aucune prime trouvée pour ce profil.", L()))
         return
-    st.write(bloc["intro"])
+    if bloc["intro"]:
+        st.write(bloc["intro"])
     l = L()
     for colonne, p in zip(st.columns(len(props)), props):
         with colonne:
@@ -1055,7 +1162,10 @@ SITUATIONS = {
     "sans_emploi": "Sans emploi, étudiant(e) ou retraité(e)",
     "ne_sait_pas": "Je ne sais pas",
 }
-# Après le formulaire, l'assistant se présente : c'est là que commence la conversation avec Apertus
+# Après le formulaire, Apertus ouvre la conversation en reprenant le formulaire (PROMPT_OUVERTURE) ;
+# ce texte fixe n'est que le secours si sa réponse ne passe pas les contrôles.
+PRECISION_FORMULAIRE = ("Merci d'avoir rempli le formulaire ! 👋 Je suis votre conseiller LAMal, propulsé par Apertus, "
+                        "le modèle de langue suisse. Une précision avant de calculer vos offres :")
 APRES_FORMULAIRE = ("Merci d'avoir rempli le formulaire ! 👋 Je suis votre conseiller LAMal, propulsé par Apertus, le "
                     "modèle de langue suisse. Je compare les primes officielles, je réponds à vos questions à partir "
                     "de la loi, et je peux rédiger votre lettre de résiliation. Voici vos offres, avec toutes les "
@@ -1091,8 +1201,10 @@ def valider_formulaire(annee, npa, commune, situation, modeles, besoins):
     p["besoins"] = list(besoins)
     synchroniser_profil()
     s.formulaire_valide = s.profil_formulaire = True
-    s.messages = [{"role": "assistant", "type": "texte", "contenu": tr(APRES_FORMULAIRE, L())}]
+    s.messages = []
     avancer()  # résout le lieu, puis calcule les offres ; s'il manque quelque chose, le chat le demande
+    if not s.resultats:  # « Je ne sais pas » (accidents) ou commune à préciser : une question d'abord
+        s.messages.insert(0, {"role": "assistant", "type": "texte", "contenu": tr(PRECISION_FORMULAIRE, L())})
 
 
 def passer_au_chat():
@@ -1224,6 +1336,9 @@ def main():
     afficher_entete()
 
     for i, m in enumerate(s.messages):
+        if m["type"] == "ouverture":
+            afficher_ouverture()
+            continue
         with st.chat_message(m["role"]):
             if m["type"] == "accueil":
                 st.markdown(tr(ACCUEIL, L()))
