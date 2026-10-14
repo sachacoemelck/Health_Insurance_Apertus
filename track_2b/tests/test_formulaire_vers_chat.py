@@ -12,7 +12,7 @@ from streamlit.testing.v1 import AppTest  # noqa: E402
 
 
 def ouvrir():
-    return AppTest.from_file("src/app.py", default_timeout=120).run()
+    return AppTest.from_file(os.path.abspath("src/app.py"), default_timeout=120).run()
 
 
 def test_annee_et_commune_gardees():
