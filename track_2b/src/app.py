@@ -1055,9 +1055,15 @@ SITUATIONS = {
     "sans_emploi": "Sans emploi, étudiant(e) ou retraité(e)",
     "ne_sait_pas": "Je ne sais pas",
 }
-APRES_FORMULAIRE = ("Merci ! Voici vos offres, avec toutes les franchises comparées. Posez-moi vos questions, "
-                    "par exemple « quelle franchise est la plus avantageuse pour moi ? » ou « c'est quoi le "
-                    "modèle médecin de famille ? ».")
+# Après le formulaire, l'assistant se présente : c'est là que commence la conversation avec Apertus
+PRESENTATION = ("👋 Je suis votre conseiller LAMal, propulsé par **Apertus**, le modèle de langue suisse. Je compare "
+                "les primes officielles, je réponds à vos questions à partir de la loi, et je peux rédiger votre lettre "
+                "de résiliation.")
+APRES_FORMULAIRE = ("Merci d'avoir rempli le formulaire ! 👋 Je suis votre conseiller LAMal, propulsé par Apertus, le "
+                    "modèle de langue suisse. Je compare les primes officielles, je réponds à vos questions à partir "
+                    "de la loi, et je peux rédiger votre lettre de résiliation. Voici vos offres, avec toutes les "
+                    "franchises comparées. Posez-moi vos questions, par exemple « quelle franchise est la plus "
+                    "avantageuse pour moi ? » ou « c'est quoi le modèle médecin de famille ? ».")
 
 
 def valider_formulaire(annee, npa, commune, situation, modeles, besoins):
@@ -1084,7 +1090,8 @@ def valider_formulaire(annee, npa, commune, situation, modeles, besoins):
     p["besoins"] = list(besoins)
     synchroniser_profil()
     s.formulaire_valide = s.profil_formulaire = True
-    s.messages = [{"role": "assistant", "type": "texte", "contenu": tr(APRES_FORMULAIRE, L())}]
+    s.messages = [{"role": "assistant", "type": "texte", "contenu": tr(PRESENTATION, L())},
+                  {"role": "assistant", "type": "texte", "contenu": tr(APRES_FORMULAIRE, L())}]
     avancer()  # résout le lieu, puis calcule les offres ; s'il manque quelque chose, le chat le demande
 
 

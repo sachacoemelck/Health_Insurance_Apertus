@@ -632,13 +632,22 @@ _("Voir mes offres", "Meine Angebote anzeigen", "Vedere le mie offerte", "See my
 _("À compléter : {champs}", "Noch auszufüllen: {champs}", "Da completare: {champs}", "Still to fill in: {champs}")
 _("Je préfère décrire ma situation dans le chat", "Ich beschreibe meine Situation lieber im Chat",
   "Preferisco descrivere la mia situazione nella chat", "I'd rather describe my situation in the chat")
-_("Merci ! Voici vos offres, avec toutes les franchises comparées. Posez-moi vos questions, par exemple "
-  "« quelle franchise est la plus avantageuse pour moi ? » ou « c'est quoi le modèle médecin de famille ? ».",
-  "Danke! Hier sind Ihre Angebote, mit allen Franchisen im Vergleich. Stellen Sie mir Ihre Fragen, zum Beispiel "
-  "«Welche Franchise lohnt sich für mich am meisten?» oder «Was ist das Hausarztmodell?».",
-  "Grazie! Ecco le sue offerte, con tutte le franchigie a confronto. Mi ponga le sue domande, ad esempio "
-  "«Quale franchigia è la più vantaggiosa per me?» oppure «Che cos'è il modello del medico di famiglia?».",
-  "Thank you! Here are your offers, with all deductibles compared. Ask me your questions, for example "
+_("Merci d'avoir rempli le formulaire ! 👋 Je suis votre conseiller LAMal, propulsé par Apertus, le modèle de langue "
+  "suisse. Je compare les primes officielles, je réponds à vos questions à partir de la loi, et je peux rédiger "
+  "votre lettre de résiliation. Voici vos offres, avec toutes les franchises comparées. Posez-moi vos questions, par "
+  "exemple « quelle franchise est la plus avantageuse pour moi ? » ou « c'est quoi le modèle médecin de famille ? ».",
+  "Danke, dass Sie das Formular ausgefüllt haben! 👋 Ich bin Ihr KVG-Berater, angetrieben von Apertus, dem "
+  "Schweizer Sprachmodell. Ich vergleiche die offiziellen Prämien, beantworte Ihre Fragen anhand des Gesetzes und "
+  "kann Ihr Kündigungsschreiben verfassen. Hier sind Ihre Angebote, mit allen Franchisen im Vergleich. Stellen Sie "
+  "mir Ihre Fragen, zum Beispiel «Welche Franchise lohnt sich für mich am meisten?» oder «Was ist das "
+  "Hausarztmodell?».",
+  "Grazie per aver compilato il modulo! 👋 Sono il suo consulente LAMal, basato su Apertus, il modello linguistico "
+  "svizzero. Confronto i premi ufficiali, rispondo alle sue domande in base alla legge e posso redigere la sua "
+  "lettera di disdetta. Ecco le sue offerte, con tutte le franchigie a confronto. Mi ponga le sue domande, ad "
+  "esempio «Quale franchigia è la più vantaggiosa per me?» oppure «Che cos'è il modello del medico di famiglia?».",
+  "Thank you for filling in the form! 👋 I am your basic health insurance advisor, powered by Apertus, the Swiss "
+  "language model. I compare the official premiums, answer your questions based on the law, and can write your "
+  "cancellation letter. Here are your offers, with all deductibles compared. Ask me your questions, for example "
   "\"Which deductible is best for me?\" or \"What is the family doctor model?\".")
 
 _("Le délai pour changer de caisse au 1er janvier {annee} est passé (lettre reçue au plus tard fin novembre) : la "
@@ -657,5 +666,15 @@ _("Avec la franchise de 300 CHF et le modèle libre choix, vous pouvez aussi cha
   "entro il {limite}): adatti allora la data della lettera.",
   "With the 300 CHF deductible and the free-choice model, you can also switch on 30 June {annee} (letter received "
   "by {limite}): then adjust the date in the letter.")
+
+_("👋 Je suis votre conseiller LAMal, propulsé par **Apertus**, le modèle de langue suisse. Je compare les primes "
+  "officielles, je réponds à vos questions à partir de la loi, et je peux rédiger votre lettre de résiliation.",
+  "👋 Ich bin Ihr Berater für die Grundversicherung, angetrieben von **Apertus**, dem Schweizer Sprachmodell. Ich "
+  "vergleiche die offiziellen Prämien, beantworte Ihre Fragen auf Grundlage des Gesetzes und kann Ihr "
+  "Kündigungsschreiben verfassen.",
+  "👋 Sono il suo consulente LAMal, basato su **Apertus**, il modello linguistico svizzero. Confronto i premi "
+  "ufficiali, rispondo alle sue domande in base alla legge e posso redigere la sua lettera di disdetta.",
+  "👋 I am your Swiss basic health insurance advisor, powered by **Apertus**, the Swiss language model. I compare "
+  "the official premiums, answer your questions based on the law, and can write your cancellation letter.")
 
 TRAD = {fr: dict(zip(("de", "it", "en"), v)) for fr, v in T.items()}
