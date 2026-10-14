@@ -41,3 +41,10 @@ def test_rien_rempli_accueil_habituel():
     at = ouvrir()
     at.button(key="f_chat").click().run()
     assert at.session_state.messages[0]["type"] == "accueil"
+
+
+if __name__ == "__main__":
+    tests = [f for nom, f in dict(globals()).items() if nom.startswith("test_")]
+    for t in tests:
+        t()
+    print(f"{len(tests)} tests réussis")
