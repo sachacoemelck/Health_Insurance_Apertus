@@ -56,6 +56,7 @@ at.radio(key="f_situation").set_value("sans_emploi").run()
 at.button(key="f_valider").click().run()
 s = at.session_state
 assert s.etape == "resultats", s.etape
+assert "conseiller LAMal" in s.messages[0]["contenu"] and "Apertus" in s.messages[0]["contenu"]  # présentation
 assert s.attente == "caisse", s.attente
 assert any(m["type"] == "resultats" for m in s.messages)
 assert not [w for w in at.multiselect if w.key == "f_besoins"]   # complémentaires désactivées
