@@ -63,8 +63,26 @@ def test_lettre_verifiee():
     bonne = c.lettre_modele("CSS", "de", 2027)
     assert c.rediger_lettre(lambda s, m: bonne, "CSS", "de", 2027) == (bonne, "apertus")
     assert c.langue_lettre("en", "ZH") == "de" and c.langue_lettre("en", "GE") == "fr" and c.langue_lettre("it", "ZH") == "it"
+    import datetime
+    c.AUJOURDHUI = datetime.date(2026, 10, 14)
     assert c.dates(2027)[1].isoformat() == "2026-11-30"          # lundi 30 novembre 2026
-    assert "30.11.2026" in c.conseils_envoi("fr", 2027)
+    assert "30.11.2026" in c.conseils_envoi("fr", 2027) and "est passé" not in c.conseils_envoi("fr", 2027)
+    c.AUJOURDHUI = None
+
+
+def test_dates_apres_le_delai_de_novembre():
+    """Après le dernier jour ouvrable de novembre, la lettre ne peut plus résilier pour le 31 décembre."""
+    import datetime
+    c.AUJOURDHUI = datetime.date(2026, 12, 5)
+    assert c.dates() == (datetime.date(2027, 12, 31), datetime.date(2027, 11, 30))
+    assert c.changement_juin() == (datetime.date(2027, 6, 30), datetime.date(2027, 3, 31))
+    conseil = c.conseils_envoi("fr", 2027)
+    assert "est passé" in conseil and "31.12.2027" in conseil and "30 juin 2027" in conseil
+    lettre = c.lettre_modele("Helsana", "fr", 2027)
+    assert "31 décembre 2027" in lettre and c.problemes_lettre(lettre, "Helsana", "fr", 2027) == []
+    c.AUJOURDHUI = datetime.date(2027, 4, 1)                      # fin mars passée : plus d'option juin
+    assert c.changement_juin() is None and c.dates()[0] == datetime.date(2027, 12, 31)
+    c.AUJOURDHUI = None
 
 
 def test_office_des_subsides_par_canton():

@@ -268,20 +268,55 @@ def langue_lettre(code, canton):
     return code if code in CHAMPS else LANGUE_CANTON.get(canton, "de")
 
 
-def dates(annee_primes):
-    """Fin de l'assurance actuelle (31 décembre) et dernier jour ouvrable de novembre (réception)."""
-    annee = annee_primes - 1
-    jour = datetime.date(annee, 11, 30)
-    while jour.weekday() >= 5:  # samedi, dimanche
-        jour -= datetime.timedelta(days=1)
-    return datetime.date(annee, 12, 31), jour
+AUJOURDHUI = None  # date du jour ; les tests la fixent pour simuler décembre ou mars
+
+
+def _aujourdhui():
+    return AUJOURDHUI or datetime.date.today()
+
+
+def _dernier_jour_ouvrable(annee, mois, jour):
+    d = datetime.date(annee, mois, jour)
+    while d.weekday() >= 5:  # samedi, dimanche
+        d -= datetime.timedelta(days=1)
+    return d
+
+
+def dates(annee_primes=None):
+    """(fin de l'assurance actuelle, date limite de réception de la lettre) : la prochaine échéance
+    encore possible à la date du jour (LAMal art. 7). Jusqu'au dernier jour ouvrable de novembre, fin au
+    31 décembre de l'année ; après, fin au 31 décembre de l'année suivante. (Le changement pour le
+    30 juin, réservé à la franchise de 300 CHF et au libre choix, est signalé à part : changement_juin.)"""
+    jour = _aujourdhui()
+    annee = jour.year if jour <= _dernier_jour_ouvrable(jour.year, 11, 30) else jour.year + 1
+    return datetime.date(annee, 12, 31), _dernier_jour_ouvrable(annee, 11, 30)
+
+
+def changement_juin():
+    """(30 juin, date limite) si un changement pour le 30 juin est encore possible avant l'échéance de
+    décembre : lettre reçue au plus tard fin mars (préavis de 3 mois), franchise de 300 CHF et libre choix."""
+    jour = _aujourdhui()
+    annee = jour.year if jour <= _dernier_jour_ouvrable(jour.year, 3, 31) else jour.year + 1
+    juin = datetime.date(annee, 6, 30)
+    return (juin, _dernier_jour_ouvrable(annee, 3, 31)) if juin < dates()[0] else None
+
+
+def delai_janvier_passe(annee_primes):
+    """Vrai si on ne peut plus changer pour le 1er janvier de l'année des primes affichées."""
+    return dates()[0].year >= annee_primes
+
+
+_MOIS_NOMS = {"fr": ["janvier", "février", "mars", "avril", "mai", "juin", "juillet", "août", "septembre",
+                     "octobre", "novembre", "décembre"],
+              "de": ["Januar", "Februar", "März", "April", "Mai", "Juni", "Juli", "August", "September",
+                     "Oktober", "November", "Dezember"],
+              "it": ["gennaio", "febbraio", "marzo", "aprile", "maggio", "giugno", "luglio", "agosto",
+                     "settembre", "ottobre", "novembre", "dicembre"]}
 
 
 def date_texte(d, langue):
-    if langue == "de":
-        return f"{d.day}. {MOIS['de'] if d.month == 12 else 'November'} {d.year}"
-    mois = {12: MOIS, 11: {"fr": "novembre", "it": "novembre"}}[d.month].get(langue, "décembre")
-    return f"{d.day} {mois} {d.year}"
+    nom = _MOIS_NOMS.get(langue, _MOIS_NOMS["fr"])[d.month - 1]
+    return f"{d.day}. {nom} {d.year}" if langue == "de" else f"{d.day} {nom} {d.year}"
 
 
 PROMPT_LETTRE = """Tu rédiges une lettre de résiliation de l'assurance maladie de base (LAMal) suisse.
@@ -392,8 +427,19 @@ def conseils_envoi(code, annee_primes):
              "de": ["Montag", "Dienstag", "Mittwoch", "Donnerstag", "Freitag"],
              "it": ["lunedì", "martedì", "mercoledì", "giovedì", "venerdì"],
              "en": ["Monday", "Tuesday", "Wednesday", "Thursday", "Friday"]}[code if code in ("fr", "de", "it", "en") else "fr"]
-    limite_txt = (f"{jours[limite.weekday()]} {limite.day}.{limite.month:02d}.{limite.year}")
-    return tr("Avant d'envoyer : 1) inscrivez-vous d'abord auprès de la nouvelle caisse (votre assurance actuelle ne "
+    jour = lambda d: f"{jours[d.weekday()]} {d.day}.{d.month:02d}.{d.year}"
+    limite_txt = jour(limite)
+    avant = ""
+    if delai_janvier_passe(annee_primes):
+        avant = tr("Le délai pour changer de caisse au 1er janvier {annee} est passé (lettre reçue au plus tard fin "
+                   "novembre) : la lettre résilie donc pour le {fin}.", code, annee=annee_primes,
+                   fin=f"{fin.day}.{fin.month:02d}.{fin.year}") + " "
+    juin = changement_juin()
+    if juin:
+        avant += tr("Avec la franchise de 300 CHF et le modèle libre choix, vous pouvez aussi changer pour le "
+                    "30 juin {annee} (lettre reçue au plus tard le {limite}) : adaptez alors la date de la lettre.",
+                    code, annee=juin[0].year, limite=jour(juin[1])) + " "
+    return avant + tr("Avant d'envoyer : 1) inscrivez-vous d'abord auprès de la nouvelle caisse (votre assurance actuelle ne "
               "prend fin que lorsque la nouvelle caisse confirme votre couverture, LAMal art. 7 al. 5) ; 2) envoyez "
               "la lettre en recommandé : elle doit ARRIVER chez votre caisse au plus tard le {limite} ; 3) complétez "
               "les champs entre crochets et signez.", code, limite=limite_txt)

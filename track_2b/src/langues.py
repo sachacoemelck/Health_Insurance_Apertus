@@ -643,4 +643,21 @@ _("Merci ! Voici vos offres, avec toutes les franchises comparées. Posez-moi vo
   "Thank you! Here are your offers, with all deductibles compared. Ask me your questions, for example "
   "\"Which deductible is best for me?\" or \"What is the family doctor model?\".")
 
+_("Le délai pour changer de caisse au 1er janvier {annee} est passé (lettre reçue au plus tard fin novembre) : la "
+  "lettre résilie donc pour le {fin}.",
+  "Die Frist für einen Kassenwechsel auf den 1. Januar {annee} ist abgelaufen (Eingang bis Ende November): das "
+  "Schreiben kündigt deshalb per {fin}.",
+  "Il termine per cambiare cassa al 1° gennaio {annee} è scaduto (lettera ricevuta entro fine novembre): la "
+  "lettera disdice quindi per il {fin}.",
+  "The deadline to switch insurer on 1 January {annee} has passed (letter received by the end of November): the "
+  "letter therefore cancels as of {fin}.")
+_("Avec la franchise de 300 CHF et le modèle libre choix, vous pouvez aussi changer pour le 30 juin {annee} (lettre "
+  "reçue au plus tard le {limite}) : adaptez alors la date de la lettre.",
+  "Mit der Franchise von 300 CHF und freier Arztwahl können Sie auch auf den 30. Juni {annee} wechseln (Eingang "
+  "spätestens am {limite}): passen Sie dann das Datum im Schreiben an.",
+  "Con la franchigia di 300 CHF e la libera scelta può cambiare anche per il 30 giugno {annee} (lettera ricevuta "
+  "entro il {limite}): adatti allora la data della lettera.",
+  "With the 300 CHF deductible and the free-choice model, you can also switch on 30 June {annee} (letter received "
+  "by {limite}): then adjust the date in the letter.")
+
 TRAD = {fr: dict(zip(("de", "it", "en"), v)) for fr, v in T.items()}
