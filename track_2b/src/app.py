@@ -1211,6 +1211,7 @@ def passer_au_chat():
     """« Je préfère décrire ma situation dans le chat » : ce qui est déjà rempli dans le formulaire est
     gardé (le conseiller ne le redemande pas), puis le chat pose directement la question suivante."""
     s = st.session_state
+    sauver_formulaire()
     s.formulaire_valide = True
     c = s.profil["contract"]
     l = L()
@@ -1254,9 +1255,32 @@ def npa_saisi():
     return int(texte) if texte.isdigit() and len(texte) == 4 else None
 
 
+CLES_FORMULAIRE = ("f_naissance", "f_npa", "f_commune", "f_situation", "f_modeles", "f_besoins")
+
+
+def sauver_formulaire():
+    """Copie des réponses du formulaire : Streamlit efface l'état d'un champ qui n'est plus affiché, et on
+    veut les retrouver en revenant au formulaire."""
+    s = st.session_state
+    s.formulaire_sauve = {k: s[k] for k in CLES_FORMULAIRE if k in s}
+
+
+def revenir_au_formulaire():
+    """« ← Modifier mes réponses » : retour au formulaire, déjà rempli avec les réponses précédentes. La
+    conversation et les offres sont recalculées au prochain envoi (comme « Nouvelle comparaison »)."""
+    s = st.session_state
+    sauve, langue = dict(s.get("formulaire_sauve") or {}), s.get("langue")
+    recommencer()
+    for cle, valeur in sauve.items():
+        st.session_state[cle] = valeur
+    if langue:
+        st.session_state.langue = langue
+
+
 def soumettre_formulaire():
     """Rappel du bouton « Voir mes offres » : s'exécute avant l'affichage suivant."""
     s = st.session_state
+    sauver_formulaire()
     npa = npa_saisi()
     try:
         valider_formulaire(s["f_naissance"], npa, commune_choisie(npa), s["f_situation"],
@@ -1290,7 +1314,9 @@ def ecran_profil():
                          format_func=lambda k: tr(SITUATIONS[k], l), key="f_situation")
     st.caption(tr("Elle indique si la couverture accident doit être incluse : un employeur assure contre les "
                   "accidents ses salariés qui travaillent au moins 8 h par semaine chez lui.", l))
-    modeles = st.multiselect(tr("Modèles d'assurance acceptés", l), list(CARE_TYPES), default=list(CARE_TYPES),
+    # Valeur par défaut seulement au premier affichage (au retour, les réponses précédentes sont remises)
+    modeles = st.multiselect(tr("Modèles d'assurance acceptés", l), list(CARE_TYPES),
+                             default=None if "f_modeles" in st.session_state else list(CARE_TYPES),
                              format_func=lambda k: tr(CARE_LABELS[k], l), key="f_modeles", placeholder=tr("Choisissez…", l))
     if MODULES_COMPLEMENTAIRES:
         st.multiselect(tr("Besoins en assurances complémentaires (facultatif)", l), list(compl.CATEGORIES),
@@ -1334,6 +1360,8 @@ def main():
             dire(tr("Apertus ne répond pas pour le moment. Réessayez dans un instant.", L()))
 
     afficher_entete()
+    st.button("← " + tr("Modifier mes réponses", L()), on_click=revenir_au_formulaire, key="retour_formulaire",
+              type="tertiary")
 
     for i, m in enumerate(s.messages):
         if m["type"] == "ouverture":
@@ -1361,6 +1389,9 @@ def afficher_entete():
     with st.sidebar:
         st.selectbox(tr("Langue", L()), langues.CODES, key="langue",
                      format_func={"fr": "Français", "de": "Deutsch", "it": "Italiano", "en": "English"}.get)
+        if st.session_state.get("formulaire_valide"):
+            st.button("← " + tr("Modifier mes réponses", L()), on_click=revenir_au_formulaire,
+                      key="retour_formulaire_barre")
         st.button(tr("Nouvelle comparaison", L()), on_click=recommencer)
     l = L()
     style.entete(tr("Assurance de base LAMal 2027", l), tr("Votre assurance maladie.", l),

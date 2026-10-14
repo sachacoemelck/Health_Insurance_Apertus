@@ -704,4 +704,6 @@ _("Que se passe-t-il pour les accidents si je quitte mon emploi ?",
 _("Jusqu'à quand puis-je changer de caisse ?", "Bis wann kann ich die Krankenkasse wechseln?",
   "Entro quando posso cambiare cassa malati?", "Until when can I switch insurer?")
 
+_("Modifier mes réponses", "Antworten ändern", "Modificare le risposte", "Edit my answers")
+
 TRAD = {fr: dict(zip(("de", "it", "en"), v)) for fr, v in T.items()}

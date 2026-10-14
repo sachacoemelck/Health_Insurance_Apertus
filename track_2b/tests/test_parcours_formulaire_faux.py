@@ -87,6 +87,16 @@ assert m["type"] == "lettre", m["type"]
 at.chat_input[0].set_value("Ai-je droit à un subside ?").run()
 assert "Office vaudois" in at.session_state.messages[-1]["contenu"]
 assert not at.exception, [e.value for e in at.exception]
+# « ← Modifier mes réponses » : retour au formulaire, déjà rempli ; un nouvel envoi recalcule tout
+at.button(key="retour_formulaire").click().run()
+s = at.session_state
+assert not s.get("formulaire_valide") and not s.get("resultats"), "pas revenu au formulaire"
+assert at.number_input(key="f_naissance").value == 1991 and at.text_input(key="f_npa").value == "1004"
+assert at.radio(key="f_situation").value == "sans_emploi" and not at.warning
+at.radio(key="f_situation").set_value("salarie_8h").run()
+at.button(key="f_valider").click().run()
+assert at.session_state.formulaire_valide and at.session_state.profil["contract"].accident() is False
+assert len(at.session_state.resultats) == 1 and "ouverture" in at.session_state
 # Ouverture avec un montant inventé : refusée deux fois par Python, texte de secours fixe
 MODE["ouverture"] = "inventee"
 at6 = AppTest.from_file(os.path.abspath("src/app.py"), default_timeout=120).run()
