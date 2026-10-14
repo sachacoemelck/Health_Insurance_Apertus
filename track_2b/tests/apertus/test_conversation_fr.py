@@ -94,7 +94,7 @@ def texte_dernier(at):
 
 
 def jouer(conv, journal):
-    at = AppTest.from_file("src/app.py", default_timeout=900).run()
+    at = AppTest.from_file("src/app.py", default_timeout=900).run().button(key="f_chat").click().run()
     pb, reponses_apertus, secours, debut = [], 0, 0, time.time()
     journal.append(f"\n{'=' * 90}\n[{conv['id']}] {conv['titre']}\n{'=' * 90}")
     journal.append(f"APP : {texte_dernier(at)}")
