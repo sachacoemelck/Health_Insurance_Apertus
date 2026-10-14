@@ -215,6 +215,8 @@ def citer(reponse, code="fr", passages=()):
         return f"{mot} {noms(m.group(2))}" if noms(m.group(2)) else m.group(0)
 
     texte = _INTRODUIT.sub(introduit, reponse)
+    # « negli articoli [L1] e [L4], come… » (test réel italien) : le mot « articles » annonce les numéros
+    texte = _APRES_ARTICLES.sub(lambda m: f"{m.group(1)} {noms(m.group(2))}" if noms(m.group(2)) else m.group(0), texte)
     # Un numéro suivi d'un mot fait aussi partie de la phrase (« les articles [L1] et [L2] précisent ») ;
     # en fin de phrase, il est simplement retiré (la source est ajoutée en bas).
     texte = _AU_MILIEU.sub(lambda m: noms(m.group(1)) or m.group(0), texte)
@@ -225,6 +227,9 @@ def citer(reponse, code="fr", passages=()):
     return f"{texte}  \n*{_MOTS_SOURCE.get(code, _MOTS_SOURCE['fr'])[0]} : {' ; '.join(liens)}*"
 
 
+_APRES_ARTICLES = re.compile(r"\b((?:les |des |aux |gli |negli |agli |degli |die |den |the )?"
+                             r"(?:articles?|articoli|articolo|artikeln?|bestimmungen))\s+"
+                             r"(\[[FL]\d+\](?:\s*(?:,|\bet\b|\bund\b|\be\b|\band\b)?\s*\[[FL]\d+\])*)", re.IGNORECASE)
 _AU_MILIEU = re.compile(r"(\[[FL]\d+\](?:\s*(?:,|\bet\b|\bund\b|\be\b|\band\b)?\s*\[[FL]\d+\])*)"
                         r"(?!\s*(?:,|\bet\b|\bund\b|\be\b|\band\b)\s*\[)"
                         r"(?!\s+(?:et|mais|ou|donc|und|aber|oder|e|ma|o|and|but|or|so)\b)(?=\s+[^\W\d_])")

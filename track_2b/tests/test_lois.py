@@ -101,6 +101,8 @@ def test_numeros_groupes_et_dans_la_phrase():
     f = conversation.citer("Coperto solo nei casi gravi (articoli L1, L2). Per il resto paga Lei.", "it", passages)
     assert "L1" not in f and "articoli" not in f and f.startswith("Coperto solo nei casi gravi. Per il resto"), f
     assert conversation.numeros_inconnus("casi gravi (articoli L1, L9)", "[L1] x") == ["L9"]
+    h = conversation.citer("Coperto solo nei casi gravi, elencati negli articoli L1 e L2, come i tumori.", "it", passages)
+    assert "negli articoli LAMal art." in h and ", come i tumori" in h and "L1" not in h.split("\n")[0], h
     g = conversation.citer("Selon L1, rien n'est dû.", "fr", passages)
     assert g.startswith("Selon LAMal art."), g
     assert conversation.decouper_phrases("Als Student in St. Gallen zahlen Sie wenig. Zweitens.") == [
