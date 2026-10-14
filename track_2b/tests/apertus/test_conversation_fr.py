@@ -27,6 +27,7 @@ import time
 from streamlit.testing.v1 import AppTest  # noqa: E402
 
 import chatbot  # noqa: E402
+import langues  # noqa: E402
 
 # Durée de chaque appel à Apertus, pour voir lequel est lent
 APPELS = []
@@ -46,6 +47,10 @@ def _chrono(f):
 chatbot.demander_llm, chatbot.demander_llm_json = _chrono(_llm), _chrono(_llm_json)
 
 SECOURS = "Je ne peux pas répondre à cette question de façon fiable"
+_PHRASE_SECOURS = ("Je ne peux pas répondre à cette question de façon fiable ici ; vous pouvez vérifier sur "
+                   "priminfo.admin.ch.")
+# Début de la phrase de secours dans chaque langue (avant : seul le français était compté)
+DEBUTS_SECOURS = tuple({_PHRASE_SECOURS[:25]} | {t[:25] for t in langues.TRAD.get(_PHRASE_SECOURS, {}).values()})
 
 # messages : ce que la personne écrit, dans l'ordre. defaut : réponse si l'app pose une autre question.
 CONVERSATIONS = [
@@ -94,7 +99,7 @@ def texte_dernier(at):
 
 
 def jouer(conv, journal):
-    at = AppTest.from_file("src/app.py", default_timeout=900).run().button(key="f_chat").click().run()
+    at = AppTest.from_file(_os.path.abspath("src/app.py"), default_timeout=900).run().button(key="f_chat").click().run()
     pb, reponses_apertus, secours, debut = [], 0, 0, time.time()
     journal.append(f"\n{'=' * 90}\n[{conv['id']}] {conv['titre']}\n{'=' * 90}")
     journal.append(f"APP : {texte_dernier(at)}")
@@ -136,7 +141,7 @@ def jouer(conv, journal):
                 pb.append(f"réponse en « {vue} » au lieu de « {conv['langue']} » : {reponse[:60]}")
         if not reponse.startswith("["):
             reponses_apertus += 1
-            if reponse.startswith(SECOURS) or reponse.startswith("Je ne peux pas répondre"):
+            if reponse.startswith(DEBUTS_SECOURS) or reponse.startswith("Je ne peux pas répondre"):
                 secours += 1
     if at.session_state.etape != "resultats":
         pb.append(f"pas arrivé aux résultats (étape : {at.session_state.etape})")

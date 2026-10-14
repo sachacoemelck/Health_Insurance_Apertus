@@ -68,11 +68,13 @@ FICHE_LAMAL = [
                 "(premier contact par téléphone ou service numérique) ; pharmacie (premier contact pour un "
                 "conseil dans une pharmacie partenaire, qui oriente ensuite vers un médecin si nécessaire) ; "
                 "modèles alternatifs (règles propres à l'assureur). Les modèles avec restriction ont des primes "
-                "plus basses.",
+                "plus basses ; la franchise, elle, se choisit à part et ne dépend pas du modèle. Médecin de "
+                "famille : on choisit son médecin dans la liste de l'assureur ; si son médecin actuel y figure, "
+                "on le garde, sinon il faut en changer.",
      "OAMal art. 99 à 101"),
     ("changement", "Pour changer d'assureur de base au 1er janvier, la lettre de résiliation doit arriver "
-                   "chez l'assureur au plus tard le dernier jour ouvrable de novembre. Avec la franchise "
-                   "de 300 CHF et le libre choix, un changement est aussi possible pour le 30 juin, avec "
+                   "chez l'assureur au plus tard le dernier jour ouvrable de novembre. Seulement avec la "
+                   "franchise de 300 CHF et le libre choix, un changement est aussi possible pour le 30 juin, avec "
                    "une lettre reçue avant le 31 mars.",
      "LAMal art. 7 ; OAMal art. 94 et 100"),
     ("primes", "La prime dépend du canton, de la région de primes, de la catégorie d'âge (enfant jusqu'à "
@@ -167,11 +169,22 @@ _INTRODUIT = re.compile(r"\b(selon(?: les articles| l'article)?|conformément à
 
 
 def normaliser_numeros(reponse):
-    """« [F6, L2] », « (L1, L3) », « (L2) », « [L1–L3] » -> « [F6] [L2] » : la forme que Python sait vérifier."""
+    """« [F6, L2] », « (L1, L3) », « (L2) », « [L1–L3] », « (articoli L1, L2 e L5) », « L4 » sans crochets
+    -> « [F6] [L2] » : la forme que Python sait vérifier."""
+    texte = _PARENTHESE_ARTICLES.sub(lambda m: " ".join(f"[{n}]" for n in re.findall(r"[FL]\d+", m.group(1))),
+                                     reponse or "")
     texte = re.sub(r"\[([FL])(\d+)\s*[–-]\s*(?:[FL])?(\d+)\]",
                    lambda m: " ".join(f"[{m.group(1)}{n}]" for n in range(int(m.group(2)), int(m.group(3)) + 1)),
-                   reponse or "")
-    return _GROUPE.sub(lambda m: " ".join(f"[{n}]" for n in re.findall(r"[FL]\d+", m.group(1))), texte)
+                   texte)
+    texte = _GROUPE.sub(lambda m: " ".join(f"[{n}]" for n in re.findall(r"[FL]\d+", m.group(1))), texte)
+    return _NUMERO_NU.sub(r"[\1]", texte)
+
+
+# Vu au test réel (italien) : « (articoli L1, L2, L4 e L5) » ; et des numéros sans crochets
+_PARENTHESE_ARTICLES = re.compile(
+    r"\(\s*(?:les |gli |the |die )?(?:articles?|articoli|articolo|artikel|art\.)\s+"
+    r"((?:\[?[FL]\d+\]?\s*(?:,|;|/|et|und|e|and)\s*)*\[?[FL]\d+\]?)\s*\)", re.IGNORECASE)
+_NUMERO_NU = re.compile(r"(?<![\[\w])([FL]\d{1,2})(?![\]\w])")
 
 
 def _reference(genre, n, code, passages):
@@ -202,6 +215,8 @@ def citer(reponse, code="fr", passages=()):
         return f"{mot} {noms(m.group(2))}" if noms(m.group(2)) else m.group(0)
 
     texte = _INTRODUIT.sub(introduit, reponse)
+    # « negli articoli [L1] e [L4], come… » (test réel italien) : le mot « articles » annonce les numéros
+    texte = _APRES_ARTICLES.sub(lambda m: f"{m.group(1)} {noms(m.group(2))}" if noms(m.group(2)) else m.group(0), texte)
     # Un numéro suivi d'un mot fait aussi partie de la phrase (« les articles [L1] et [L2] précisent ») ;
     # en fin de phrase, il est simplement retiré (la source est ajoutée en bas).
     texte = _AU_MILIEU.sub(lambda m: noms(m.group(1)) or m.group(0), texte)
@@ -212,6 +227,9 @@ def citer(reponse, code="fr", passages=()):
     return f"{texte}  \n*{_MOTS_SOURCE.get(code, _MOTS_SOURCE['fr'])[0]} : {' ; '.join(liens)}*"
 
 
+_APRES_ARTICLES = re.compile(r"\b((?:les |des |aux |gli |negli |agli |degli |die |den |the )?"
+                             r"(?:articles?|articoli|articolo|artikeln?|bestimmungen))\s+"
+                             r"(\[[FL]\d+\](?:\s*(?:,|\bet\b|\bund\b|\be\b|\band\b)?\s*\[[FL]\d+\])*)", re.IGNORECASE)
 _AU_MILIEU = re.compile(r"(\[[FL]\d+\](?:\s*(?:,|\bet\b|\bund\b|\be\b|\band\b)?\s*\[[FL]\d+\])*)"
                         r"(?!\s*(?:,|\bet\b|\bund\b|\be\b|\band\b)\s*\[)"
                         r"(?!\s+(?:et|mais|ou|donc|und|aber|oder|e|ma|o|and|but|or|so)\b)(?=\s+[^\W\d_])")
@@ -440,14 +458,19 @@ Règles strictes :
 def raccourcir(texte, phrases_max):
     """Au plus `phrases_max` phrases : Apertus a tendance à tout recopier (une réponse de 20 phrases
     observée au test réel). Le numéro de source reste collé à sa phrase, donc il est gardé."""
-    morceaux = re.split(r"(?<=[.!?…])\s+(?=[A-ZÀ-ÖØ-Þ«(*\[])", (texte or "").strip())
+    return " ".join(decouper_phrases(texte, r"(?<=[.!?…])\s+(?=[A-ZÀ-ÖØ-Þ«(*\[])")[:phrases_max]).strip()
+
+
+def decouper_phrases(texte, separateur=r"(?<=[.!?…])\s+"):
+    """Phrases du texte. « z. B. », « p. ex. », « art. 7 », « St. Gallen » ne terminent pas une phrase
+    (vus aux tests réels : « Als Student mit kleinem Budget in St. » était coupé là)."""
     phrases = []
-    for m in morceaux:  # « z. B. », « p. ex. », « art. 7 » ne terminent pas une phrase (vu au test réel)
+    for m in re.split(separateur, (texte or "").strip()):
         if phrases and _ABREVIATION.search(phrases[-1]):
             phrases[-1] += " " + m
         else:
             phrases.append(m)
-    return " ".join(phrases[:phrases_max]).strip()
+    return phrases
 
 
 _ABREVIATION = re.compile(r"(?:\b(?:[a-zA-Z]|vgl|bzw|ca|inkl|evtl|ggf|usw|etc|Nr|Art|Abs|al|cpv|let|lit|"
@@ -465,8 +488,7 @@ def nettoyer(reponse, garder_questions=False):
                    r"gentile (?:cliente|persona|signora|signore)|egregi[oa] (?:cliente|signor[ae])|"
                    r"dear (?:customer|client|user|sir|madam))\s*,\s*", "", texte, flags=re.IGNORECASE).strip()  # formule de lettre
     if not garder_questions:
-        phrases = re.split(r"(?<=[.!?…])\s+", texte)
-        texte = " ".join(p for p in phrases if not p.rstrip().endswith("?")).strip()
+        texte = " ".join(p for p in decouper_phrases(texte) if not p.rstrip().endswith("?")).strip()
     return texte[:1].upper() + texte[1:]
 
 
@@ -576,7 +598,7 @@ def repondre_tour(appeler, texte, notes, question_posee, prochaine_question, chi
         except Exception:
             reaction = None
     if reaction:
-        phrases = re.split(r"(?<=[.!…])\s+", reaction)
+        phrases = decouper_phrases(reaction, r"(?<=[.!…])\s+")
         # Pas de bout de la question de l'application recopié (elle est ajoutée juste après)
         phrases = [p for p in phrases if p.strip() and p.strip().rstrip(".") not in (prochaine_question or "")]
         if not question_posee:
