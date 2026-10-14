@@ -16,6 +16,7 @@ résumé sont dans le rapport technique.
 | 2026-10-12_questions_lamal_fiche_seule_60.txt | test_questions_lamal.py --sans-lois | 60 questions, fiche de 17 phrases seule |
 | 2026-10-12_questions_lamal_rag_60.txt | test_questions_lamal.py | 60 questions, avec les articles de loi |
 | 2026-10-13_caisse_economie_lettres.txt | test_changement_reel.py | lecture de la caisse, paragraphe d'économie, 9 lettres |
+| 2026-10-14_conversations_langues_24.txt | test_conversation_langues.py | 24 conversations DE/IT/EN, refait après les corrections et le RAG (24/24 dans la bonne langue) |
 
 Attention : la colonne « NE SAIT PAS » des fichiers de questions n'est qu'un repérage automatique
 (par mots) ; seule la correction à la main du rapport compte.
