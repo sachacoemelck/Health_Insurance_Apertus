@@ -1060,15 +1060,8 @@ APRES_FORMULAIRE = ("Merci ! Voici vos offres, avec toutes les franchises compar
                     "modèle médecin de famille ? ».")
 
 
-def valider_formulaire(annee, npa, commune, situation, modeles, besoins):
-    """Enregistre les champs dans le contrat de profil, puis calcule les offres directement."""
-    s = st.session_state
-    p = s.profil
-    c = p["contract"]
-    c.set("birth_year", int(annee))
-    c.set("postal_code", int(npa))
-    c.set("municipality", commune)
-    # Couverture accident : un employeur assure ses salariés travaillant au moins 8 h par semaine
+def enregistrer_situation(c, situation):
+    """Couverture accident : un employeur assure ses salariés travaillant au moins 8 h par semaine."""
     if situation == "salarie_8h":
         c.set("employed", True)
         c.set("nonoccupational_covered", True)
@@ -1078,7 +1071,18 @@ def valider_formulaire(annee, npa, commune, situation, modeles, besoins):
     elif situation in ("independant", "sans_emploi"):
         c.set("employed", False)
         c.set("nonoccupational_covered", False)
-    # « Je ne sais pas » : rien n'est déduit, le conseiller posera la question dans le chat
+    # « Je ne sais pas » (ou rien) : rien n'est déduit, le conseiller posera la question dans le chat
+
+
+def valider_formulaire(annee, npa, commune, situation, modeles, besoins):
+    """Enregistre les champs dans le contrat de profil, puis calcule les offres directement."""
+    s = st.session_state
+    p = s.profil
+    c = p["contract"]
+    c.set("birth_year", int(annee))
+    c.set("postal_code", int(npa))
+    c.set("municipality", commune)
+    enregistrer_situation(c, situation)
     c.set("care_access", list(modeles))
     c.set("deductible", "all")  # le conseiller aide à choisir la franchise dans le chat
     p["besoins"] = list(besoins)
@@ -1089,7 +1093,35 @@ def valider_formulaire(annee, npa, commune, situation, modeles, besoins):
 
 
 def passer_au_chat():
-    st.session_state.formulaire_valide = True
+    """« Je préfère décrire ma situation dans le chat » : ce qui est déjà rempli dans le formulaire est
+    gardé (le conseiller ne le redemande pas), puis le chat pose directement la question suivante."""
+    s = st.session_state
+    s.formulaire_valide = True
+    c = s.profil["contract"]
+    l = L()
+    notes = []
+    if s.get("f_naissance"):
+        c.set("birth_year", int(s.f_naissance))
+        notes.append(tr("né(e) en {annee}", l, annee=int(s.f_naissance)))
+    npa = npa_saisi()
+    commune = commune_choisie(npa)
+    if commune:
+        c.set("postal_code", npa)
+        c.set("municipality", commune)
+        notes.append(f"{commune} ({npa})")
+    situation = s.get("f_situation")
+    if situation and situation != "ne_sait_pas":
+        enregistrer_situation(c, situation)
+        notes.append(tr(SITUATIONS[situation], l).lower())
+    modeles = s.get("f_modeles")
+    if modeles and set(modeles) != set(CARE_TYPES):  # seulement si la personne a changé la liste
+        c.set("care_access", list(modeles))
+    if not notes:
+        return  # rien de rempli : accueil habituel du chat
+    synchroniser_profil()
+    s.messages = [{"role": "assistant", "type": "texte",
+                   "contenu": tr("J'ai bien noté : {faits}.", l, faits=", ".join(notes))}]
+    avancer()  # pose la question suivante (ou propose le résumé si tout est connu)
 
 
 def commune_choisie(npa):

@@ -579,6 +579,8 @@ _("Sources : primes LAMal 2027, régions de primes et liste des assureurs admis 
 
 # --- Écran de profil (formulaire avant le conseiller) ----------------------------------------
 _("Choisissez…", "Bitte wählen…", "Scelga…", "Choose…")
+_("né(e) en {annee}", "Jahrgang {annee}", "nato/a nel {annee}", "born in {annee}")
+_("J'ai bien noté : {faits}.", "Notiert: {faits}.", "Ho preso nota: {faits}.", "Noted: {faits}.")
 _("Assurance de base LAMal 2027", "Grundversicherung KVG 2027", "Assicurazione di base LAMal 2027",
   "Basic health insurance (KVG/LAMal) 2027")
 _("Votre assurance maladie.", "Ihre Krankenversicherung.", "La sua assicurazione malattie.", "Your health insurance.")
