@@ -49,7 +49,7 @@ def fake(client, modele, systeme, message):
     return "Voici les offres."
 
 chatbot.demander_llm = fake; chatbot.demander_llm_json = fake
-at = AppTest.from_file("src/app.py", default_timeout=120).run()
+at = AppTest.from_file(os.path.abspath("src/app.py"), default_timeout=120).run()
 # Écran de profil : ce parcours passe par le chat (« Je préfère décrire ma situation dans le chat »)
 at.button(key="f_chat").click().run()
 
@@ -86,7 +86,7 @@ m = at.session_state.messages[-1]
 assert m["type"] == "lettre" and m["par"] == "modele", m
 print("LETTRE (modèle après refus) OK")
 # nom de groupe -> choix de la caisse
-at2 = AppTest.from_file("src/app.py", default_timeout=120).run()
+at2 = AppTest.from_file(os.path.abspath("src/app.py"), default_timeout=120).run()
 at2.button(key="f_chat").click().run()
 at = at2
 for t in ["J'ai 35 ans, j'habite à Lausanne 1004", "avec accidents", "tous les modèles", "pas de limite", "1500"]:
@@ -98,7 +98,7 @@ at.button(key="caisse_1479").click().run()
 print("APRÈS CHOIX :", at.session_state.messages[-2].get("contenu", "")[:150])
 assert at.session_state.attente in ("lettre", None)
 # « Passer »
-at3 = AppTest.from_file("src/app.py", default_timeout=120).run(); at = at3
+at3 = AppTest.from_file(os.path.abspath("src/app.py"), default_timeout=120).run(); at = at3
 at3.button(key="f_chat").click().run()
 for t in ["J'ai 35 ans, j'habite à Lausanne 1004", "avec accidents", "tous les modèles", "pas de limite", "1500"]:
     dire(t)

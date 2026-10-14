@@ -885,7 +885,7 @@ def afficher_toutes_les_offres(bloc):
             offres = offres.rename(columns={c: tr(c, L()) for c in offres.columns})
             montants = offres.select_dtypes("number").columns
             st.dataframe(offres.style.format({c: "{:.2f}" for c in montants}),
-                         hide_index=True, use_container_width=True)
+                         hide_index=True, width="stretch")
         c = bloc["compl"]
         if c:
             st.markdown("**Assurances complémentaires : liste complète**")
@@ -931,7 +931,7 @@ def afficher_lettre(m, i):
     if m["langue"] != l:
         st.caption(tr("La lettre est écrite dans une langue officielle de votre canton, celle que votre caisse "
                       "utilise.", l))
-    st.code(m["texte"], language=None)
+    st.code(m["texte"], language=None, wrap_lines=True)
     st.download_button(tr("Télécharger la lettre (.txt)", l), data=m["texte"].encode("utf-8"),
                        file_name="resiliation_assurance_de_base.txt", mime="text/plain", key=f"lettre_{i}")
     st.info(changement.conseils_envoi(l, m["annee"]), icon="📮")
@@ -1056,9 +1056,6 @@ SITUATIONS = {
     "ne_sait_pas": "Je ne sais pas",
 }
 # Après le formulaire, l'assistant se présente : c'est là que commence la conversation avec Apertus
-PRESENTATION = ("👋 Je suis votre conseiller LAMal, propulsé par **Apertus**, le modèle de langue suisse. Je compare "
-                "les primes officielles, je réponds à vos questions à partir de la loi, et je peux rédiger votre lettre "
-                "de résiliation.")
 APRES_FORMULAIRE = ("Merci d'avoir rempli le formulaire ! 👋 Je suis votre conseiller LAMal, propulsé par Apertus, le "
                     "modèle de langue suisse. Je compare les primes officielles, je réponds à vos questions à partir "
                     "de la loi, et je peux rédiger votre lettre de résiliation. Voici vos offres, avec toutes les "
@@ -1090,8 +1087,7 @@ def valider_formulaire(annee, npa, commune, situation, modeles, besoins):
     p["besoins"] = list(besoins)
     synchroniser_profil()
     s.formulaire_valide = s.profil_formulaire = True
-    s.messages = [{"role": "assistant", "type": "texte", "contenu": tr(PRESENTATION, L())},
-                  {"role": "assistant", "type": "texte", "contenu": tr(APRES_FORMULAIRE, L())}]
+    s.messages = [{"role": "assistant", "type": "texte", "contenu": tr(APRES_FORMULAIRE, L())}]
     avancer()  # résout le lieu, puis calcule les offres ; s'il manque quelque chose, le chat le demande
 
 

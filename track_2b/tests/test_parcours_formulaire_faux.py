@@ -49,14 +49,15 @@ def fake(client, modele, systeme, message):
 chatbot.demander_llm = fake; chatbot.demander_llm_json = fake
 
 # Écran de profil (interface de Sacha) : formulaire -> offres -> caisse actuelle -> économie -> lettre
-at = AppTest.from_file("src/app.py", default_timeout=120).run()
+at = AppTest.from_file(os.path.abspath("src/app.py"), default_timeout=120).run()
 at.number_input(key="f_naissance").set_value(1991).run()
 at.text_input(key="f_npa").set_value("1004").run()
 at.radio(key="f_situation").set_value("sans_emploi").run()
 at.button(key="f_valider").click().run()
 s = at.session_state
 assert s.etape == "resultats", s.etape
-assert "conseiller LAMal" in s.messages[0]["contenu"] and "Apertus" in s.messages[0]["contenu"]  # présentation
+assert s.messages[0]["contenu"].startswith("Merci d'avoir rempli") and "Apertus" in s.messages[0]["contenu"]  # présentation
+assert sum("Je suis votre conseiller" in m.get("contenu", "") for m in s.messages) == 1  # une seule fois
 assert s.attente == "caisse", s.attente
 assert any(m["type"] == "resultats" for m in s.messages)
 assert not [w for w in at.multiselect if w.key == "f_besoins"]   # complémentaires désactivées

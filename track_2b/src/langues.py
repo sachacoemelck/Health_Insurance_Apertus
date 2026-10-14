@@ -667,14 +667,5 @@ _("Avec la franchise de 300 CHF et le modèle libre choix, vous pouvez aussi cha
   "With the 300 CHF deductible and the free-choice model, you can also switch on 30 June {annee} (letter received "
   "by {limite}): then adjust the date in the letter.")
 
-_("👋 Je suis votre conseiller LAMal, propulsé par **Apertus**, le modèle de langue suisse. Je compare les primes "
-  "officielles, je réponds à vos questions à partir de la loi, et je peux rédiger votre lettre de résiliation.",
-  "👋 Ich bin Ihr Berater für die Grundversicherung, angetrieben von **Apertus**, dem Schweizer Sprachmodell. Ich "
-  "vergleiche die offiziellen Prämien, beantworte Ihre Fragen auf Grundlage des Gesetzes und kann Ihr "
-  "Kündigungsschreiben verfassen.",
-  "👋 Sono il suo consulente LAMal, basato su **Apertus**, il modello linguistico svizzero. Confronto i premi "
-  "ufficiali, rispondo alle sue domande in base alla legge e posso redigere la sua lettera di disdetta.",
-  "👋 I am your Swiss basic health insurance advisor, powered by **Apertus**, the Swiss language model. I compare "
-  "the official premiums, answer your questions based on the law, and can write your cancellation letter.")
 
 TRAD = {fr: dict(zip(("de", "it", "en"), v)) for fr, v in T.items()}
