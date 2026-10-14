@@ -577,4 +577,68 @@ _("Sources : primes LAMal 2027, régions de primes et liste des assureurs admis 
   "Health (FOPH), via opendata.swiss and priminfo.admin.ch. Law texts: fedlex.admin.ch (KVG/LAMal, KVV/OAMal, "
   "KLV/OPAS, UVG/LAA). Premium subsidy offices: FOPH list.")
 
+# --- Écran de profil (formulaire avant le conseiller) ----------------------------------------
+_("Choisissez…", "Bitte wählen…", "Scelga…", "Choose…")
+_("Assurance de base LAMal 2027", "Grundversicherung KVG 2027", "Assicurazione di base LAMal 2027",
+  "Basic health insurance (KVG/LAMal) 2027")
+_("Votre assurance maladie.", "Ihre Krankenversicherung.", "La sua assicurazione malattie.", "Your health insurance.")
+_("Comparée simplement.", "Einfach verglichen.", "Confrontata con semplicità.", "Simply compared.")
+_("Les primes officielles de toutes les caisses, puis un conseiller qui répond à vos questions.",
+  "Die offiziellen Prämien aller Kassen, dann ein Berater, der Ihre Fragen beantwortet.",
+  "I premi ufficiali di tutte le casse, poi un consulente che risponde alle sue domande.",
+  "Official premiums from every insurer, then an advisor who answers your questions.")
+_("Votre profil", "Ihr Profil", "Il suo profilo", "Your profile")
+_("Ces informations servent uniquement à calculer vos primes. Elles ne sont pas enregistrées.",
+  "Diese Angaben dienen nur zur Berechnung Ihrer Prämien. Sie werden nicht gespeichert.",
+  "Queste informazioni servono solo a calcolare i suoi premi. Non vengono salvate.",
+  "This information is only used to calculate your premiums. It is not stored.")
+_("Année de naissance", "Geburtsjahr", "Anno di nascita", "Year of birth")
+_("Code postal (NPA)", "Postleitzahl (PLZ)", "Numero postale (NPA)", "Postcode")
+_("Le code postal suisse a 4 chiffres.", "Die Schweizer Postleitzahl hat 4 Ziffern.",
+  "Il numero postale svizzero ha 4 cifre.", "Swiss postcodes have 4 digits.")
+_("Code postal inconnu en Suisse.", "Unbekannte Postleitzahl in der Schweiz.",
+  "Numero postale sconosciuto in Svizzera.", "Unknown Swiss postcode.")
+_("Commune de domicile", "Wohngemeinde", "Comune di domicilio", "Municipality of residence")
+_("Situation professionnelle", "Berufliche Situation", "Situazione professionale", "Employment situation")
+_("Salarié(e), au moins 8 h par semaine chez un même employeur",
+  "Angestellt, mindestens 8 Std. pro Woche beim selben Arbeitgeber",
+  "Dipendente, almeno 8 ore a settimana presso lo stesso datore di lavoro",
+  "Employed, at least 8 hours a week with the same employer")
+_("Salarié(e), moins de 8 h par semaine chez un même employeur",
+  "Angestellt, weniger als 8 Std. pro Woche beim selben Arbeitgeber",
+  "Dipendente, meno di 8 ore a settimana presso lo stesso datore di lavoro",
+  "Employed, less than 8 hours a week with the same employer")
+_("Indépendant(e)", "Selbständig", "Indipendente", "Self-employed")
+_("Sans emploi, étudiant(e) ou retraité(e)", "Ohne Erwerbstätigkeit, in Ausbildung oder pensioniert",
+  "Senza lavoro, studente o pensionato", "Not employed, student or retired")
+_("Je ne sais pas", "Ich weiss es nicht", "Non lo so", "I don't know")
+_("Elle indique si la couverture accident doit être incluse : un employeur assure contre les accidents ses "
+  "salariés qui travaillent au moins 8 h par semaine chez lui.",
+  "Sie zeigt, ob die Unfalldeckung eingeschlossen werden muss: Ein Arbeitgeber versichert seine Angestellten, "
+  "die mindestens 8 Std. pro Woche bei ihm arbeiten, gegen Unfälle.",
+  "Indica se la copertura infortuni deve essere inclusa: un datore di lavoro assicura contro gli infortuni i "
+  "dipendenti che lavorano per lui almeno 8 ore a settimana.",
+  "It shows whether accident cover must be included: an employer insures employees who work at least 8 hours "
+  "a week for them against accidents.")
+_("Modèles d'assurance acceptés", "Akzeptierte Versicherungsmodelle", "Modelli assicurativi accettati",
+  "Accepted insurance models")
+_("Besoins en assurances complémentaires (facultatif)", "Bedarf an Zusatzversicherungen (freiwillig)",
+  "Bisogni di assicurazioni complementari (facoltativo)", "Supplementary insurance needs (optional)")
+_("année de naissance", "Geburtsjahr", "anno di nascita", "year of birth")
+_("code postal", "Postleitzahl", "numero postale", "postcode")
+_("situation professionnelle", "berufliche Situation", "situazione professionale", "employment situation")
+_("au moins un modèle", "mindestens ein Modell", "almeno un modello", "at least one model")
+_("Voir mes offres", "Meine Angebote anzeigen", "Vedere le mie offerte", "See my offers")
+_("À compléter : {champs}", "Noch auszufüllen: {champs}", "Da completare: {champs}", "Still to fill in: {champs}")
+_("Je préfère décrire ma situation dans le chat", "Ich beschreibe meine Situation lieber im Chat",
+  "Preferisco descrivere la mia situazione nella chat", "I'd rather describe my situation in the chat")
+_("Merci ! Voici vos offres, avec toutes les franchises comparées. Posez-moi vos questions, par exemple "
+  "« quelle franchise est la plus avantageuse pour moi ? » ou « c'est quoi le modèle médecin de famille ? ».",
+  "Danke! Hier sind Ihre Angebote, mit allen Franchisen im Vergleich. Stellen Sie mir Ihre Fragen, zum Beispiel "
+  "«Welche Franchise lohnt sich für mich am meisten?» oder «Was ist das Hausarztmodell?».",
+  "Grazie! Ecco le sue offerte, con tutte le franchigie a confronto. Mi ponga le sue domande, ad esempio "
+  "«Quale franchigia è la più vantaggiosa per me?» oppure «Che cos'è il modello del medico di famiglia?».",
+  "Thank you! Here are your offers, with all deductibles compared. Ask me your questions, for example "
+  "\"Which deductible is best for me?\" or \"What is the family doctor model?\".")
+
 TRAD = {fr: dict(zip(("de", "it", "en"), v)) for fr, v in T.items()}
