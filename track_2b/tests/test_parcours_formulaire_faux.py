@@ -94,7 +94,9 @@ assert "Proposition 1" in faits and "toutes les franchises sont comparées" in f
 assert s.attente == "caisse", s.attente
 assert any(m["type"] == "resultats" for m in s.messages)
 assert not [w for w in at.multiselect if w.key == "f_besoins"]   # complémentaires désactivées
-at.chat_input[0].set_value("Je suis chez Helsana, médecin de famille").run()
+assert at.text_input(key="caisse_texte") and at.button(key="caisse_calculer")   # étape caisse : champ à elle
+at.text_input(key="caisse_texte").set_value("Je suis chez Helsana, médecin de famille")
+at.button(key="caisse_calculer").click().run()
 assert at.session_state.attente == "lettre", at.session_state.attente
 at.button(key="lettre_oui").click().run()
 m = at.session_state.messages[-1]

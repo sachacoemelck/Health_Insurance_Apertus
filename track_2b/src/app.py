@@ -640,20 +640,44 @@ def afficher_questions():
     des offres sur la carte du conseiller ni défiler librement."""
     s, l = st.session_state, L()
     with st.container(key="questions"):
-        if s.get("resultats"):
+        resultats = bool(s.get("resultats"))
+        if resultats:
+            st.markdown(f"**{tr('Une question ? Posez-la-moi', l)}**")
+        # Zone de saisie d'abord (c'est l'action principale), puis des exemples à cliquer.
+        # Clé fixe : la zone n'est pas recréée d'une étape à l'autre (le message écrit n'est pas perdu).
+        st.chat_input(tr("Écrivez votre question ici…", l) if resultats else langues.PLACEHOLDER,
+                      key="saisie", on_submit=envoyer)
+        if resultats:
             posees = {m.get("contenu") for m in s.messages if m["role"] == "user"}
             proposees = [(i, tr(q, l)) for i, q in enumerate((s.get("ouverture") or {}).get("suggestions", []))
                          if tr(q, l) not in posees]
-            st.markdown(f"**{tr('Posez-moi vos questions', l)}**")
             if proposees:
+                st.caption(tr("Par exemple :", l))
                 with st.container(horizontal=True, key="suggestions"):
                     for i, q in proposees:
                         st.button(q, key=f"suggestion_{i}", on_click=poser, args=(q,))
-            st.caption(tr("Ou écrivez la vôtre ci-dessous, par exemple « que couvre la LAMal ? » ou « et avec une "
-                          "franchise de 300 ? ».", l))
-        # Texte d'exemple fixe : s'il changeait d'une étape à l'autre, Streamlit recréerait la zone de
-        # saisie et le premier message écrit après le changement d'étape serait perdu.
-        st.chat_input(langues.PLACEHOLDER, key="saisie", on_submit=envoyer)
+
+
+def calculer_caisse():
+    """Bouton « Calculer mon économie » de l'étape caisse actuelle : le texte est traité comme un message
+    (Apertus 8B lit la caisse, le modèle et la prime ; Python calcule)."""
+    texte = (st.session_state.get("caisse_texte") or "").strip()
+    if texte:
+        st.session_state.question_en_attente = texte
+
+
+def etape_caisse():
+    """Étape facultative « caisse actuelle » : un champ à elle, avec un exemple, et deux boutons clairs.
+    Séparée de la zone des questions pour qu'on ne confonde pas les deux."""
+    l = L()
+    with st.container(key="etape_caisse"):
+        st.markdown(f"**{tr('Combien économiseriez-vous ? (facultatif)', l)}**")
+        st.text_input(tr("Votre caisse actuelle, et votre modèle si vous le connaissez", l), key="caisse_texte",
+                      placeholder=tr("Ex. : Helsana, médecin de famille", l))
+        with st.container(horizontal=True):
+            st.button(tr("Calculer mon économie", l), key="caisse_calculer", on_click=calculer_caisse,
+                      type="primary")
+            bouton(tr("Passer", l), passer_caisse, cle="caisse_passer")
 
 
 def faits_formulaire(props):
@@ -1371,7 +1395,7 @@ def reponses_rapides():
         bouton(tr("J'accepte tous les modèles", l), repondre_bouton, tr("J'accepte tous les modèles", l), "care_access",
                list(CARE_TYPES), cle="care_all")
     elif s.attente == "caisse":
-        bouton(tr("Passer", L()), passer_caisse, cle="caisse_passer")
+        etape_caisse()
     elif s.attente == "caisse_choix" and s.get("choix_caisses"):
         colonnes = st.columns(min(len(s.choix_caisses), 3))
         for i, n in enumerate(s.choix_caisses):

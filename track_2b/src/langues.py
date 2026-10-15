@@ -907,11 +907,18 @@ _("Si vous voulez changer aussi de complémentaire : ne résiliez l'ancienne qu'
 _("Complémentaires de {caisse} : [{site}]({lien}).", "Zusatzversicherungen von {caisse}: [{site}]({lien}).",
   "Complementari di {caisse}: [{site}]({lien}).", "Supplementary insurance from {caisse}: [{site}]({lien}).")
 
-_("Posez-moi vos questions", "Stellen Sie mir Ihre Fragen", "Mi faccia le sue domande", "Ask me your questions")
-_("Ou écrivez la vôtre ci-dessous, par exemple « que couvre la LAMal ? » ou « et avec une franchise de 300 ? ».",
-  "Oder schreiben Sie Ihre eigene unten, zum Beispiel «Was deckt die Grundversicherung?» oder «Und mit einer Franchise von "
-  "300?».",
-  "Oppure scriva la sua qui sotto, per esempio «Cosa copre la LAMal?» o «E con una franchigia di 300?».",
-  "Or write your own below, for example “what does LAMal cover?” or “and with a 300 deductible?”.")
+
+_("Une question ? Posez-la-moi", "Eine Frage? Stellen Sie sie mir", "Una domanda? Me la faccia", "A question? Ask me")
+_("Écrivez votre question ici…", "Schreiben Sie Ihre Frage hier…", "Scriva qui la sua domanda…",
+  "Write your question here…")
+_("Par exemple :", "Zum Beispiel:", "Per esempio:", "For example:")
+_("Combien économiseriez-vous ? (facultatif)", "Wie viel würden Sie sparen? (freiwillig)",
+  "Quanto risparmierebbe? (facoltativo)", "How much would you save? (optional)")
+_("Votre caisse actuelle, et votre modèle si vous le connaissez",
+  "Ihre jetzige Kasse, und Ihr Modell, wenn Sie es kennen",
+  "La sua cassa attuale, e il suo modello se lo conosce", "Your current insurer, and your model if you know it")
+_("Ex. : Helsana, médecin de famille", "Z. B.: Helsana, Hausarztmodell", "Es.: Helsana, medico di famiglia",
+  "E.g. Helsana, family doctor")
+_("Calculer mon économie", "Meine Ersparnis berechnen", "Calcolare il mio risparmio", "Calculate my savings")
 
 TRAD = {fr: dict(zip(("de", "it", "en"), v)) for fr, v in T.items()}

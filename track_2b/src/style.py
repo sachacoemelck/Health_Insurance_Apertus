@@ -187,7 +187,18 @@ section[data-testid="stSidebar"] { background: var(--surface); border-right: 1px
     background: var(--fond); color: var(--texte-2); border-color: var(--bord);
 }
 .st-key-suggestions .stButton > button:hover { color: var(--accent); border-color: var(--accent); background: var(--accent-doux); }
-/* « Posez-moi vos questions » : en bas de la conversation, au-dessus de la zone de saisie */
+/* Étape « caisse actuelle » : un encadré à elle, avant la zone des questions */
+.st-key-etape_caisse { margin: 0.4rem 0; padding: 1rem 1.1rem 0.8rem; border: 1px solid var(--bord);
+                       border-radius: 20px; background: var(--surface); }
+.st-key-etape_caisse [data-testid="stTextInputRootElement"] { border: 1.5px solid var(--bord); background: var(--fond); border-radius: 12px; }
+.st-key-etape_caisse [data-testid="stTextInputRootElement"]:focus-within { border-color: var(--accent); }
+/* Questions proposées : le texte passe à la ligne au lieu d'être coupé (téléphone) */
+.st-key-suggestions .stButton > button { height: auto; }
+.st-key-suggestions .stButton > button p { white-space: normal; overflow: visible; text-overflow: clip; }
+/* Zone de saisie dans l'encadré des questions : bien visible (bord, fond) */
+.st-key-questions [data-testid="stChatInput"] > div { border: 1.5px solid var(--bord); background: var(--fond); }
+.st-key-questions [data-testid="stChatInput"]:focus-within > div { border-color: var(--accent); }
+/* « Posez-moi vos questions » : en bas de la conversation */
 .st-key-questions { margin-top: 0.8rem; padding: 1rem 1.1rem 0.6rem; border: 1px solid var(--bord);
                     border-radius: 20px; background: var(--surface); }
 /* « Check-out » après le choix d'une offre */
