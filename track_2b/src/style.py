@@ -115,7 +115,8 @@ section[data-testid="stSidebar"] { background: var(--surface); border-right: 1px
     transition: transform 0.25s ease, box-shadow 0.25s ease;
 }
 .carte:hover { transform: translateY(-3px); box-shadow: 0 10px 30px var(--ombre); }
-.carte.meilleure { background: var(--surface-haute); box-shadow: 0 0 0 2px var(--accent) inset; }
+/* Aucune carte mise en avant : la moins chère n'est pas forcément la bonne pour la personne (le site
+   oriente, il ne recommande pas). Elle garde seulement la mention « La moins chère ». */
 .carte .aussi { font-size: 0.75rem; color: var(--texte-3); margin: -0.4rem 0 0.6rem; line-height: 1.3; }
 .carte .titre { font-size: 0.8rem; font-weight: 600; color: var(--orange); margin: 0 0 0.6rem; line-height: 1.3; }
 .carte .prix { font-size: 2rem; font-weight: 700; letter-spacing: -0.03em; color: var(--texte); margin: 0; line-height: 1.1; }
@@ -124,7 +125,7 @@ section[data-testid="stSidebar"] { background: var(--surface); border-right: 1px
                   word-break: normal; overflow-wrap: normal; hyphens: auto; -webkit-hyphens: auto; }
 .carte .produit { font-size: 0.85rem; color: var(--texte-2); margin: 0; }
 .carte .ecart { font-size: 0.85rem; color: var(--texte); margin: 0.9rem 0 0; }
-.carte .meilleure-ecart { color: var(--accent); font-weight: 600; }
+.carte .meilleure-ecart { font-weight: 600; }
 .carte .note { font-size: 0.78rem; color: var(--texte-3); margin: 0.6rem 0 0; line-height: 1.4; }
 /* Carte d'ouverture après le formulaire : le conseiller reprend les réponses, puis Apertus parle */
 .st-key-ouverture {

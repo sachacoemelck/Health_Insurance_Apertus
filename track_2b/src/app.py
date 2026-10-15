@@ -1185,8 +1185,7 @@ def afficher_propositions(bloc, index=None):
                         if p.get("aussi") else "")
             if index is not None:
                 st.button(tr("Choisir cette offre", l), key=f"choisir_{index}_{props.index(p)}",
-                          on_click=demander_choix, args=(index, props.index(p)), width="stretch",
-                          type="primary" if p["ecart_mois"] == 0 else "secondary")
+                          on_click=demander_choix, args=(index, props.index(p)), width="stretch")
     st.caption(tr("Compatibilité par catégorie seulement : réseau de médecins, application et conditions du produit à "
                   "vérifier. " + RAPPEL_LAMAL, L()))
     if bloc["offres"]["Franchise"].nunique() > 1:
