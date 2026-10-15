@@ -38,6 +38,18 @@ def test_modele_reserve_a_certaines_communes():
         assert not propose(None), (assureur, canton, region, tarif)
 
 
+def test_propositions_sans_doublon():
+    """Une même offre n'est montrée qu'une fois ; la place libre va à une autre caisse (vu le 15.10 :
+    deux cartes Atupri HMO identiques quand seul le modèle médecin de famille est accepté)."""
+    offres = k.toutes_les_offres("VD", 1, 36, 300, True, ["PRAXIS"])
+    props = k.propositions(offres)
+    cles = [(p["assureur"], p["produit"], p["franchise"]) for p in props]
+    assert len(cles) == len(set(cles)) == 3, cles
+    assert props[0]["aussi"] == ["La moins chère avec médecin de famille / HMO"], props[0]
+    assert all(p["titre"] == k.AUTRE_CAISSE for p in props[1:])
+    assert len({p["assureur"] for p in props}) == 3
+    assert props[1]["prime_mois"] <= props[2]["prime_mois"]
+
 if __name__ == "__main__":
     tests = [f for nom, f in dict(globals()).items() if nom.startswith("test_")]
     for t in tests:

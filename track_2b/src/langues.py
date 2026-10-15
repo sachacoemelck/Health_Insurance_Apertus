@@ -821,4 +821,11 @@ _("Sur le site, choisissez : {produit} ({modele}), franchise {f} CHF, {accidents
 _("accidents inclus", "mit Unfalldeckung", "infortuni inclusi", "accidents included")
 _("accidents exclus", "ohne Unfalldeckung", "infortuni esclusi", "accidents excluded")
 
+_("La moins chère d'une autre caisse", "Die günstigste einer anderen Kasse", "La più conveniente di un'altra cassa",
+  "Cheapest from another insurer")
+_("Aussi : {x}", "Auch: {x}", "Anche: {x}", "Also: {x}")
+_("Votre choix : {caisse}", "Ihre Wahl: {caisse}", "La sua scelta: {caisse}", "Your choice: {caisse}")
+_("Apertus prépare votre demande d'affiliation…", "Apertus bereitet Ihren Antrag vor…",
+  "Apertus prepara la sua domanda di affiliazione…", "Apertus is preparing your application…")
+
 TRAD = {fr: dict(zip(("de", "it", "en"), v)) for fr, v in T.items()}

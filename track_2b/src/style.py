@@ -13,7 +13,7 @@ CSS = """
 <style>
 /* Couleurs : une variable par rôle, en clair et en sombre. light-dark() suit le thème choisi dans
    Streamlit (menu ⋮ > Settings, ou le réglage du système) : Streamlit pose color-scheme sur .stApp. */
-.stApp {
+.stApp, [data-testid="stDialog"], div[role="dialog"] {
     --texte: light-dark(#1d1d1f, #f5f5f7);
     --texte-2: light-dark(#6e6e73, #a1a1a6);
     --texte-3: light-dark(#86868b, #8e8e93);
@@ -31,7 +31,8 @@ CSS = """
     --filet: light-dark(rgba(0, 0, 0, 0.06), rgba(255, 255, 255, 0.08));
     --ombre: light-dark(rgba(0, 0, 0, 0.08), rgba(0, 0, 0, 0.55));
 }
-html, body, .stApp, .stApp *:not([data-testid="stIconMaterial"]):not(.material-symbols-rounded) {
+html, body, .stApp, .stApp *:not([data-testid="stIconMaterial"]):not(.material-symbols-rounded),
+div[role="dialog"] *:not([data-testid="stIconMaterial"]):not(.material-symbols-rounded) {
     font-family: -apple-system, BlinkMacSystemFont, "SF Pro Text", "SF Pro Display", "Helvetica Neue",
                  Helvetica, Arial, sans-serif;
     -webkit-font-smoothing: antialiased;
@@ -115,6 +116,7 @@ section[data-testid="stSidebar"] { background: var(--surface); border-right: 1px
 }
 .carte:hover { transform: translateY(-3px); box-shadow: 0 10px 30px var(--ombre); }
 .carte.meilleure { background: var(--surface-haute); box-shadow: 0 0 0 2px var(--accent) inset; }
+.carte .aussi { font-size: 0.75rem; color: var(--texte-3); margin: -0.4rem 0 0.6rem; line-height: 1.3; }
 .carte .titre { font-size: 0.8rem; font-weight: 600; color: var(--orange); margin: 0 0 0.6rem; line-height: 1.3; }
 .carte .prix { font-size: 2rem; font-weight: 700; letter-spacing: -0.03em; color: var(--texte); margin: 0; line-height: 1.1; }
 .carte .prix span { display: block; font-size: 0.85rem; font-weight: 500; color: var(--texte-3); letter-spacing: 0; }
@@ -226,12 +228,13 @@ def entete(surtitre, titre, titre_gris, sous_titre, note=""):
         unsafe_allow_html=True)
 
 
-def carte(titre, prix, unite, assureur, produit, ecart, note, meilleure=False):
+def carte(titre, prix, unite, assureur, produit, ecart, note, meilleure=False, aussi=""):
     e = html.escape
     st.markdown(
         f'<div class="carte{" meilleure" if meilleure else ""}">'
         f'<p class="titre">{e(titre)}</p>'
-        f'<p class="prix">{e(prix)}<span>{e(unite)}</span></p>'
+        + (f'<p class="aussi">{e(aussi)}</p>' if aussi else "")
+        + f'<p class="prix">{e(prix)}<span>{e(unite)}</span></p>'
         f'<p class="assureur" lang="de">{e(assureur)}</p><p class="produit">{e(produit)}</p>'
         f'<p class="ecart{" meilleure-ecart" if meilleure else ""}">{e(ecart)}</p>'
         f'<p class="note">{e(note)}</p></div>',

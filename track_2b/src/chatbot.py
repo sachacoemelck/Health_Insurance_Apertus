@@ -759,7 +759,8 @@ def faits_propositions(propositions, priorite=None):
     for i, p in enumerate(propositions, 1):
         ecart = ("c'est la moins chère" if p["ecart_mois"] == 0
                  else f"{p['ecart_mois']:.2f} CHF de plus par mois que la moins chère")
-        lignes.append(f"Proposition {i} — {p['titre']} : {p['assureur']}, modèle {p['modele']}, "
+        aussi = f" (c'est aussi : {', '.join(x.lower() for x in p['aussi'])})" if p.get("aussi") else ""
+        lignes.append(f"Proposition {i} — {p['titre']}{aussi} : {p['assureur']}, modèle {p['modele']}, "
                       f"{p['prime_mois']:.2f} CHF par mois, {ecart}. "
                       f"Franchise : {p['franchise']} CHF. Contrepartie : {p['contrepartie']}")
     lignes.append("Source : primes officielles OFSP 2027.")

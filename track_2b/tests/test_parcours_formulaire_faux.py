@@ -105,7 +105,7 @@ liens = [b for b in at.get("link_button")]
 assert liens and liens[0].proto.url.startswith("mailto:info@atupri.ch?subject="), [b.proto.url for b in liens]
 assert not at.exception, [e.value for e in at.exception]
 MODE["affiliation"] = "mauvaise"   # numéro AVS inventé -> refusé deux fois -> demande modèle
-at.button(key="choisir_0_2").click().run()
+at.button(key="choisir_0_1").click().run()
 m = at.session_state.messages[-1]
 assert m["par"] == "modele" and "756" not in m["texte"] and m["choix"]["caisse"].upper().startswith("GALENOS")
 MODE["affiliation"] = None

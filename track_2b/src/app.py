@@ -811,13 +811,40 @@ def choisir_offre(index, j):
     s.attente = None
 
 
-def afficher_affiliation(m, i):
+def demander_choix(index, j):
+    """Clic sur « Choisir cette offre » : la fenêtre du choix s'ouvre à l'affichage suivant."""
+    st.session_state.choix_demande = (index, j)
+
+
+def ouvrir_fenetre_choix(index, j):
+    """Fenêtre qui s'ouvre par-dessus la page : Apertus prépare la demande, puis les étapes jusqu'à
+    l'inscription. Le choix reste aussi dans la conversation (on peut fermer la fenêtre et y revenir)."""
+    s, l = st.session_state, L()
+    p = s.resultats[index]["propositions"][j]
+
+    @st.dialog(tr("Votre choix : {caisse}", l, caisse=p["assureur"]), width="large", on_dismiss="rerun")
+    def fenetre():
+        if s.get("choix_affiche") != (index, j):  # rédigée une seule fois, même si la fenêtre se réaffiche
+            try:
+                with st.spinner(tr("Apertus prépare votre demande d'affiliation…", l)):
+                    choisir_offre(index, j)
+            except ErreurLLM:
+                st.error(tr("Apertus ne répond pas pour le moment. Réessayez dans un instant.", l))
+                return
+            s.choix_affiche = (index, j)
+        i = max(k for k, m in enumerate(s.messages) if m["type"] == "affiliation")
+        afficher_affiliation(s.messages[i], i, suffixe="_fenetre")
+
+    fenetre()
+
+
+def afficher_affiliation(m, i, suffixe=""):
     """« Check-out » : récapitulatif du choix, puis les étapes, chacune avec ce qu'il faut pour la faire."""
     l, ch = L(), m["choix"]
     contact = caisses.contact(ch["numero"])
     debut = affiliation.debut_couverture(ch["annee"])
     fin, limite = changement.dates(ch["annee"])
-    with st.container(key=f"checkout_{i}"):
+    with st.container(key=f"checkout_{i}{suffixe}"):
         style.recapitulatif_choix(
             tr("Votre choix", l), ch["caisse"], f"{ch['produit']} — {tr(ch['modele'], l)}",
             [tr("Franchise {f} CHF", l, f=ch["franchise"]),
@@ -857,7 +884,7 @@ def afficher_affiliation(m, i):
         with st.expander(tr("Voir et copier la demande", l)):
             st.code(lettre, language=None, wrap_lines=True)
             st.download_button(tr("Télécharger la demande (.txt)", l), data=lettre.encode("utf-8"),
-                               file_name="demande_affiliation.txt", mime="text/plain", key=f"affiliation_{i}")
+                               file_name="demande_affiliation.txt", mime="text/plain", key=f"affiliation_{i}{suffixe}")
         if contact:
             liens = []
             if contact["telephone"]:
@@ -886,14 +913,14 @@ def afficher_affiliation(m, i):
             st.caption("✅ " + tr("Votre lettre de résiliation est prête plus haut dans la conversation.", l))
         elif ch.get("ancienne"):
             bouton(tr("Rédiger ma lettre de résiliation pour {caisse}", l, caisse=ch["ancienne"]), ecrire_lettre,
-                   cle=f"resiliation_{i}")
+                   cle=f"resiliation_{i}{suffixe}")
         else:
             st.caption(tr("Dites-moi chez quelle caisse vous êtes aujourd'hui : je rédige la lettre de résiliation. "
                           "Si vous arrivez en Suisse, il n'y a rien à résilier.", l))
         st.download_button("📅 " + tr("Ajouter un rappel à mon agenda", l),
                            data=affiliation.rappel_ics(limite, ch.get("ancienne") or tr("votre caisse actuelle", l), l)
                            .encode("utf-8"), file_name="rappel_resiliation.ics", mime="text/calendar",
-                           key=f"rappel_{i}")
+                           key=f"rappel_{i}{suffixe}")
 
 
 def repondre_lettre(oui):
@@ -1072,10 +1099,12 @@ def afficher_propositions(bloc, index=None):
                         tr("La moins chère", l) if p["ecart_mois"] == 0
                         else tr("+{x} CHF / mois par rapport à la moins chère", l, x=f"{p['ecart_mois']:.2f}"),
                         tr("Franchise : {f} CHF. Contrepartie : {c}", l, f=p["franchise"], c=tr(p["contrepartie"], l)),
-                        meilleure=p["ecart_mois"] == 0)
+                        meilleure=p["ecart_mois"] == 0,
+                        aussi=tr("Aussi : {x}", l, x=", ".join(tr(x, l).lower() for x in p.get("aussi", [])))
+                        if p.get("aussi") else "")
             if index is not None:
                 st.button(tr("Choisir cette offre", l), key=f"choisir_{index}_{props.index(p)}",
-                          on_click=lancer, args=(choisir_offre, index, props.index(p)), width="stretch",
+                          on_click=demander_choix, args=(index, props.index(p)), width="stretch",
                           type="primary" if p["ecart_mois"] == 0 else "secondary")
     st.caption(tr("Compatibilité par catégorie seulement : réseau de médecins, application et conditions du produit à "
                   "vérifier. " + RAPPEL_LAMAL, L()))
@@ -1523,6 +1552,8 @@ def main():
             else:
                 afficher_resultats(s.resultats[m["index"]], m["index"])
     reponses_rapides()
+    if s.get("choix_demande"):  # « Choisir cette offre » : la fenêtre du choix s'ouvre
+        ouvrir_fenetre_choix(*s.pop("choix_demande"))
 
     afficher_sources()
 
