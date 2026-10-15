@@ -79,3 +79,17 @@ def adresse_postale(numero, nom_affiche=None):
     # première ligne avec un numéro (rue, case postale, NPA) ou « Postfach / Case postale »
     debut = next((i for i, l in enumerate(lignes) if re.search(r"\d|postfach|case postale|casella", l, re.I)), 0)
     return [nom_affiche or c["nom"]] + lignes[debut:]
+
+
+# Page d'inscription / de demande d'offre en ligne de chaque caisse (assurance de base), trouvée par
+# tests/apertus/trouver_liens_caisses.py et vérifiée (la page répond) le JJ.MM.2026. Sans lien vérifié,
+# l'application donne le site officiel de la liste OFSP.
+LIENS_INSCRIPTION = {}
+
+
+def lien_inscription(numero):
+    """(adresse, True) si une page d'inscription vérifiée existe, sinon (site officiel, False)."""
+    if numero in LIENS_INSCRIPTION:
+        return LIENS_INSCRIPTION[numero], True
+    c = contact(numero)
+    return (c["site"] if c else None), False

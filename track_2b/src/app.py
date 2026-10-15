@@ -841,6 +841,14 @@ def afficher_affiliation(m, i):
         elif contact:
             st.caption(tr("{caisse} ne publie pas d'adresse e-mail dans la liste officielle de l'OFSP : envoyez la "
                           "demande par la poste (adresse déjà dans la lettre) ou via son site.", l, caisse=ch["caisse"]))
+        lien, inscription = caisses.lien_inscription(ch["numero"])
+        if lien:
+            st.link_button("🌐 " + (tr("S'inscrire en ligne chez {caisse}", l, caisse=ch["caisse"]) if inscription
+                                   else tr("Site officiel de {caisse}", l, caisse=ch["caisse"])), lien, width="stretch")
+            st.caption(tr("Sur le site, choisissez : {produit} ({modele}), franchise {f} CHF, {accidents}, début le "
+                          "{debut}.", l, produit=ch["produit"], modele=tr(ch["modele"], l), f=ch["franchise"],
+                          accidents=tr("accidents inclus", l) if ch["accident"] else tr("accidents exclus", l),
+                          debut=f"{debut.day:02d}.{debut.month:02d}.{debut.year}"))
         if m["langue"] != l:
             st.caption(tr("La demande est écrite dans une langue officielle de votre canton.", l))
         lettre = affiliation.avec_adresse(texte, ch["numero"], ch["caisse"])
@@ -852,8 +860,6 @@ def afficher_affiliation(m, i):
             liens = []
             if contact["telephone"]:
                 liens.append(f"📞 {contact['telephone']}")
-            if contact["site"]:
-                liens.append(f"🌐 [{contact['site'].replace('https://', '')}]({contact['site']})")
             adresse = caisses.adresse_postale(ch["numero"], ch["caisse"])
             if adresse:
                 liens.append("📮 " + ", ".join(adresse[1:]))

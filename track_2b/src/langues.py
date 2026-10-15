@@ -808,4 +808,15 @@ _("Vous restez chez {caisse} : rien à résilier, la demande ci-dessus suffit po
   "You are staying with {caisse}: nothing to cancel, the application above is enough to change product or "
   "deductible (same deadline).")
 
+_("S'inscrire en ligne chez {caisse}", "Online bei {caisse} anmelden", "Iscriversi online presso {caisse}",
+  "Sign up online with {caisse}")
+_("Site officiel de {caisse}", "Offizielle Website von {caisse}", "Sito ufficiale di {caisse}",
+  "Official website of {caisse}")
+_("Sur le site, choisissez : {produit} ({modele}), franchise {f} CHF, {accidents}, début le {debut}.",
+  "Wählen Sie auf der Website: {produit} ({modele}), Franchise {f} CHF, {accidents}, Beginn am {debut}.",
+  "Sul sito scelga: {produit} ({modele}), franchigia {f} CHF, {accidents}, inizio il {debut}.",
+  "On the website, choose: {produit} ({modele}), deductible {f} CHF, {accidents}, start on {debut}.")
+_("accidents inclus", "mit Unfalldeckung", "infortuni inclusi", "accidents included")
+_("accidents exclus", "ohne Unfalldeckung", "infortuni esclusi", "accidents excluded")
+
 TRAD = {fr: dict(zip(("de", "it", "en"), v)) for fr, v in T.items()}
