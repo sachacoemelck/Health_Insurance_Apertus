@@ -921,4 +921,33 @@ _("Ex. : Helsana, médecin de famille", "Z. B.: Helsana, Hausarztmodell", "Es.: 
   "E.g. Helsana, family doctor")
 _("Calculer mon économie", "Meine Ersparnis berechnen", "Calcolare il mio risparmio", "Calculate my savings")
 
+# Ordre du parcours : offres -> économie -> choix -> inscription -> lettre ; caisse actuelle dans le formulaire
+_("Pour changer, cliquez sur « Choisir cette offre » sous l'offre qui vous convient : je vous guide jusqu'à "
+  "l'inscription, puis je rédige votre lettre de résiliation pour {caisse}.",
+  "Zum Wechseln klicken Sie unter dem passenden Angebot auf «Dieses Angebot wählen»: Ich begleite Sie bis zur "
+  "Anmeldung und verfasse danach Ihr Kündigungsschreiben für {caisse}.",
+  "Per cambiare, clicchi su «Scegliere questa offerta» sotto l'offerta che le conviene: la accompagno fino "
+  "all'iscrizione, poi redigo la sua lettera di disdetta per {caisse}.",
+  "To switch, click “Choose this offer” under the offer that suits you: I will guide you through the application, "
+  "then write your cancellation letter for {caisse}.")
+_("Votre caisse actuelle", "Ihre jetzige Kasse", "La sua cassa attuale", "Your current insurer")
+_("Choisissez votre caisse actuelle…", "Wählen Sie Ihre jetzige Kasse…", "Scelga la sua cassa attuale…",
+  "Choose your current insurer…")
+_("Rédiger ma lettre de résiliation", "Mein Kündigungsschreiben verfassen", "Redigere la mia lettera di disdetta",
+  "Write my cancellation letter")
+_("Si vous arrivez en Suisse, il n'y a rien à résilier.", "Wenn Sie neu in die Schweiz ziehen, gibt es nichts zu "
+  "kündigen.", "Se arriva in Svizzera, non c'è nulla da disdire.", "If you are moving to Switzerland, there is "
+  "nothing to cancel.")
+_("Votre caisse actuelle (facultatif)", "Ihre jetzige Kasse (freiwillig)", "La sua cassa attuale (facoltativo)",
+  "Your current insurer (optional)")
+_("Je calcule ce que vous économiseriez en changeant. Si vous arrivez en Suisse, laissez vide.",
+  "Ich berechne, wie viel Sie mit einem Wechsel sparen würden. Wenn Sie neu in die Schweiz ziehen, leer lassen.",
+  "Calcolo quanto risparmierebbe cambiando. Se arriva in Svizzera, lasci vuoto.",
+  "I calculate how much you would save by switching. If you are moving to Switzerland, leave it empty.")
+_("Je n'ai pas reconnu la caisse « {texte} ». Indiquez-la ci-dessous (ex. : Helsana).",
+  "Ich habe die Kasse «{texte}» nicht erkannt. Geben Sie sie unten an (z. B. Helsana).",
+  "Non ho riconosciuto la cassa «{texte}». La indichi qui sotto (es. Helsana).",
+  "I did not recognise the insurer “{texte}”. Please enter it below (e.g. Helsana).")
+_("Aujourd'hui : {caisse}", "Heute: {caisse}", "Oggi: {caisse}", "Today: {caisse}")
+
 TRAD = {fr: dict(zip(("de", "it", "en"), v)) for fr, v in T.items()}

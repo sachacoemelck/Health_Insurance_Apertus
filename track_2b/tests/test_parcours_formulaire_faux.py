@@ -97,11 +97,9 @@ assert not [w for w in at.multiselect if w.key == "f_besoins"]   # complémentai
 assert at.text_input(key="caisse_texte") and at.button(key="caisse_calculer")   # étape caisse : champ à elle
 at.text_input(key="caisse_texte").set_value("Je suis chez Helsana, médecin de famille")
 at.button(key="caisse_calculer").click().run()
-assert at.session_state.attente == "lettre", at.session_state.attente
-at.button(key="lettre_oui").click().run()
-m = at.session_state.messages[-1]
-assert m["type"] == "lettre", m["type"]
-assert "8081 Zürich" in m["texte"] and "[Adresse de la caisse]" not in m["texte"], m["texte"]  # adresse OFSP de Helsana
+# Ordre de la vraie vie : après l'économie, on invite à choisir une offre (pas de lettre avant le choix)
+assert at.session_state.attente is None and "Choisir cette offre" in at.session_state.messages[-1]["contenu"]
+assert not [b for b in at.button if b.key == "lettre_oui"]
 # « Choisir cette offre » -> demande d'affiliation rédigée (Apertus), vérifiée, e-mail prêt
 at.button(key="choisir_0_0").click().run()
 m = at.session_state.messages[-1]
@@ -122,6 +120,13 @@ assert "fedlex.admin.ch" in tableau and "LAMal art. 31" in tableau, tableau
 info = " ".join(x.value for x in at.info)
 assert "il faut une assurance complémentaire" in info and "LAMal art. 7 al. 7 et 8" in info, info
 assert "acceptation écrite" in info and "atupri.ch" in info, info
+# Étape 3 : la lettre de résiliation pour la caisse actuelle (connue), affichée dans la fiche du choix
+cle = next(b.key for b in at.button if (b.key or "").startswith("resiliation_"))
+at.button(key=cle).click().run()
+m = at.session_state.lettre_fiche
+assert m["caisse"] == "Helsana" and "8081 Zürich" in m["texte"] and "[Adresse de la caisse]" not in m["texte"], m
+assert not any(x["type"] == "lettre" for x in at.session_state.messages)        # pas en double dans le chat
+assert any("Helsana\nPostfach\n8081 Zürich" in c.value for c in at.code)       # visible dans l'étape 3
 assert not at.exception, [e.value for e in at.exception]
 MODE["affiliation"] = "mauvaise"   # numéro AVS inventé -> refusé deux fois -> demande modèle
 at.button(key="choisir_0_1").click().run()
@@ -173,6 +178,25 @@ assert "suggestion_0" not in [b.key for b in at6.button] and "suggestion_1" in [
 assert at6.session_state.messages[-1]["role"] == "assistant"            # la réponse suit la question, en bas
 at6.chat_input[0].set_value("Que couvre la LAMal ?").run()              # message écrit : même chemin
 assert at6.session_state.messages[-2]["contenu"] == "Que couvre la LAMal ?" and at6.session_state.messages[-1]["role"] == "assistant"
+# Étape 3 sans caisse connue : liste des caisses, puis la lettre
+at6.button(key="choisir_0_0").click().run()
+liste = next(w for w in at6.selectbox if (w.key or "").startswith("ancienne_"))
+liste.set_value(1479)
+at6.button(key=next(b.key for b in at6.button if (b.key or "").startswith("resiliation_"))).click().run()
+assert at6.session_state.lettre_fiche["caisse"] == changement.CAISSES[1479], at6.session_state.lettre_fiche
+# Caisse actuelle dite dans le formulaire : l'économie arrive sous les offres, sans question en plus
+at9 = AppTest.from_file(os.path.abspath("src/app.py"), default_timeout=120).run()
+at9.number_input(key="f_naissance").set_value(1991).run()
+at9.text_input(key="f_npa").set_value("1004").run()
+at9.radio(key="f_situation").set_value("independant").run()
+at9.text_input(key="f_caisse").set_value("Helsana, médecin de famille").run()
+at9.button(key="f_valider").click().run()
+s9 = at9.session_state
+assert s9.attente is None and s9.economie["caisse"] == "Helsana", (s9.attente, s9.get("economie"))
+assert not [w for w in at9.text_input if w.key == "caisse_texte"]               # pas d'étape caisse en plus
+assert "CHF" in s9.messages[-2]["contenu"] and "Choisir cette offre" in s9.messages[-1]["contenu"]
+assert any("Aujourd" in x.value and "Helsana, médecin de famille" in x.value for x in at9.markdown)   # étiquette
+assert not at9.exception, [e.value for e in at9.exception]
 # « Je ne sais pas » : une précision d'abord, puis l'ouverture quand les offres sont calculées
 MODE["ouverture"] = None
 at7 = AppTest.from_file(os.path.abspath("src/app.py"), default_timeout=120).run()

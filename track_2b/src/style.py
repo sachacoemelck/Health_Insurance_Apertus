@@ -71,6 +71,14 @@ hr { border-color: var(--ligne) !important; }
 }
 .entete .note { font-size: 0.85rem; color: var(--texte-3); margin-top: 1.4rem; }
 .entete .note b { color: var(--texte); font-weight: 600; }
+/* Page des offres : en-tête compact (une ligne), la carte du conseiller est visible tout de suite */
+.entete.compacte { padding: 0 0 0.8rem; }
+.entete.compacte .surtitre { font-size: 0.8rem; margin-bottom: 0.2rem; }
+.entete.compacte h1 { font-size: clamp(1.35rem, 2.6vw, 1.9rem) !important; line-height: 1.2; }
+.entete.compacte h1 br { display: none; }
+.entete.compacte h1 .gris::before { content: " "; }
+.entete.compacte .sous-titre { display: none; }
+.entete.compacte .note { margin-top: 0.5rem; font-size: 0.78rem; }
 
 /* Barre latérale */
 section[data-testid="stSidebar"] { background: var(--surface); border-right: 1px solid var(--filet); }
@@ -258,11 +266,12 @@ def appliquer():
                                         "</style>"), unsafe_allow_html=True)
 
 
-def entete(surtitre, titre, titre_gris, sous_titre, note=""):
-    """Grand titre centré ; tous les textes sont échappés (ils viennent des traductions)."""
+def entete(surtitre, titre, titre_gris, sous_titre, note="", compact=False):
+    """Grand titre centré ; tous les textes sont échappés (ils viennent des traductions). Compact sur la page
+    des offres : une ligne de titre, pour que la carte du conseiller soit tout de suite visible."""
     e = html.escape
     st.markdown(
-        f'<div class="entete"><p class="surtitre">{e(surtitre)}</p>'
+        f'<div class="entete{" compacte" if compact else ""}"><p class="surtitre">{e(surtitre)}</p>'
         f'<h1>{e(titre)}<br><span class="gris">{e(titre_gris)}</span></h1>'
         f'<p class="sous-titre">{e(sous_titre)}</p>'
         + (f'<p class="note">{note}</p>' if note else "") + "</div>",

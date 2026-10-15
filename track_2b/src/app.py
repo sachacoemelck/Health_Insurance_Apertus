@@ -585,6 +585,8 @@ def recapitulatif_formulaire(l):
     etiquettes.append(("🩺", tr("Tous les modèles", l) if set(modeles) == set(CARE_TYPES)
                        else ", ".join(tr(CARE_LABELS[k], l) for k in modeles)))
     etiquettes.append(("💰", tr("Toutes les franchises comparées", l)))
+    if st.session_state.get("caisse_formulaire"):
+        etiquettes.append(("🏥", tr("Aujourd'hui : {caisse}", l, caisse=st.session_state.caisse_formulaire)))
     besoins = st.session_state.get("hors_lamal") or []
     if besoins:
         etiquettes.append(("➕", tr("Hors assurance de base : {x}", l,
@@ -816,8 +818,11 @@ def montrer_economie(numero=None, modele=None, prime_mois=None, rediger=True):
         dire(texte or changement.texte_economie_secours(e, L()))
         s.economie = e
     if rediger and e["caisse"] and s.economie.get("autre_caisse"):
-        dire(tr("Souhaitez-vous que je rédige votre lettre de résiliation pour {caisse} ?", L(), caisse=e["caisse"]))
-        s.attente = "lettre"
+        # Ordre de la vraie vie : choisir et demander la nouvelle caisse d'abord, résilier ensuite. La lettre
+        # est proposée dans les étapes du choix (étape 3), plus ici.
+        dire(tr("Pour changer, cliquez sur « Choisir cette offre » sous l'offre qui vous convient : je vous guide "
+                "jusqu'à l'inscription, puis je rédige votre lettre de résiliation pour {caisse}.", L(),
+                caisse=e["caisse"]))
     return True
 
 
@@ -828,20 +833,37 @@ def choisir_caisse(numero):
     montrer_economie(numero, lu.get("modele"), lu.get("prime_mois"))
 
 
-def ecrire_lettre():
-    """Lettre de résiliation rédigée par Apertus 70B ; Python vérifie les éléments obligatoires."""
+def ecrire_lettre(numero=None, dans_fiche=False):
+    """Lettre de résiliation rédigée par Apertus 70B ; Python vérifie les éléments obligatoires.
+    Caisse : celle de l'économie, ou `numero` (choisie dans la liste à l'étape 3 du choix). Depuis le choix
+    d'une offre, la lettre s'affiche dans l'étape 3 (dans_fiche) ; sinon dans la conversation."""
     s, cfg = st.session_state, config()
-    e, profil = s.economie, s.profil["comparison"]
+    profil = s.profil["comparison"]
+    if numero is None:
+        numero, caisse = (s.get("economie") or {}).get("numero"), (s.get("economie") or {}).get("caisse")
+    else:
+        caisse = changement.CAISSES[numero]
     langue = changement.langue_lettre(L(), profil.canton)
     # La lettre est la tâche principale de ce tour : un délai à elle (deux essais au plus)
     rediger = appel("demander_llm", cfg["LLM_NAME_RESTITUTION"], 40)
-    lettre, par = changement.rediger_lettre(rediger, e["caisse"], langue, profil.premium_year)
-    adresse = caisses.adresse_postale(e.get("numero"))
+    lettre, par = changement.rediger_lettre(rediger, caisse, langue, profil.premium_year)
+    adresse = caisses.adresse_postale(numero)
     if adresse:  # adresse officielle de la caisse (liste OFSP) à la place du champ à compléter
         lettre = lettre.replace(changement.CHAMP_ADRESSE_CAISSE[langue], "\n".join(adresse[1:]))
-    s.messages.append({"role": "assistant", "type": "lettre", "texte": lettre, "langue": langue, "par": par,
-                       "annee": profil.premium_year})
+    m = {"role": "assistant", "type": "lettre", "texte": lettre, "langue": langue, "par": par,
+         "annee": profil.premium_year, "caisse": caisse}
+    if dans_fiche:
+        s.lettre_fiche = m
+    else:
+        s.messages.append(m)
     s.attente = None
+
+
+def lettre_choisie(cle):
+    """Étape 3 sans caisse connue : la caisse est choisie dans la liste, puis la lettre est rédigée."""
+    numero = st.session_state.get(cle)
+    if numero is not None:
+        lancer(ecrire_lettre, numero, True)
 
 
 NUMEROS_CAISSES = {nom: numero for numero, nom in ASSUREURS.items()}
@@ -982,20 +1004,33 @@ def afficher_affiliation(m, i, suffixe=""):
         st.markdown(f"**3. {tr('Résilier l’assurance de base (LAMal) chez votre caisse actuelle avant le {limite}', l, limite=f'{limite.day}.{limite.month:02d}.{limite.year}')}**")
         st.caption(tr("La lettre résilie uniquement l'assurance de base (LAMal). Vos assurances complémentaires "
                       "continuent chez votre caisse actuelle.", l))
-        deja = any(x["type"] == "lettre" for x in st.session_state.messages)
-        if ch.get("meme_caisse"):
+        s = st.session_state
+        actuelle = (s.get("economie") or {}).get("caisse")  # caisse dite dans le formulaire ou plus tard
+        ancienne = actuelle if actuelle and actuelle != ch["caisse"] else None
+        fiche = s.get("lettre_fiche")
+        dans_chat = [x for x in s.messages if x["type"] == "lettre"]
+        if actuelle and actuelle == ch["caisse"]:
             st.caption("✅ " + tr("Vous restez chez {caisse} : rien à résilier, la demande ci-dessus suffit pour changer "
                                  "de produit ou de franchise (même délai).", l, caisse=ch["caisse"]))
-        elif deja:
+        elif fiche and fiche["caisse"] != ch["caisse"]:
+            afficher_lettre(fiche, f"fiche_{i}{suffixe}", titre=False)
+            ancienne = fiche["caisse"]
+        elif dans_chat:
             st.caption("✅ " + tr("Votre lettre de résiliation est prête plus haut dans la conversation.", l))
-        elif ch.get("ancienne"):
-            bouton(tr("Rédiger ma lettre de résiliation pour {caisse}", l, caisse=ch["ancienne"]), ecrire_lettre,
-                   cle=f"resiliation_{i}{suffixe}")
+        elif ancienne:
+            bouton("✍️ " + tr("Rédiger ma lettre de résiliation pour {caisse}", l, caisse=ancienne), ecrire_lettre,
+                   None, True, cle=f"resiliation_{i}{suffixe}")
         else:
-            st.caption(tr("Dites-moi chez quelle caisse vous êtes aujourd'hui : je rédige la lettre de résiliation. "
-                          "Si vous arrivez en Suisse, il n'y a rien à résilier.", l))
+            cle = f"ancienne_{i}{suffixe}"
+            st.selectbox(tr("Votre caisse actuelle", l), [n for n in sorted(changement.CAISSES,
+                         key=lambda n: changement.CAISSES[n]) if changement.CAISSES[n] != ch["caisse"]],
+                         index=None, format_func=changement.CAISSES.get, key=cle,
+                         placeholder=tr("Choisissez votre caisse actuelle…", l))
+            st.button("✍️ " + tr("Rédiger ma lettre de résiliation", l), key=f"resiliation_{i}{suffixe}",
+                      on_click=lettre_choisie, args=(cle,))
+            st.caption(tr("Si vous arrivez en Suisse, il n'y a rien à résilier.", l))
         st.download_button("📅 " + tr("Ajouter un rappel à mon agenda", l),
-                           data=affiliation.rappel_ics(limite, ch.get("ancienne") or tr("votre caisse actuelle", l), l)
+                           data=affiliation.rappel_ics(limite, ancienne or tr("votre caisse actuelle", l), l)
                            .encode("utf-8"), file_name="rappel_resiliation.ics", mime="text/calendar",
                            key=f"rappel_{i}{suffixe}")
 
@@ -1292,9 +1327,10 @@ def afficher_preferences(lignes, positions=None):
                   "les conditions du produit avant de changer.", lg))
 
 
-def afficher_lettre(m, i):
+def afficher_lettre(m, i, titre=True):
     l = L()
-    st.markdown(f"**{tr('Votre lettre de résiliation', l)}**")
+    if titre:
+        st.markdown(f"**{tr('Votre lettre de résiliation', l)}**")
     if m["par"] == "apertus":
         st.caption(tr("Rédigée par Apertus ; les éléments obligatoires ont été vérifiés par l'application.", l))
     else:
@@ -1302,8 +1338,9 @@ def afficher_lettre(m, i):
     if m["langue"] != l:
         st.caption(tr("La lettre est écrite dans une langue officielle de votre canton, celle que votre caisse "
                       "utilise.", l))
-    st.caption(tr("Cette lettre résilie uniquement l'assurance de base (LAMal). Vos assurances complémentaires "
-                  "continuent.", l))
+    if titre:  # dans l'étape 3 du choix, cette phrase est déjà juste au-dessus
+        st.caption(tr("Cette lettre résilie uniquement l'assurance de base (LAMal). Vos assurances complémentaires "
+                      "continuent.", l))
     st.code(m["texte"], language=None, wrap_lines=True)
     st.download_button(tr("Télécharger la lettre (.txt)", l), data=m["texte"].encode("utf-8"),
                        file_name="resiliation_assurance_de_base.txt", mime="text/plain", key=f"lettre_{i}")
@@ -1520,7 +1557,8 @@ def npa_saisi():
     return int(texte) if texte.isdigit() and len(texte) == 4 else None
 
 
-CLES_FORMULAIRE = ("f_naissance", "f_npa", "f_commune", "f_situation", "f_modeles", "f_besoins", "f_hors_lamal")
+CLES_FORMULAIRE = ("f_naissance", "f_npa", "f_commune", "f_situation", "f_modeles", "f_besoins", "f_hors_lamal",
+                   "f_caisse")
 
 
 def sauver_formulaire():
@@ -1597,10 +1635,19 @@ def soumettre_formulaire():
     sauver_formulaire()
     s.remonter = "conseiller"  # la page des offres s'ouvre sur la carte du conseiller
     s.hors_lamal = list(s.get("f_hors_lamal") or [])  # gardé après le formulaire (le champ, lui, disparaît)
+    s.caisse_formulaire = str(s.get("f_caisse") or "").strip()
+    if s.caisse_formulaire:
+        s.caisse_demandee = True  # déjà dite : le conseiller ne la redemande pas
     npa = npa_saisi()
     try:
         valider_formulaire(s["f_naissance"], npa, commune_choisie(npa), s["f_situation"],
                            s["f_modeles"], s.get("f_besoins", []))
+        if s.caisse_formulaire and s.resultats:
+            # Apertus 8B lit la caisse, le modèle et la prime ; Python calcule l'économie juste sous les offres
+            if not traiter_caisse(s.caisse_formulaire):
+                dire(tr("Je n'ai pas reconnu la caisse « {texte} ». Indiquez-la ci-dessous (ex. : Helsana).", L(),
+                        texte=s.caisse_formulaire))
+                s.attente = "caisse"
     except ErreurLLM:
         dire(tr("Apertus ne répond pas pour le moment. Réessayez dans un instant.", L()))
 
@@ -1634,6 +1681,9 @@ def ecran_profil():
     modeles = st.multiselect(tr("Modèles d'assurance acceptés", l), list(CARE_TYPES),
                              default=None if "f_modeles" in st.session_state else list(CARE_TYPES),
                              format_func=lambda k: tr(CARE_LABELS[k], l), key="f_modeles", placeholder=tr("Choisissez…", l))
+    st.text_input(tr("Votre caisse actuelle (facultatif)", l), key="f_caisse",
+                  placeholder=tr("Ex. : Helsana, médecin de famille", l))
+    st.caption(tr("Je calcule ce que vous économiseriez en changeant. Si vous arrivez en Suisse, laissez vide.", l))
     st.multiselect(tr("Ce qui compte aussi pour moi (facultatif)", l), list(hors_lamal.BESOINS),
                    default=None if "f_hors_lamal" in st.session_state else [],
                    format_func=lambda k: hors_lamal.libelle(k, l), key="f_hors_lamal",
@@ -1732,7 +1782,8 @@ def afficher_entete():
                  tr("Comparée simplement.", l),
                  tr("Les primes officielles de toutes les caisses, puis un conseiller qui répond à vos questions.", l),
                  note=html.escape(tr(AVERTISSEMENT, l)) + "<br>"
-                 + html.escape(tr("Les informations de santé ne sont pas enregistrées.", l)))
+                 + html.escape(tr("Les informations de santé ne sont pas enregistrées.", l)),
+                 compact=bool(st.session_state.get("formulaire_valide")))
 
 
 def afficher_sources():
