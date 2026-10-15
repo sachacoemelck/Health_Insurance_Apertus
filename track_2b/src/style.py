@@ -184,6 +184,29 @@ section[data-testid="stSidebar"] { background: var(--surface); border-right: 1px
     background: var(--fond); color: var(--texte-2); border-color: var(--bord);
 }
 .st-key-suggestions .stButton > button:hover { color: var(--accent); border-color: var(--accent); background: var(--accent-doux); }
+/* « Check-out » après le choix d'une offre */
+[class*="st-key-checkout_"] {
+    background: var(--surface); border: 1px solid var(--filet); border-radius: 24px;
+    padding: 1.3rem 1.4rem 1.1rem; box-shadow: 0 24px 48px -32px var(--ombre);
+}
+.choix { display: flex; justify-content: space-between; align-items: flex-start; gap: 1rem; margin-bottom: 0.6rem; }
+.choix .titre { margin: 0 0 0.3rem; font-size: 0.78rem; font-weight: 600; letter-spacing: 0.02em;
+                text-transform: uppercase; color: var(--orange); }
+.choix .caisse { margin: 0; font-size: 1.25rem; font-weight: 700; letter-spacing: -0.02em; color: var(--texte); }
+.choix .produit { margin: 0.1rem 0 0.6rem; font-size: 0.9rem; color: var(--texte-2); }
+.choix .prix { margin: 0; font-size: 1.8rem; font-weight: 700; letter-spacing: -0.03em; color: var(--texte);
+               text-align: right; line-height: 1.1; white-space: nowrap; }
+.choix .prix span { display: block; font-size: 0.8rem; font-weight: 500; color: var(--texte-3); letter-spacing: 0; }
+.choix .etiquettes { display: flex; flex-wrap: wrap; gap: 0.4rem; }
+.choix .etiquettes span { padding: 0.22rem 0.7rem; border-radius: 980px; background: var(--fond);
+                          border: 1px solid var(--bord); font-size: 0.82rem; color: var(--texte); }
+[class*="st-key-checkout_"] .stLinkButton a { border-radius: 980px; font-weight: 600; }
+/* Les liens sont bleus (.stApp a), sauf le texte des boutons-liens pleins, en blanc sur le bleu */
+.stApp a[data-testid="stBaseLinkButton-primary"], .stApp a[data-testid="stBaseLinkButton-primary"] * {
+    color: #ffffff !important;
+}
+.stApp a[data-testid="stBaseLinkButton-primary"] { background: var(--accent) !important; border-color: var(--accent) !important; }
+.stApp a[data-testid="stBaseLinkButton-primary"]:hover { background: var(--accent-survol) !important; }
 </style>
 """
 
@@ -229,4 +252,15 @@ def ouverture(nom, statut, titre_recap, etiquettes, message):
         f'<p class="recap-titre">{e(titre_recap)}</p><div class="recap">{recap}</div>'
         f'<div class="conseiller-bulle"><div class="points"><span></span><span></span><span></span></div>'
         f'<div class="message">{corps}</div></div>',
+        unsafe_allow_html=True)
+
+
+def recapitulatif_choix(titre, caisse, produit, etiquettes, prix, unite):
+    """En-tête du « check-out » : l'offre choisie (textes échappés)."""
+    e = html.escape
+    st.markdown(
+        f'<div class="choix"><div><p class="titre">{e(titre)}</p><p class="caisse">{e(caisse)}</p>'
+        f'<p class="produit">{e(produit)}</p><div class="etiquettes">'
+        + "".join(f"<span>{e(x)}</span>" for x in etiquettes)
+        + f'</div></div><p class="prix">{e(prix)}<span>{e(unite)}</span></p></div>',
         unsafe_allow_html=True)

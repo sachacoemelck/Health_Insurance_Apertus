@@ -6,7 +6,7 @@ RACINE = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 os.chdir(RACINE)
 os.environ.update(LLM_NAME="f8", LLM_BASE_URL="http://x", LLM_API_KEY="x", LLM_NAME_RESTITUTION="f70")
 sys.path.insert(0, os.path.join(RACINE, "src"))
-import chatbot, changement
+import affiliation, chatbot, changement
 from streamlit.testing.v1 import AppTest
 
 MODE = {"lettre": "bonne"}
@@ -40,6 +40,16 @@ def fake(client, modele, systeme, message):
         eco = re.search(r"soit (\d+\.\d\d) CHF par an", message)
         return (f"En restant chez votre caisse, vous paieriez {prime.group(1)} CHF par mois. "
                 + (f"En changeant, vous économiseriez {eco.group(1)} CHF par an." if eco else "Aucune économie possible."))
+    if systeme.startswith("Tu rédiges, au nom d'une personne"):  # demande d'affiliation
+        if MODE.get("affiliation") == "mauvaise":
+            return "Je veux m'affilier chez vous. Mon numéro AVS est 756.1234.5678.97."
+        f = dict(re.findall(r"^([^:\n]+) : (.+)$", message, re.M))
+        ch = {"caisse": f["Nouvelle caisse"], "produit": f["Produit"], "modele": "Médecin de famille / HMO",
+              "franchise": int(f["Franchise"].split()[0]), "accident": f["Couverture accidents"].startswith(("incl", "eing", "incl")),
+              "prime_mois": float(re.search(r"([\d.]+) CHF", f[next(k for k in f if k.startswith("Prime"))]).group(1)),
+              "annee": 2027, "ancienne": f.get("Caisse actuelle (à résilier)")}
+        langue = "de" if "allemand" in systeme else "it" if "italien" in systeme else "fr"
+        return affiliation.demande_modele(ch, langue).replace("Par la présente", "Je vous écris car, par la présente,")
     if systeme.startswith("Tu ouvres la conversation"):  # ouverture après le formulaire
         OUVERTURES.append(message)
         if MODE.get("ouverture") == "inventee":
@@ -84,6 +94,21 @@ assert at.session_state.attente == "lettre", at.session_state.attente
 at.button(key="lettre_oui").click().run()
 m = at.session_state.messages[-1]
 assert m["type"] == "lettre", m["type"]
+assert "8081 Zürich" in m["texte"] and "[Adresse de la caisse]" not in m["texte"], m["texte"]  # adresse OFSP de Helsana
+# « Choisir cette offre » -> demande d'affiliation rédigée (Apertus), vérifiée, e-mail prêt
+at.button(key="choisir_0_0").click().run()
+m = at.session_state.messages[-1]
+assert m["type"] == "affiliation" and m["par"] == "apertus", (m["type"], m.get("par"))
+assert m["choix"]["caisse"].startswith("Atupri") and m["choix"]["ancienne"] == "Helsana", m["choix"]
+assert "Helsana" in m["texte"] and "[Numéro AVS]" in m["texte"] and "1er janvier 2027" in m["texte"]
+liens = [b for b in at.get("link_button")]
+assert liens and liens[0].proto.url.startswith("mailto:info@atupri.ch?subject="), [b.proto.url for b in liens]
+assert not at.exception, [e.value for e in at.exception]
+MODE["affiliation"] = "mauvaise"   # numéro AVS inventé -> refusé deux fois -> demande modèle
+at.button(key="choisir_0_2").click().run()
+m = at.session_state.messages[-1]
+assert m["par"] == "modele" and "756" not in m["texte"] and m["choix"]["caisse"].upper().startswith("GALENOS")
+MODE["affiliation"] = None
 at.chat_input[0].set_value("Ai-je droit à un subside ?").run()
 assert "Office vaudois" in at.session_state.messages[-1]["contenu"]
 assert not at.exception, [e.value for e in at.exception]
@@ -97,6 +122,17 @@ at.radio(key="f_situation").set_value("salarie_8h").run()
 at.button(key="f_valider").click().run()
 assert at.session_state.formulaire_valide and at.session_state.profil["contract"].accident() is False
 assert len(at.session_state.resultats) == 1 and "ouverture" in at.session_state
+# Changer de langue avant d'envoyer le formulaire : les modèles acceptés restent tous cochés
+at8 = AppTest.from_file(os.path.abspath("src/app.py"), default_timeout=120).run()
+at8.selectbox(key="langue").set_value("de").run()
+assert at8.multiselect(key="f_modeles").value == list(chatbot.CARE_TYPES), at8.multiselect(key="f_modeles").value
+at8.number_input(key="f_naissance").set_value(1991).run()
+at8.text_input(key="f_npa").set_value("8004").run()
+at8.radio(key="f_situation").set_value("independant").run()
+at8.selectbox(key="langue").set_value("it").run()
+assert not at8.button(key="f_valider").disabled
+at8.button(key="f_valider").click().run()
+assert at8.session_state.resultats and not at8.exception
 # Ouverture avec un montant inventé : refusée deux fois par Python, texte de secours fixe
 MODE["ouverture"] = "inventee"
 at6 = AppTest.from_file(os.path.abspath("src/app.py"), default_timeout=120).run()

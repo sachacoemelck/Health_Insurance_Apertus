@@ -74,7 +74,9 @@ at.button(key="lettre_oui").click().run()
 m = at.session_state.messages[-1]
 assert m["type"] == "lettre" and m["par"] == "apertus", m
 print("LETTRE (apertus) :", m["texte"][:120].replace("\n", " | "))
-assert not changement.problemes_lettre(m["texte"], "Helsana", "fr", 2027)
+assert "Helsana\nPostfach\n8081 Zürich" in m["texte"]  # adresse officielle (liste OFSP) remplie
+assert not changement.problemes_lettre(m["texte"].replace("Postfach\n8081 Zürich", "[Adresse de la caisse]"),
+                                       "Helsana", "fr", 2027)
 assert len(at.get("download_button")) == 1 if hasattr(at, "get") else True
 # question libre après la lettre : le fil normal reprend
 dire("c'est quoi la quote-part ?")

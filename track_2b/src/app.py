@@ -25,6 +25,8 @@ from openai import OpenAI
 import chatbot
 import complementaires as compl
 import sante
+import affiliation
+import caisses
 import changement
 import conversation
 import langues
@@ -37,7 +39,7 @@ import subsides
 from chatbot import (Profile, State, CARE_TYPES, CARE_LABELS, QUESTIONS,
                      FRANCHISES, NOMS_PRIORITE, PROMPT_INTRO, extraire_json,
                      faits_propositions, lire_config, localiser, nom_simple)
-from comparateur import classe_age, communes_du_npa, propositions
+from comparateur import ASSUREURS, classe_age, communes_du_npa, propositions
 
 def L():
     """Langue de la conversation : détectée dans les messages, ou choisie dans la barre latérale."""
@@ -764,9 +766,126 @@ def ecrire_lettre():
     # La lettre est la tâche principale de ce tour : un délai à elle (deux essais au plus)
     rediger = appel("demander_llm", cfg["LLM_NAME_RESTITUTION"], 40)
     lettre, par = changement.rediger_lettre(rediger, e["caisse"], langue, profil.premium_year)
+    adresse = caisses.adresse_postale(e.get("numero"))
+    if adresse:  # adresse officielle de la caisse (liste OFSP) à la place du champ à compléter
+        lettre = lettre.replace(changement.CHAMP_ADRESSE_CAISSE[langue], "\n".join(adresse[1:]))
     s.messages.append({"role": "assistant", "type": "lettre", "texte": lettre, "langue": langue, "par": par,
                        "annee": profil.premium_year})
     s.attente = None
+
+
+NUMEROS_CAISSES = {nom: numero for numero, nom in ASSUREURS.items()}
+
+
+def lancer(action, *args):
+    """Rappel de bouton : l'action s'exécute avant l'affichage suivant (Apertus peut ne pas répondre)."""
+    try:
+        action(*args)
+    except ErreurLLM:
+        dire(tr("Apertus ne répond pas pour le moment. Réessayez dans un instant.", L()))
+
+
+def choisir_offre(index, j):
+    """« Choisir cette offre » : Apertus rédige la demande d'affiliation, Python la vérifie ; l'écran
+    suivant donne tout ce qu'il faut pour l'envoyer (e-mail prêt, contacts officiels, étapes)."""
+    s, cfg = st.session_state, config()
+    p = s.resultats[index]["propositions"][j]
+    profil = s.profil["comparison"]
+    numero = NUMEROS_CAISSES.get(p["assureur"])
+    ancienne = (s.get("economie") or {}).get("caisse")
+    choix = {"caisse": p["assureur"], "numero": numero, "produit": p["produit"], "modele": p["modele"],
+             "franchise": int(p["franchise"]), "prime_mois": float(p["prime_mois"]),
+             "accident": bool(profil.include_accident), "annee": profil.premium_year,
+             "ancienne": ancienne if ancienne and ancienne != p["assureur"] else None,
+             "meme_caisse": bool(ancienne and ancienne == p["assureur"]),
+             "numero_ancienne": (s.get("economie") or {}).get("numero")}
+    l = L()
+    s.messages.append({"role": "user", "type": "texte", "contenu": tr("Je choisis {caisse} – {produit}.", l,
+                                                                       caisse=p["assureur"], produit=p["produit"])})
+    langue = changement.langue_lettre(l, profil.canton)
+    rediger = appel("demander_llm", cfg["LLM_NAME_RESTITUTION"], 40)
+    texte, par = affiliation.rediger(rediger, choix, langue)
+    s.choix = choix
+    s.messages.append({"role": "assistant", "type": "affiliation", "choix": choix, "texte": texte, "par": par,
+                       "langue": langue, "objet": affiliation.objet(choix, langue)})
+    s.attente = None
+
+
+def afficher_affiliation(m, i):
+    """« Check-out » : récapitulatif du choix, puis les étapes, chacune avec ce qu'il faut pour la faire."""
+    l, ch = L(), m["choix"]
+    contact = caisses.contact(ch["numero"])
+    debut = affiliation.debut_couverture(ch["annee"])
+    fin, limite = changement.dates(ch["annee"])
+    with st.container(key=f"checkout_{i}"):
+        style.recapitulatif_choix(
+            tr("Votre choix", l), ch["caisse"], f"{ch['produit']} — {tr(ch['modele'], l)}",
+            [tr("Franchise {f} CHF", l, f=ch["franchise"]),
+             tr("Accidents inclus", l) if ch["accident"] else tr("Accidents exclus (employeur)", l),
+             tr("Dès le {debut}", l, debut=f"{debut.day:02d}.{debut.month:02d}.{debut.year}")],
+            f"{ch['prime_mois']:.2f}", tr("CHF / mois", l))
+
+        # Étape 1 : demande d'affiliation
+        st.markdown(f"**1. {tr('Envoyer votre demande à {caisse}', l, caisse=ch['caisse'])}**")
+        if m["par"] == "apertus":
+            st.caption(tr("Demande rédigée par Apertus ; les éléments obligatoires ont été vérifiés par l'application.", l))
+        else:
+            st.caption(tr("Demande modèle de l'application (celle d'Apertus n'était pas complète).", l))
+        texte = m["texte"]
+        if contact and contact["email"]:
+            st.link_button("✉️ " + tr("Envoyer ma demande à {caisse}", l, caisse=ch["caisse"]),
+                           affiliation.lien_mailto(contact["email"], m["objet"], texte), type="primary",
+                           width="stretch")
+            st.caption(tr("Votre messagerie s'ouvre avec la demande prête, adressée à {email} (adresse officielle, "
+                          "liste OFSP). Complétez les champs entre crochets, puis envoyez.", l, email=contact["email"]))
+        elif contact:
+            st.caption(tr("{caisse} ne publie pas d'adresse e-mail dans la liste officielle de l'OFSP : envoyez la "
+                          "demande par la poste (adresse déjà dans la lettre) ou via son site.", l, caisse=ch["caisse"]))
+        if m["langue"] != l:
+            st.caption(tr("La demande est écrite dans une langue officielle de votre canton.", l))
+        lettre = affiliation.avec_adresse(texte, ch["numero"], ch["caisse"])
+        with st.expander(tr("Voir et copier la demande", l)):
+            st.code(lettre, language=None, wrap_lines=True)
+            st.download_button(tr("Télécharger la demande (.txt)", l), data=lettre.encode("utf-8"),
+                               file_name="demande_affiliation.txt", mime="text/plain", key=f"affiliation_{i}")
+        if contact:
+            liens = []
+            if contact["telephone"]:
+                liens.append(f"📞 {contact['telephone']}")
+            if contact["site"]:
+                liens.append(f"🌐 [{contact['site'].replace('https://', '')}]({contact['site']})")
+            adresse = caisses.adresse_postale(ch["numero"], ch["caisse"])
+            if adresse:
+                liens.append("📮 " + ", ".join(adresse[1:]))
+            st.markdown(" · ".join(liens))
+        if ch["modele"].startswith("Médecin de famille"):
+            st.caption(tr("Modèle médecin de famille : choisissez votre médecin dans la liste de {caisse} (sur son "
+                          "site) et indiquez-le dans la demande ou à la réception des documents.", l, caisse=ch["caisse"]))
+
+        # Étape 2 : confirmation de la nouvelle caisse
+        st.markdown(f"**2. {tr('Attendre la confirmation écrite de {caisse}', l, caisse=ch['caisse'])}**")
+        st.caption(tr("Votre assurance actuelle ne prend fin que lorsque la nouvelle caisse a confirmé votre "
+                      "couverture (LAMal art. 7 al. 5). Toute caisse doit accepter chaque personne pour "
+                      "l'assurance de base, sans questionnaire de santé.", l))
+
+        # Étape 3 : résiliation
+        st.markdown(f"**3. {tr('Résilier votre caisse actuelle avant le {limite}', l, limite=f'{limite.day}.{limite.month:02d}.{limite.year}')}**")
+        deja = any(x["type"] == "lettre" for x in st.session_state.messages)
+        if ch.get("meme_caisse"):
+            st.caption("✅ " + tr("Vous restez chez {caisse} : rien à résilier, la demande ci-dessus suffit pour changer "
+                                 "de produit ou de franchise (même délai).", l, caisse=ch["caisse"]))
+        elif deja:
+            st.caption("✅ " + tr("Votre lettre de résiliation est prête plus haut dans la conversation.", l))
+        elif ch.get("ancienne"):
+            bouton(tr("Rédiger ma lettre de résiliation pour {caisse}", l, caisse=ch["ancienne"]), ecrire_lettre,
+                   cle=f"resiliation_{i}")
+        else:
+            st.caption(tr("Dites-moi chez quelle caisse vous êtes aujourd'hui : je rédige la lettre de résiliation. "
+                          "Si vous arrivez en Suisse, il n'y a rien à résilier.", l))
+        st.download_button("📅 " + tr("Ajouter un rappel à mon agenda", l),
+                           data=affiliation.rappel_ics(limite, ch.get("ancienne") or tr("votre caisse actuelle", l), l)
+                           .encode("utf-8"), file_name="rappel_resiliation.ics", mime="text/calendar",
+                           key=f"rappel_{i}")
 
 
 def repondre_lettre(oui):
@@ -930,7 +1049,7 @@ def texte_produit(prod, avec_conditions=True):
     return texte
 
 
-def afficher_propositions(bloc):
+def afficher_propositions(bloc, index=None):
     props = bloc["propositions"]
     if not props:
         st.write(tr("Aucune prime trouvée pour ce profil.", L()))
@@ -946,6 +1065,10 @@ def afficher_propositions(bloc):
                         else tr("+{x} CHF / mois par rapport à la moins chère", l, x=f"{p['ecart_mois']:.2f}"),
                         tr("Franchise : {f} CHF. Contrepartie : {c}", l, f=p["franchise"], c=tr(p["contrepartie"], l)),
                         meilleure=p["ecart_mois"] == 0)
+            if index is not None:
+                st.button(tr("Choisir cette offre", l), key=f"choisir_{index}_{props.index(p)}",
+                          on_click=lancer, args=(choisir_offre, index, props.index(p)), width="stretch",
+                          type="primary" if p["ecart_mois"] == 0 else "secondary")
     st.caption(tr("Compatibilité par catégorie seulement : réseau de médecins, application et conditions du produit à "
                   "vérifier. " + RAPPEL_LAMAL, L()))
     if bloc["offres"]["Franchise"].nunique() > 1:
@@ -1044,8 +1167,8 @@ def afficher_lettre(m, i):
     st.info(changement.conseils_envoi(l, m["annee"]), icon="📮")
 
 
-def afficher_resultats(bloc):
-    afficher_propositions(bloc)
+def afficher_resultats(bloc, index=None):
+    afficher_propositions(bloc, index)
     resume = resume_budget(bloc)
     if resume:
         st.markdown(f"**{resume}**")
@@ -1277,6 +1400,15 @@ def revenir_au_formulaire():
         st.session_state.langue = langue
 
 
+def garder_formulaire():
+    """Changement de langue : les choix traduits du formulaire (situation, modèles) sont remis tels quels.
+    Sans cela, Streamlit les compare à leurs libellés dans la nouvelle langue et les perd."""
+    s = st.session_state
+    for cle in CLES_FORMULAIRE:
+        if cle in s:
+            s[cle] = s[cle]
+
+
 def soumettre_formulaire():
     """Rappel du bouton « Voir mes offres » : s'exécute avant l'affichage suivant."""
     s = st.session_state
@@ -1314,7 +1446,7 @@ def ecran_profil():
                          format_func=lambda k: tr(SITUATIONS[k], l), key="f_situation")
     st.caption(tr("Elle indique si la couverture accident doit être incluse : un employeur assure contre les "
                   "accidents ses salariés qui travaillent au moins 8 h par semaine chez lui.", l))
-    # Valeur par défaut seulement au premier affichage (au retour, les réponses précédentes sont remises)
+    # Tous les modèles au premier affichage ; ensuite la valeur gardée (changement de langue, retour)
     modeles = st.multiselect(tr("Modèles d'assurance acceptés", l), list(CARE_TYPES),
                              default=None if "f_modeles" in st.session_state else list(CARE_TYPES),
                              format_func=lambda k: tr(CARE_LABELS[k], l), key="f_modeles", placeholder=tr("Choisissez…", l))
@@ -1378,8 +1510,10 @@ def main():
                 afficher_profil(m["profil"], m.get("sante", 0))
             elif m["type"] == "lettre":
                 afficher_lettre(m, i)
+            elif m["type"] == "affiliation":
+                afficher_affiliation(m, i)
             else:
-                afficher_resultats(s.resultats[m["index"]])
+                afficher_resultats(s.resultats[m["index"]], m["index"])
     reponses_rapides()
 
     afficher_sources()
@@ -1387,7 +1521,7 @@ def main():
 
 def afficher_entete():
     with st.sidebar:
-        st.selectbox(tr("Langue", L()), langues.CODES, key="langue",
+        st.selectbox(tr("Langue", L()), langues.CODES, key="langue", on_change=garder_formulaire,
                      format_func={"fr": "Français", "de": "Deutsch", "it": "Italiano", "en": "English"}.get)
         if st.session_state.get("formulaire_valide"):
             st.button("← " + tr("Modifier mes réponses", L()), on_click=revenir_au_formulaire,

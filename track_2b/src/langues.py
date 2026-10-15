@@ -706,4 +706,106 @@ _("Jusqu'à quand puis-je changer de caisse ?", "Bis wann kann ich die Krankenka
 
 _("Modifier mes réponses", "Antworten ändern", "Modificare le risposte", "Edit my answers")
 
+# --- Choix d'une offre et demande d'affiliation (« check-out ») ---------------------------------
+_("Choisir cette offre", "Dieses Angebot wählen", "Scegliere questa offerta", "Choose this offer")
+_("Je choisis {caisse} – {produit}.", "Ich wähle {caisse} – {produit}.", "Scelgo {caisse} – {produit}.",
+  "I choose {caisse} – {produit}.")
+_("Votre choix", "Ihre Wahl", "La sua scelta", "Your choice")
+_("Franchise {f} CHF", "Franchise {f} CHF", "Franchigia {f} CHF", "Deductible {f} CHF")
+_("Dès le {debut}", "Ab {debut}", "Dal {debut}", "From {debut}")
+_("Envoyer votre demande à {caisse}", "Ihren Antrag an {caisse} senden", "Inviare la domanda a {caisse}",
+  "Send your application to {caisse}")
+_("Demande rédigée par Apertus ; les éléments obligatoires ont été vérifiés par l'application.",
+  "Antrag von Apertus verfasst; die Pflichtangaben wurden von der Anwendung geprüft.",
+  "Domanda redatta da Apertus; gli elementi obbligatori sono stati verificati dall'applicazione.",
+  "Application written by Apertus; the required elements were checked by the app.")
+_("Demande modèle de l'application (celle d'Apertus n'était pas complète).",
+  "Musterantrag der Anwendung (der Antrag von Apertus war nicht vollständig).",
+  "Domanda modello dell'applicazione (quella di Apertus non era completa).",
+  "The app's template application (Apertus's version was incomplete).")
+_("Envoyer ma demande à {caisse}", "Antrag an {caisse} senden", "Inviare la mia domanda a {caisse}",
+  "Send my application to {caisse}")
+_("Votre messagerie s'ouvre avec la demande prête, adressée à {email} (adresse officielle, liste OFSP). "
+  "Complétez les champs entre crochets, puis envoyez.",
+  "Ihr E-Mail-Programm öffnet sich mit dem fertigen Antrag an {email} (offizielle Adresse, Liste des BAG). "
+  "Füllen Sie die Felder in Klammern aus und senden Sie ihn ab.",
+  "Si apre il suo programma di posta con la domanda pronta, indirizzata a {email} (indirizzo ufficiale, "
+  "elenco dell'UFSP). Completi i campi tra parentesi, poi invii.",
+  "Your email opens with the application ready, addressed to {email} (official address, FOPH list). "
+  "Fill in the fields in brackets, then send.")
+_("{caisse} ne publie pas d'adresse e-mail dans la liste officielle de l'OFSP : envoyez la demande par la "
+  "poste (adresse déjà dans la lettre) ou via son site.",
+  "{caisse} veröffentlicht in der offiziellen Liste des BAG keine E-Mail-Adresse: Senden Sie den Antrag per "
+  "Post (Adresse bereits im Brief) oder über die Website.",
+  "{caisse} non pubblica un indirizzo e-mail nell'elenco ufficiale dell'UFSP: invii la domanda per posta "
+  "(indirizzo già nella lettera) o tramite il suo sito.",
+  "{caisse} does not publish an email address in the official FOPH list: send the application by post "
+  "(address already in the letter) or through its website.")
+_("La demande est écrite dans une langue officielle de votre canton.",
+  "Der Antrag ist in einer Amtssprache Ihres Kantons verfasst.",
+  "La domanda è scritta in una lingua ufficiale del suo cantone.",
+  "The application is written in an official language of your canton.")
+_("Voir et copier la demande", "Antrag ansehen und kopieren", "Vedere e copiare la domanda",
+  "View and copy the application")
+_("Télécharger la demande (.txt)", "Antrag herunterladen (.txt)", "Scaricare la domanda (.txt)",
+  "Download the application (.txt)")
+_("Modèle médecin de famille : choisissez votre médecin dans la liste de {caisse} (sur son site) et "
+  "indiquez-le dans la demande ou à la réception des documents.",
+  "Hausarztmodell: Wählen Sie Ihre Ärztin oder Ihren Arzt aus der Liste von {caisse} (auf der Website) und "
+  "geben Sie sie oder ihn im Antrag oder beim Erhalt der Unterlagen an.",
+  "Modello del medico di famiglia: scelga il suo medico nell'elenco di {caisse} (sul suo sito) e lo indichi "
+  "nella domanda o alla ricezione dei documenti.",
+  "Family doctor model: choose your doctor from {caisse}'s list (on its website) and state it in the "
+  "application or when you receive the documents.")
+_("Attendre la confirmation écrite de {caisse}", "Auf die schriftliche Bestätigung von {caisse} warten",
+  "Attendere la conferma scritta di {caisse}", "Wait for written confirmation from {caisse}")
+_("Votre assurance actuelle ne prend fin que lorsque la nouvelle caisse a confirmé votre couverture (LAMal "
+  "art. 7 al. 5). Toute caisse doit accepter chaque personne pour l'assurance de base, sans questionnaire de "
+  "santé.",
+  "Ihre bisherige Versicherung endet erst, wenn die neue Kasse Ihre Deckung bestätigt hat (KVG Art. 7 "
+  "Abs. 5). Jede Kasse muss für die Grundversicherung jede Person aufnehmen, ohne Gesundheitsfragebogen.",
+  "La sua assicurazione attuale termina solo quando la nuova cassa ha confermato la copertura (LAMal art. 7 "
+  "cpv. 5). Ogni cassa deve accettare ogni persona per l'assicurazione di base, senza questionario sulla salute.",
+  "Your current insurance only ends once the new insurer has confirmed your cover (KVG/LAMal art. 7 para. 5). "
+  "Every insurer must accept everyone for basic insurance, without a health questionnaire.")
+_("Résilier votre caisse actuelle avant le {limite}", "Ihre bisherige Kasse vor dem {limite} kündigen",
+  "Disdire la cassa attuale entro il {limite}", "Cancel your current insurer before {limite}")
+_("Votre lettre de résiliation est prête plus haut dans la conversation.",
+  "Ihr Kündigungsschreiben steht weiter oben im Gespräch bereit.",
+  "La sua lettera di disdetta è pronta più in alto nella conversazione.",
+  "Your cancellation letter is ready further up in the conversation.")
+_("Rédiger ma lettre de résiliation pour {caisse}", "Kündigungsschreiben für {caisse} verfassen",
+  "Redigere la lettera di disdetta per {caisse}", "Write my cancellation letter for {caisse}")
+_("Dites-moi chez quelle caisse vous êtes aujourd'hui : je rédige la lettre de résiliation. Si vous arrivez "
+  "en Suisse, il n'y a rien à résilier.",
+  "Sagen Sie mir, bei welcher Kasse Sie heute sind: Ich verfasse das Kündigungsschreiben. Wenn Sie neu in die "
+  "Schweiz ziehen, gibt es nichts zu kündigen.",
+  "Mi dica presso quale cassa è assicurato/a oggi: redigo la lettera di disdetta. Se arriva in Svizzera, non "
+  "c'è nulla da disdire.",
+  "Tell me which insurer you are with today: I will write the cancellation letter. If you are moving to "
+  "Switzerland, there is nothing to cancel.")
+_("Ajouter un rappel à mon agenda", "Erinnerung in meinen Kalender", "Aggiungere un promemoria al calendario",
+  "Add a reminder to my calendar")
+_("votre caisse actuelle", "Ihrer bisherigen Kasse", "la sua cassa attuale", "your current insurer")
+_("Résilier l'assurance de base chez {caisse} (lettre reçue au plus tard le {limite})",
+  "Grundversicherung bei {caisse} kündigen (Brief muss bis {limite} eintreffen)",
+  "Disdire l'assicurazione di base presso {caisse} (lettera ricevuta entro il {limite})",
+  "Cancel basic insurance with {caisse} (letter must arrive by {limite})")
+_("Demande d'affiliation à l'assurance de base dès le {debut} – {produit}",
+  "Antrag auf Aufnahme in die Grundversicherung ab {debut} – {produit}",
+  "Domanda di affiliazione all'assicurazione di base dal {debut} – {produit}",
+  "Application for basic health insurance from {debut} – {produit}")
+_("incluse", "eingeschlossen", "inclusa", "included")
+_("exclue (déjà assuré par mon employeur)", "ausgeschlossen (bereits über meinen Arbeitgeber versichert)",
+  "esclusa (già assicurato tramite il datore di lavoro)", "excluded (already insured through my employer)")
+
+_("Vous restez chez {caisse} : rien à résilier, la demande ci-dessus suffit pour changer de produit ou de "
+  "franchise (même délai).",
+  "Sie bleiben bei {caisse}: Es gibt nichts zu kündigen, der Antrag oben genügt, um Produkt oder Franchise zu "
+  "wechseln (gleiche Frist).",
+  "Rimane presso {caisse}: non c'è nulla da disdire, la domanda qui sopra basta per cambiare prodotto o "
+  "franchigia (stesso termine).",
+  "You are staying with {caisse}: nothing to cancel, the application above is enough to change product or "
+  "deductible (same deadline).")
+
 TRAD = {fr: dict(zip(("de", "it", "en"), v)) for fr, v in T.items()}

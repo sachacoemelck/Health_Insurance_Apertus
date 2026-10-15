@@ -24,7 +24,7 @@ def test_detection():
 
 def test_tous_les_textes_fixes_sont_traduits():
     manquants = []
-    for fichier in ("app.py", "conversation.py", "changement.py", "subsides.py"):
+    for fichier in ("app.py", "conversation.py", "changement.py", "subsides.py", "affiliation.py"):
         for n in ast.walk(ast.parse((SRC / fichier).read_text())):
             if isinstance(n, ast.Call) and getattr(n.func, "id", None) == "tr" and n.args:
                 a = n.args[0]
