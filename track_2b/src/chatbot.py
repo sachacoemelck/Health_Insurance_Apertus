@@ -733,7 +733,10 @@ def texte_standard(faits):
 def expliquer(client, modele, faits, langue="français", prompt=PROMPT_EXPLICATION, secours=None):
     """Demande l'explication au LLM, la vérifie, réessaie une fois, sinon texte de secours."""
     systeme = en_langue(prompt, langue)
-    explication = demander_llm(client, modele, systeme, faits)
+    try:
+        explication = demander_llm(client, modele, systeme, faits)
+    except Exception:  # Apertus injoignable ou trop lent : les offres s'affichent quand même, texte de secours
+        return secours or texte_standard(faits)
     intrus = montants_intrus(explication, faits)
     if not intrus and not tutoie(explication):
         return explication
@@ -743,7 +746,10 @@ def expliquer(client, modele, faits, langue="français", prompt=PROMPT_EXPLICATI
                    f"({', '.join(f'{n:g}' for n in intrus)}). N'utilise que les montants ci-dessus.")
     if tutoie(explication):
         rappel += " Vouvoie l'utilisateur : n'utilise jamais « tu », « ton », « ta » ni « tes »."
-    explication = demander_llm(client, modele, systeme, faits + rappel)
+    try:
+        explication = demander_llm(client, modele, systeme, faits + rappel)
+    except Exception:
+        return secours or texte_standard(faits)
     if not montants_intrus(explication, faits) and not tutoie(explication):
         return explication
     return secours or texte_standard(faits)
