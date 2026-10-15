@@ -808,8 +808,10 @@ _("Vous restez chez {caisse} : rien à résilier, la demande ci-dessus suffit po
   "You are staying with {caisse}: nothing to cancel, the application above is enough to change product or "
   "deductible (same deadline).")
 
-_("S'inscrire en ligne chez {caisse}", "Online bei {caisse} anmelden", "Iscriversi online presso {caisse}",
-  "Sign up online with {caisse}")
+_("Calculer et demander mon offre chez {caisse}", "Prämie berechnen und Offerte bei {caisse} anfordern",
+  "Calcolare e chiedere un'offerta a {caisse}", "Calculate and request my offer from {caisse}")
+_("Assurance de base de {caisse} (site officiel)", "Grundversicherung von {caisse} (offizielle Website)",
+  "Assicurazione di base di {caisse} (sito ufficiale)", "{caisse} basic insurance (official website)")
 _("Site officiel de {caisse}", "Offizielle Website von {caisse}", "Sito ufficiale di {caisse}",
   "Official website of {caisse}")
 _("Sur le site, choisissez : {produit} ({modele}), franchise {f} CHF, {accidents}, début le {debut}.",

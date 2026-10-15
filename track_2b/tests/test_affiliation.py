@@ -59,6 +59,34 @@ def test_demande_incomplete_ou_inventee_refusee():
     assert par == "apertus" and texte == bon
 
 
+def test_erreurs_vues_au_test_reel():
+    """15.10 : Apertus demandait à la nouvelle caisse de résilier l'ancienne, ou parlait d'une autre caisse
+    alors que la personne n'en a pas ; il mettait aussi du gras Markdown dans un e-mail."""
+    sans = choix()
+    avec = choix(ancienne="CSS")
+    assert affiliation.problemes(affiliation.demande_modele(sans, "de") + "\nFalls ich bereits bei einer anderen "
+                                 "Krankenkasse versichert bin, bitte ich um Bestätigung der Deckungslücke.", sans, "de")
+    assert affiliation.problemes(affiliation.demande_modele(sans, "it") + "\nChiedo che la mia affiliazione attuale "
+                                 "venga disdetta.", sans, "it")
+    assert affiliation.problemes(affiliation.demande_modele(avec, "fr") + "\nMerci de m'adresser une confirmation "
+                                 "écrite de la prise d'effet de cette résiliation.", avec, "fr")
+    assert affiliation.problemes(affiliation.demande_modele(avec, "it") + "\nChiedo di procedere alla rescissione "
+                                 "del contratto.", avec, "it")
+    assert affiliation.nettoyer("Produit **PharMed**, modèle __HMO__.") == "Produit PharMed, modèle HMO."
+    for langue in ("fr", "de", "it"):  # les demandes modèles restent correctes
+        assert affiliation.problemes(affiliation.demande_modele(avec, langue), avec, langue) == []
+        assert affiliation.problemes(affiliation.demande_modele(sans, langue), sans, langue) == []
+
+
+def test_liens_des_caisses():
+    numeros = set(comparateur.df["Versicherer"].unique())
+    for n in numeros:
+        lien, genre = caisses.lien_inscription(n)
+        assert lien.startswith("https://") and genre in ("offre", "page", "site"), (n, lien, genre)
+    assert caisses.lien_inscription(312) == ("https://calculateur-de-primes.atupri.ch", "offre")
+    assert caisses.lien_inscription(1509)[1] == "site"   # Sanitas : site en JavaScript, site officiel
+
+
 def test_date_de_debut_apres_le_delai():
     assert affiliation.debut_couverture(2027) == datetime.date(2027, 1, 1)
     changement.AUJOURDHUI = datetime.date(2026, 12, 5)  # après fin novembre : changement au 1.1.2028

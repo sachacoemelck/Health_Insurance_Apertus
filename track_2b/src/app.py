@@ -841,10 +841,12 @@ def afficher_affiliation(m, i):
         elif contact:
             st.caption(tr("{caisse} ne publie pas d'adresse e-mail dans la liste officielle de l'OFSP : envoyez la "
                           "demande par la poste (adresse déjà dans la lettre) ou via son site.", l, caisse=ch["caisse"]))
-        lien, inscription = caisses.lien_inscription(ch["numero"])
+        lien, genre = caisses.lien_inscription(ch["numero"])
         if lien:
-            st.link_button("🌐 " + (tr("S'inscrire en ligne chez {caisse}", l, caisse=ch["caisse"]) if inscription
-                                   else tr("Site officiel de {caisse}", l, caisse=ch["caisse"])), lien, width="stretch")
+            libelle = {"offre": tr("Calculer et demander mon offre chez {caisse}", l, caisse=ch["caisse"]),
+                       "page": tr("Assurance de base de {caisse} (site officiel)", l, caisse=ch["caisse"]),
+                       "site": tr("Site officiel de {caisse}", l, caisse=ch["caisse"])}[genre]
+            st.link_button("🌐 " + libelle, lien, width="stretch")
             st.caption(tr("Sur le site, choisissez : {produit} ({modele}), franchise {f} CHF, {accidents}, début le "
                           "{debut}.", l, produit=ch["produit"], modele=tr(ch["modele"], l), f=ch["franchise"],
                           accidents=tr("accidents inclus", l) if ch["accident"] else tr("accidents exclus", l),

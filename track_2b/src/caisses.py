@@ -81,15 +81,46 @@ def adresse_postale(numero, nom_affiche=None):
     return [nom_affiche or c["nom"]] + lignes[debut:]
 
 
-# Page d'inscription / de demande d'offre en ligne de chaque caisse (assurance de base), trouvée par
-# tests/apertus/trouver_liens_caisses.py et vérifiée (la page répond) le JJ.MM.2026. Sans lien vérifié,
-# l'application donne le site officiel de la liste OFSP.
-LIENS_INSCRIPTION = {}
+# Page de chaque caisse où commencer l'inscription à l'assurance de base, trouvée par
+# tests/apertus/trouver_liens_caisses.py le 15.10.2026 et vérifiée ce jour-là (la page répond, code 200 ;
+# résultat brut : docs/liens_caisses_2026-10-15.txt). Deux genres :
+#   "offre" : calculateur de primes / demande d'offre en ligne (on y calcule la prime puis on s'inscrit) ;
+#   "page"  : page « assurance de base » de la caisse (aucun calculateur trouvé sur sa page d'accueil).
+# Sans lien trouvé (site en JavaScript), l'application donne le site officiel de la liste OFSP.
+_GM = ("https://www.groupemutuel.ch/fr/clients-prives/vos-besoins/Vos-besoins-dans-le-domaine-de-la-sante/"
+       "Trouver-la-meilleure-assurance-maladie-de-base.html", "page")
+LIENS_INSCRIPTION = {
+    8: ("https://www.css.ch/fr/clients-prives/bien-assure/caisse-maladie/assurance-de-base.html", "page"),
+    32: ("https://calculator.aquilana.ch/", "offre"),
+    134: ("https://kkeinsiedeln.ch/grundversicherung/", "page"),
+    194: ("https://portal.sumiswalder.ch/portal/offerten", "offre"),
+    246: ("https://www.kkst.ch/grundversicherung", "page"),
+    290: ("https://www.praemienrechner.concordia.ch/ipr/home?lang=fr", "offre"),
+    312: ("https://calculateur-de-primes.atupri.ch", "offre"),
+    343: _GM, 1479: _GM, 1535: _GM,
+    360: ("https://www.kklh.ch/versicherungen/grundversicherung/", "page"),
+    376: ("https://www.kpt.ch/fr/assurances/calcul-prime-assurance-maladie", "offre"),
+    455: ("https://www.oekk.ch/fr/clients-prives/assurances/assurance-de-base", "page"),
+    509: ("https://www.sympany.ch/fr/contact/conseil-a-la-vente.html", "offre"),
+    780: ("https://www.glkv.ch/versicherungen/grundversicherung/grundversicherung.html/48", "page"),
+    881: ("https://www.egk.ch/calculer", "offre"),
+    923: ("https://slkk.ch/de/grundversicherung-krankenkasse/", "page"),
+    941: ("https://www.sodalis.ch/fr/pour-clients-prives/opter-pour-sodalis/offre-rapide", "offre"),
+    1040: ("https://www.kkv.ch/services-2/downloads/antragsformulare/", "offre"),
+    1318: ("https://www.kkwaedenswil.ch/versicherungen/grundversicherung", "page"),
+    1384: ("https://www.swica.ch/fr/prive/services/calculateur-de-primes", "offre"),
+    1386: ("https://www.galenos.ch/fr/personnes-privees/assurances/assurance-de-base/", "page"),
+    1401: ("https://rhenusana.ch/grundversicherung/", "page"),
+    1542: ("https://www.assura.ch/fr/assurances/assurances-de-base", "page"),
+    1560: ("https://calculator.agrisano.ch/public/e/l/premium-calculator-home/de-CH/index", "offre"),
+    1562: ("https://www.helsana.ch/fr/prives/assurances/calculateur-primes.html", "offre"),
+}
 
 
 def lien_inscription(numero):
-    """(adresse, True) si une page d'inscription vérifiée existe, sinon (site officiel, False)."""
+    """(adresse, genre) : "offre" (calculateur / demande d'offre), "page" (page assurance de base) ou
+    "site" (site officiel de la liste OFSP, quand aucune page n'a été trouvée)."""
     if numero in LIENS_INSCRIPTION:
-        return LIENS_INSCRIPTION[numero], True
+        return LIENS_INSCRIPTION[numero]
     c = contact(numero)
-    return (c["site"] if c else None), False
+    return (c["site"] if c else None), "site"

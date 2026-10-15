@@ -88,8 +88,12 @@ PROMPT = """Tu rédiges, au nom d'une personne, une demande d'affiliation à l'a
 - la demande d'affiliation à l'assurance obligatoire des soins (assurance de base) à partir de la date de
   début indiquée, avec le produit, le modèle, la franchise et la couverture accidents des FAITS ;
 - la date de naissance avec le champ {naissance} et le numéro AVS avec le champ {avs} ;
-- s'il y a une caisse actuelle dans les faits : dire qu'elle sera résiliée, et demander une confirmation
-  écrite de la couverture, nécessaire pour que la résiliation prenne effet ;
+- s'il y a une caisse actuelle dans les faits : dire que la personne résilie ELLE-MÊME son assurance de base
+  chez cette caisse (ne demande JAMAIS à la nouvelle caisse de la résilier), et demander une confirmation
+  écrite de l'affiliation, nécessaire pour que la résiliation prenne effet ;
+- s'il n'y a PAS de caisse actuelle dans les faits : ne parle d'aucune autre caisse ni d'aucune résiliation,
+  demande seulement une confirmation écrite de l'affiliation ;
+- texte simple, sans gras ni autre mise en forme (il sera envoyé tel quel par e-mail) ;
 - la demande d'envoyer la police d'assurance ou les documents à signer ;
 - une formule de politesse, puis le champ {signature} et le champ {nom}.
 Recopie les noms et les montants des faits exactement. N'invente aucun nom, aucune adresse, aucun numéro :
@@ -103,10 +107,32 @@ def consignes(langue):
             .replace("{signature}", c[6]).replace("{nom}", c[0]))
 
 
+# Vus au test réel du 15.10 : Apertus demandait à la nouvelle caisse de résilier l'ancienne, ou parlait
+# d'une autre caisse alors que la personne n'en a pas (« Falls ich bereits … versichert bin »).
+_PARLE_RESILIATION = re.compile(r"r[ée]sili|k[üu]ndig|disdett|disdire|rescission|rescindere|autre caisse|"
+                                r"andere[nr]? (?:Kranken)?kasse|altra cassa", re.IGNORECASE)
+_DEMANDE_A_LA_CAISSE = re.compile(
+    r"proc[ée]d(?:er|iez) (?:à )?(?:la )?r[ée]siliation|prise d'effet de (?:cette|la|ma) r[ée]siliation|"
+    r"confirmation [ée]crite de (?:la|ma|cette) r[ée]siliation|r[ée]silier (?:mon|ma) (?:contrat|assurance) (?:pour moi|à ma place)|"
+    r"procedere alla (?:rescissione|disdetta)|venga disdett|(?:conferma|confermarmi) (?:scritta )?(?:della|la) (?:disdetta|rescissione)|"
+    r"K[üu]ndigung (?:vorzunehmen|zu veranlassen|einzuleiten|zu best[äa]tigen)|k[üu]ndigen Sie|"
+    r"Best[äa]tigung der (?:K[üu]ndigung|Deckungsl[üu]cke)|Deckungsl[üu]cke", re.IGNORECASE)
+
+
+def nettoyer(texte):
+    """Enlève la mise en forme Markdown (le texte part tel quel dans un e-mail)."""
+    return re.sub(r"\*\*(.+?)\*\*|__(.+?)__", lambda m: m.group(1) or m.group(2), texte or "").strip()
+
+
 def problemes(texte, choix, langue):
     """Éléments obligatoires manquants ou erreurs (liste vide si la demande est correcte)."""
     t = texte or ""
     p = []
+    if not choix.get("ancienne") and _PARLE_RESILIATION.search(t):
+        p.append("la personne n'a pas de caisse actuelle : ne parle d'aucune autre caisse ni d'aucune résiliation")
+    if choix.get("ancienne") and _DEMANDE_A_LA_CAISSE.search(t):
+        p.append("la personne résilie elle-même son ancienne caisse : ne demande pas à la nouvelle caisse de "
+                 "résilier ni de confirmer la résiliation, demande la confirmation de l'affiliation")
     premier_mot = changement._simple(choix["caisse"]).split()[0]
     if premier_mot not in changement._simple(t):
         p.append(f"le nom de la caisse ({choix['caisse']}) manque")
@@ -198,10 +224,10 @@ def rediger(appeler_70b, choix, langue):
     demande = "FAITS :\n" + faits(choix, langue) + "\n\nRédige la demande."
     texte = ""
     try:
-        texte = (appeler_70b(consignes(langue), demande) or "").strip()
+        texte = nettoyer(appeler_70b(consignes(langue), demande))
         p = problemes(texte, choix, langue)
         if p:
-            texte = (appeler_70b(consignes(langue), demande + "\n\nATTENTION, corrige : " + " ; ".join(p)) or "").strip()
+            texte = nettoyer(appeler_70b(consignes(langue), demande + "\n\nATTENTION, corrige : " + " ; ".join(p)))
             p = problemes(texte, choix, langue)
         if not p:
             return texte, "apertus"
