@@ -209,12 +209,38 @@ section[data-testid="stSidebar"] { background: var(--surface); border-right: 1px
 }
 .stApp a[data-testid="stBaseLinkButton-primary"] { background: var(--accent) !important; border-color: var(--accent) !important; }
 .stApp a[data-testid="stBaseLinkButton-primary"]:hover { background: var(--accent-survol) !important; }
+/* Ce que l'assurance de base ne paie pas : une ligne par besoin ; sur téléphone, les colonnes s'empilent */
+.hors-lamal { width: 100%; border-collapse: separate; border-spacing: 0; margin: 0.3rem 0 0.9rem;
+              border: 1px solid var(--bord); border-radius: 16px; overflow: hidden; font-size: 0.88rem; }
+.hors-lamal th { text-align: left; padding: 0.55rem 0.8rem; font-size: 0.75rem; font-weight: 600;
+                 letter-spacing: 0.02em; text-transform: uppercase; color: var(--texte-3); background: var(--fond); }
+.hors-lamal td { padding: 0.65rem 0.8rem; vertical-align: top; border-top: 1px solid var(--bord); color: var(--texte); }
+.hors-lamal td.besoin { font-weight: 600; width: 22%; }
+.hors-lamal td.non { color: var(--orange); }
+.hors-lamal td.non::before { content: "✕ "; font-weight: 700; }
+.hors-lamal .source { display: block; margin-top: 0.3rem; font-size: 0.76rem; font-weight: 400; color: var(--texte-3); }
+@media (max-width: 640px) {
+    .hors-lamal thead { display: none; }
+    .hors-lamal tr, .hors-lamal td { display: block; width: auto !important; }
+    .hors-lamal tr + tr td.besoin { border-top: 1px solid var(--bord); }
+    .hors-lamal td:not(.besoin) { border-top: 0; padding-top: 0; }
+    .hors-lamal td[data-titre]::before { content: attr(data-titre); color: var(--texte-3); font-weight: 600; }
+    .hors-lamal td.non[data-titre]::before { content: "✕ " attr(data-titre); }
+}
 </style>
 """
 
 
 def appliquer():
-    st.markdown(CSS, unsafe_allow_html=True)
+    # Les fenêtres (st.dialog) sont posées hors de .stApp : elles n'héritent pas de son color-scheme,
+    # donc light-dark() y restait en clair alors que le thème était sombre. On leur donne le thème actif.
+    try:
+        sombre = st.context.theme.type == "dark"
+    except Exception:
+        sombre = False
+    schema = "dark" if sombre else "light"
+    st.markdown(CSS.replace("</style>", f'[data-testid="stDialog"], div[role="dialog"] {{ color-scheme: {schema}; }}\n'
+                                        "</style>"), unsafe_allow_html=True)
 
 
 def entete(surtitre, titre, titre_gris, sous_titre, note=""):
@@ -267,3 +293,16 @@ def recapitulatif_choix(titre, caisse, produit, etiquettes, prix, unite):
         + "".join(f"<span>{e(x)}</span>" for x in etiquettes)
         + f'</div></div><p class="prix">{e(prix)}<span>{e(unite)}</span></p></div>',
         unsafe_allow_html=True)
+
+
+def tableau_hors_lamal(titres, lignes, mot_source, deux_points=" : "):
+    """Tableau « besoin / la base paie / elle ne paie pas », sources fedlex en lien (textes échappés)."""
+    e = html.escape
+    corps = ""
+    for libelle, paie, paie_pas, sources in lignes:
+        refs = " · ".join(f'<a href="{e(lien)}" target="_blank">{e(texte)}</a>' for texte, lien in sources)
+        corps += (f'<tr><td class="besoin">{e(libelle)}<span class="source">{e(mot_source + deux_points)}{refs}</span></td>'
+                  f'<td data-titre="{e(titres[1] + deux_points)}">{e(paie)}</td>'
+                  f'<td class="non" data-titre="{e(titres[2] + deux_points)}">{e(paie_pas)}</td></tr>')
+    st.markdown(f'<table class="hors-lamal"><thead><tr>{"".join(f"<th>{e(t)}</th>" for t in titres)}</tr>'
+                f'</thead><tbody>{corps}</tbody></table>', unsafe_allow_html=True)

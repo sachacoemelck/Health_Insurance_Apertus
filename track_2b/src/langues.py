@@ -710,11 +710,8 @@ _("Modifier mes réponses", "Antworten ändern", "Modificare le risposte", "Edit
 _("Choisir cette offre", "Dieses Angebot wählen", "Scegliere questa offerta", "Choose this offer")
 _("Je choisis {caisse} – {produit}.", "Ich wähle {caisse} – {produit}.", "Scelgo {caisse} – {produit}.",
   "I choose {caisse} – {produit}.")
-_("Votre choix", "Ihre Wahl", "La sua scelta", "Your choice")
 _("Franchise {f} CHF", "Franchise {f} CHF", "Franchigia {f} CHF", "Deductible {f} CHF")
 _("Dès le {debut}", "Ab {debut}", "Dal {debut}", "From {debut}")
-_("Envoyer votre demande à {caisse}", "Ihren Antrag an {caisse} senden", "Inviare la domanda a {caisse}",
-  "Send your application to {caisse}")
 _("Demande rédigée par Apertus ; les éléments obligatoires ont été vérifiés par l'application.",
   "Antrag von Apertus verfasst; die Pflichtangaben wurden von der Anwendung geprüft.",
   "Domanda redatta da Apertus; gli elementi obbligatori sono stati verificati dall'applicazione.",
@@ -768,8 +765,6 @@ _("Votre assurance actuelle ne prend fin que lorsque la nouvelle caisse a confir
   "cpv. 5). Ogni cassa deve accettare ogni persona per l'assicurazione di base, senza questionario sulla salute.",
   "Your current insurance only ends once the new insurer has confirmed your cover (KVG/LAMal art. 7 para. 5). "
   "Every insurer must accept everyone for basic insurance, without a health questionnaire.")
-_("Résilier votre caisse actuelle avant le {limite}", "Ihre bisherige Kasse vor dem {limite} kündigen",
-  "Disdire la cassa attuale entro il {limite}", "Cancel your current insurer before {limite}")
 _("Votre lettre de résiliation est prête plus haut dans la conversation.",
   "Ihr Kündigungsschreiben steht weiter oben im Gespräch bereit.",
   "La sua lettera di disdetta è pronta più in alto nella conversazione.",
@@ -814,10 +809,6 @@ _("Assurance de base de {caisse} (site officiel)", "Grundversicherung von {caiss
   "Assicurazione di base di {caisse} (sito ufficiale)", "{caisse} basic insurance (official website)")
 _("Site officiel de {caisse}", "Offizielle Website von {caisse}", "Sito ufficiale di {caisse}",
   "Official website of {caisse}")
-_("Sur le site, choisissez : {produit} ({modele}), franchise {f} CHF, {accidents}, début le {debut}.",
-  "Wählen Sie auf der Website: {produit} ({modele}), Franchise {f} CHF, {accidents}, Beginn am {debut}.",
-  "Sul sito scelga: {produit} ({modele}), franchigia {f} CHF, {accidents}, inizio il {debut}.",
-  "On the website, choose: {produit} ({modele}), deductible {f} CHF, {accidents}, start on {debut}.")
 _("accidents inclus", "mit Unfalldeckung", "infortuni inclusi", "accidents included")
 _("accidents exclus", "ohne Unfalldeckung", "infortuni esclusi", "accidents excluded")
 
@@ -827,5 +818,95 @@ _("Aussi : {x}", "Auch: {x}", "Anche: {x}", "Also: {x}")
 _("Votre choix : {caisse}", "Ihre Wahl: {caisse}", "La sua scelta: {caisse}", "Your choice: {caisse}")
 _("Apertus prépare votre demande d'affiliation…", "Apertus bereitet Ihren Antrag vor…",
   "Apertus prepara la sua domanda di affiliazione…", "Apertus is preparing your application…")
+
+# Ce que l'assurance de base ne couvre pas, et assurances complémentaires
+_("Ce qui compte aussi pour moi (facultatif)", "Was mir auch wichtig ist (freiwillig)",
+  "Cosa conta anche per me (facoltativo)", "What also matters to me (optional)")
+_("Lunettes, dentiste, médecines complémentaires…", "Brille, Zahnarzt, Komplementärmedizin…",
+  "Occhiali, dentista, medicine complementari…", "Glasses, dentist, complementary medicine…")
+_("Après votre choix, je vous montrerai ce que l'assurance de base ne paie pas pour ces besoins.",
+  "Nach Ihrer Wahl zeige ich Ihnen, was die Grundversicherung dafür nicht bezahlt.",
+  "Dopo la sua scelta, le mostrerò cosa l'assicurazione di base non paga per queste esigenze.",
+  "After your choice, I will show you what basic insurance does not pay for these needs.")
+_("Hors assurance de base : {x}", "Ausserhalb der Grundversicherung: {x}", "Fuori dall'assicurazione di base: {x}",
+  "Outside basic insurance: {x}")
+_("Votre choix : assurance de base (LAMal)", "Ihre Wahl: Grundversicherung (KVG)",
+  "La sua scelta: assicurazione di base (LAMal)", "Your choice: basic insurance (LAMal)")
+_("Assurance de base (LAMal) uniquement", "Nur Grundversicherung (KVG)", "Solo assicurazione di base (LAMal)",
+  "Basic insurance (LAMal) only")
+_("Demander l’assurance de base (LAMal) à {caisse}", "Grundversicherung (KVG) bei {caisse} beantragen",
+  "Chiedere l’assicurazione di base (LAMal) a {caisse}", "Apply for basic insurance (LAMal) with {caisse}")
+_("Cette demande concerne uniquement l'assurance de base (LAMal).",
+  "Dieser Antrag betrifft nur die Grundversicherung (KVG).",
+  "Questa domanda riguarda solo l'assicurazione di base (LAMal).",
+  "This application concerns basic insurance (LAMal) only.")
+_("Sur le site, choisissez l'assurance de base (LAMal) : {produit} ({modele}), franchise {f} CHF, {accidents}, "
+  "début le {debut}.",
+  "Wählen Sie auf der Website die Grundversicherung (KVG): {produit} ({modele}), Franchise {f} CHF, {accidents}, "
+  "Beginn am {debut}.",
+  "Sul sito, scelga l'assicurazione di base (LAMal): {produit} ({modele}), franchigia {f} CHF, {accidents}, "
+  "inizio il {debut}.",
+  "On the website, choose basic insurance (LAMal): {produit} ({modele}), deductible {f} CHF, {accidents}, start "
+  "on {debut}.")
+_("Résilier l’assurance de base (LAMal) chez votre caisse actuelle avant le {limite}",
+  "Grundversicherung (KVG) bei Ihrer jetzigen Kasse vor dem {limite} kündigen",
+  "Disdire l’assicurazione di base (LAMal) presso la sua cassa attuale prima del {limite}",
+  "Cancel basic insurance (LAMal) with your current insurer before {limite}")
+_("La lettre résilie uniquement l'assurance de base (LAMal). Vos assurances complémentaires continuent chez "
+  "votre caisse actuelle.",
+  "Der Brief kündigt nur die Grundversicherung (KVG). Ihre Zusatzversicherungen laufen bei Ihrer jetzigen "
+  "Kasse weiter.",
+  "La lettera disdice solo l'assicurazione di base (LAMal). Le sue assicurazioni complementari continuano "
+  "presso la sua cassa attuale.",
+  "The letter cancels basic insurance (LAMal) only. Your supplementary insurance continues with your current "
+  "insurer.")
+_("Cette lettre résilie uniquement l'assurance de base (LAMal). Vos assurances complémentaires continuent.",
+  "Dieser Brief kündigt nur die Grundversicherung (KVG). Ihre Zusatzversicherungen laufen weiter.",
+  "Questa lettera disdice solo l'assicurazione di base (LAMal). Le sue assicurazioni complementari continuano.",
+  "This letter cancels basic insurance (LAMal) only. Your supplementary insurance continues.")
+_("Ce que l’assurance de base ne paie pas", "Was die Grundversicherung nicht bezahlt",
+  "Cosa l’assicurazione di base non paga", "What basic insurance does not pay")
+_("Vous n'avez rien coché dans le formulaire : voici les cas les plus fréquents.",
+  "Sie haben im Formular nichts angekreuzt: Hier die häufigsten Fälle.",
+  "Non ha selezionato nulla nel modulo: ecco i casi più frequenti.",
+  "You did not tick anything in the form: here are the most common cases.")
+_("Besoin", "Bedarf", "Esigenza", "Need")
+_("L'assurance de base paie", "Die Grundversicherung bezahlt", "L'assicurazione di base paga", "Basic insurance pays")
+_("Elle ne paie pas", "Sie bezahlt nicht", "Non paga", "It does not pay")
+_("Source", "Quelle", "Fonte", "Source")
+_("Pour ce que l'assurance de base ne paie pas, il faut une assurance complémentaire.",
+  "Für das, was die Grundversicherung nicht bezahlt, braucht es eine Zusatzversicherung.",
+  "Per ciò che l'assicurazione di base non paga, serve un'assicurazione complementare.",
+  "For what basic insurance does not pay, you need supplementary insurance.")
+_("Les complémentaires sont des assurances privées : la caisse peut poser des questions sur votre santé, émettre "
+  "des réserves ou refuser. Leurs primes ne sont pas publiées : demandez une offre.",
+  "Zusatzversicherungen sind private Versicherungen: Die Kasse kann Fragen zu Ihrer Gesundheit stellen, "
+  "Vorbehalte anbringen oder ablehnen. Ihre Prämien sind nicht öffentlich: Verlangen Sie eine Offerte.",
+  "Le complementari sono assicurazioni private: la cassa può porre domande sulla sua salute, formulare riserve "
+  "o rifiutare. I loro premi non sono pubblicati: chieda un'offerta.",
+  "Supplementary insurance is private: the insurer may ask about your health, add exclusions or refuse. "
+  "Premiums are not published: ask for a quote.")
+_("Vous pouvez avoir l'assurance de base et les complémentaires dans des caisses différentes. Votre caisse "
+  "actuelle ne peut ni vous obliger à résilier vos complémentaires, ni les résilier parce que vous changez "
+  "d'assurance de base (LAMal art. 7 al. 7 et 8).",
+  "Grund- und Zusatzversicherung können bei verschiedenen Kassen sein. Ihre jetzige Kasse kann Sie weder zur "
+  "Kündigung Ihrer Zusatzversicherungen zwingen noch sie kündigen, weil Sie die Grundversicherung wechseln "
+  "(KVG Art. 7 Abs. 7 und 8).",
+  "Può avere l'assicurazione di base e le complementari presso casse diverse. La sua cassa attuale non può né "
+  "obbligarla a disdire le complementari, né disdirle perché lei cambia assicurazione di base (LAMal art. 7 "
+  "cpv. 7 e 8).",
+  "You can have basic and supplementary insurance with different insurers. Your current insurer can neither "
+  "force you to cancel your supplementary insurance nor cancel it because you change basic insurance (LAMal "
+  "art. 7 para. 7 and 8).")
+_("Si vous voulez changer aussi de complémentaire : ne résiliez l'ancienne qu'après avoir reçu l'acceptation "
+  "écrite de la nouvelle.",
+  "Wenn Sie auch die Zusatzversicherung wechseln wollen: Kündigen Sie die alte erst, wenn die neue Sie "
+  "schriftlich aufgenommen hat.",
+  "Se vuole cambiare anche la complementare: disdica la vecchia solo dopo aver ricevuto l'accettazione scritta "
+  "della nuova.",
+  "If you also want to change supplementary insurance: cancel the old one only after the new one has accepted "
+  "you in writing.")
+_("Complémentaires de {caisse} : [{site}]({lien}).", "Zusatzversicherungen von {caisse}: [{site}]({lien}).",
+  "Complementari di {caisse}: [{site}]({lien}).", "Supplementary insurance from {caisse}: [{site}]({lien}).")
 
 TRAD = {fr: dict(zip(("de", "it", "en"), v)) for fr, v in T.items()}

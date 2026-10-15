@@ -91,9 +91,14 @@ FICHE_LAMAL = [
                  "inévitable de la mastication, à une maladie générale grave ou à un accident. Les caries, "
                  "le détartrage et les appareils dentaires ne sont pas couverts.", "LAMal art. 31"),
     ("medecines alternatives", "La LAMal rembourse seulement 5 méthodes (acupuncture, médecine "
-                               "anthroposophique, médecine traditionnelle chinoise, homéopathie, "
+                               "anthroposophique, pharmacothérapie chinoise, homéopathie classique, "
                                "phytothérapie), faites par un médecin ayant la formation reconnue. "
-                               "L'ostéopathie n'est pas couverte.", "OPAS art. 4a"),
+                               "L'ostéopathie n'est pas couverte.", "OPAS art. 4b"),
+    ("complementaires", "Les assurances complémentaires (lunettes, dentiste, chambre privée…) sont des "
+                        "assurances privées, séparées de l'assurance de base : on peut les garder chez une "
+                        "autre caisse. Quand on change d'assurance de base, l'ancienne caisse ne peut ni "
+                        "obliger à résilier les complémentaires, ni les résilier pour cette raison.",
+     "LAMal art. 7 al. 7 et 8"),
 ]
 
 

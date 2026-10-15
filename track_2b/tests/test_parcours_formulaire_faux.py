@@ -72,8 +72,10 @@ at = AppTest.from_file(os.path.abspath("src/app.py"), default_timeout=120).run()
 at.number_input(key="f_naissance").set_value(1991).run()
 at.text_input(key="f_npa").set_value("1004").run()
 at.radio(key="f_situation").set_value("sans_emploi").run()
+at.multiselect(key="f_hors_lamal").set_value(["lunettes", "dentaire"]).run()   # case facultative
 at.button(key="f_valider").click().run()
 s = at.session_state
+assert s.hors_lamal == ["lunettes", "dentaire"], s.hors_lamal
 assert s.etape == "resultats", s.etape
 # Apertus ouvre la conversation en reprenant le formulaire, juste au-dessus des offres
 assert [m["type"] for m in s.messages[:2]] == ["ouverture", "resultats"], s.messages[:2]
@@ -85,6 +87,9 @@ assert at.button(key="suggestion_0") and not s.resultats[0]["intro"]
 assert intro.startswith("Merci d'avoir rempli") and "36 ans" in intro and "Lausanne" in intro, intro
 faits = OUVERTURES[-1]
 assert "Année de naissance 1991 : 36 ans en 2027" in faits and "Sans emploi" in faits and "incluse" in faits, faits
+assert "Lunettes et lentilles : l'assurance de base paie" in faits and "Dentiste" in faits, faits
+assert faits.count("Pour cela, il faut une assurance complémentaire.") == 2 and "Hôpital" not in faits, faits
+assert any("Hors assurance de base : lunettes et lentilles, dentiste" in x.value for x in at.markdown)
 assert "Proposition 1" in faits and "toutes les franchises sont comparées" in faits, faits
 assert s.attente == "caisse", s.attente
 assert any(m["type"] == "resultats" for m in s.messages)
@@ -103,6 +108,17 @@ assert m["choix"]["caisse"].startswith("Atupri") and m["choix"]["ancienne"] == "
 assert "Helsana" in m["texte"] and "[Numéro AVS]" in m["texte"] and "1er janvier 2027" in m["texte"]
 liens = [b for b in at.get("link_button")]
 assert liens and liens[0].proto.url.startswith("mailto:info@atupri.ch?subject="), [b.proto.url for b in liens]
+# Tout dit « assurance de base (LAMal) » ; tableau des besoins cochés, puis « il faut une complémentaire »
+textes = " ".join(x.value for x in at.markdown) + " ".join(x.value for x in at.caption)
+assert "Assurance de base (LAMal) uniquement" in textes and "Demander l’assurance de base (LAMal) à Atupri" in textes
+assert "Cette demande concerne uniquement l'assurance de base (LAMal)." in textes
+assert "La lettre résilie uniquement l'assurance de base (LAMal)." in textes
+tableau = next(x.value for x in at.markdown if 'class="hors-lamal"' in x.value)
+assert "Lunettes et lentilles" in tableau and "Dentiste" in tableau and "Hôpital" not in tableau, tableau
+assert "fedlex.admin.ch" in tableau and "LAMal art. 31" in tableau, tableau
+info = " ".join(x.value for x in at.info)
+assert "il faut une assurance complémentaire" in info and "LAMal art. 7 al. 7 et 8" in info, info
+assert "acceptation écrite" in info and "atupri.ch" in info, info
 assert not at.exception, [e.value for e in at.exception]
 MODE["affiliation"] = "mauvaise"   # numéro AVS inventé -> refusé deux fois -> demande modèle
 at.button(key="choisir_0_1").click().run()
@@ -118,6 +134,7 @@ s = at.session_state
 assert not s.get("formulaire_valide") and not s.get("resultats"), "pas revenu au formulaire"
 assert at.number_input(key="f_naissance").value == 1991 and at.text_input(key="f_npa").value == "1004"
 assert at.radio(key="f_situation").value == "sans_emploi" and not at.warning
+assert at.multiselect(key="f_hors_lamal").value == ["lunettes", "dentaire"]
 at.radio(key="f_situation").set_value("salarie_8h").run()
 at.button(key="f_valider").click().run()
 assert at.session_state.formulaire_valide and at.session_state.profil["contract"].accident() is False
@@ -129,7 +146,9 @@ assert at8.multiselect(key="f_modeles").value == list(chatbot.CARE_TYPES), at8.m
 at8.number_input(key="f_naissance").set_value(1991).run()
 at8.text_input(key="f_npa").set_value("8004").run()
 at8.radio(key="f_situation").set_value("independant").run()
+at8.multiselect(key="f_hors_lamal").set_value(["hopital"]).run()
 at8.selectbox(key="langue").set_value("it").run()
+assert at8.multiselect(key="f_hors_lamal").value == ["hopital"]
 assert not at8.button(key="f_valider").disabled
 at8.button(key="f_valider").click().run()
 assert at8.session_state.resultats and not at8.exception

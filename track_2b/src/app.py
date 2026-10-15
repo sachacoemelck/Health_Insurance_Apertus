@@ -27,6 +27,7 @@ import complementaires as compl
 import sante
 import affiliation
 import caisses
+import hors_lamal
 import changement
 import conversation
 import langues
@@ -556,7 +557,9 @@ sont affichées juste en dessous de ton texte.
    acceptés) et dis ce que cela change pour elle, d'après les faits (catégorie d'âge, couverture accidents).
 3. Présente l'offre la moins chère et le compromis entre le prix et les contraintes, d'après les faits.
 4. Dis que toutes les franchises ont été comparées et donne le seuil de frais indiqué dans les faits, s'il y en a un.
-5. Termine en l'invitant à te poser ses questions, par exemple sur la franchise ou sur un modèle.
+5. Si les faits contiennent des besoins hors assurance de base, dis en une phrase ce que l'assurance de base ne
+   paie pas pour eux et qu'il faut une assurance complémentaire pour cela.
+6. Termine en l'invitant à te poser ses questions, par exemple sur la franchise ou sur un modèle.
 Règles strictes :
 - Utilise UNIQUEMENT les faits fournis. N'ajoute aucune information extérieure.
 - Ne fais AUCUN calcul. Recopie les montants exactement (avec les centimes) ou n'en cite pas.
@@ -579,6 +582,10 @@ def recapitulatif_formulaire(l):
     etiquettes.append(("🩺", tr("Tous les modèles", l) if set(modeles) == set(CARE_TYPES)
                        else ", ".join(tr(CARE_LABELS[k], l) for k in modeles)))
     etiquettes.append(("💰", tr("Toutes les franchises comparées", l)))
+    besoins = st.session_state.get("hors_lamal") or []
+    if besoins:
+        etiquettes.append(("➕", tr("Hors assurance de base : {x}", l,
+                                    x=", ".join(hors_lamal.libelle(c, l).lower() for c in besoins))))
     return etiquettes
 
 
@@ -637,6 +644,10 @@ def faits_formulaire(props):
     lignes.append("- Modèles acceptés : " + ("tous (" if set(modeles) == set(CARE_TYPES) else "")
                   + ", ".join(CARE_LABELS[k] for k in modeles) + (")" if set(modeles) == set(CARE_TYPES) else "") + ".")
     lignes.append("- Franchise : le formulaire ne la demande pas ; toutes les franchises sont comparées.")
+    besoins = hors_lamal.faits(s.get("hors_lamal") or [])
+    if besoins:
+        lignes += ["Besoins cochés dans le formulaire, hors assurance de base (l'application les détaille après "
+                   "le choix d'une offre) :"] + besoins
     lignes += ["Offres affichées sous ton texte :", faits_propositions(props, p["priorite"])]
     retenir = [l.replace("À RETENIR : ", "- ") for l in chiffres_franchise().splitlines() if l.startswith("À RETENIR")]
     if retenir:
@@ -846,14 +857,14 @@ def afficher_affiliation(m, i, suffixe=""):
     fin, limite = changement.dates(ch["annee"])
     with st.container(key=f"checkout_{i}{suffixe}"):
         style.recapitulatif_choix(
-            tr("Votre choix", l), ch["caisse"], f"{ch['produit']} — {tr(ch['modele'], l)}",
-            [tr("Franchise {f} CHF", l, f=ch["franchise"]),
+            tr("Votre choix : assurance de base (LAMal)", l), ch["caisse"], f"{ch['produit']} — {tr(ch['modele'], l)}",
+            [tr("Assurance de base (LAMal) uniquement", l), tr("Franchise {f} CHF", l, f=ch["franchise"]),
              tr("Accidents inclus", l) if ch["accident"] else tr("Accidents exclus (employeur)", l),
              tr("Dès le {debut}", l, debut=f"{debut.day:02d}.{debut.month:02d}.{debut.year}")],
             f"{ch['prime_mois']:.2f}", tr("CHF / mois", l))
 
         # Étape 1 : demande d'affiliation
-        st.markdown(f"**1. {tr('Envoyer votre demande à {caisse}', l, caisse=ch['caisse'])}**")
+        st.markdown(f"**1. {tr('Demander l’assurance de base (LAMal) à {caisse}', l, caisse=ch['caisse'])}**")
         if m["par"] == "apertus":
             st.caption(tr("Demande rédigée par Apertus ; les éléments obligatoires ont été vérifiés par l'application.", l))
         else:
@@ -864,7 +875,8 @@ def afficher_affiliation(m, i, suffixe=""):
                            affiliation.lien_mailto(contact["email"], m["objet"], texte), type="primary",
                            width="stretch")
             st.caption(tr("Votre messagerie s'ouvre avec la demande prête, adressée à {email} (adresse officielle, "
-                          "liste OFSP). Complétez les champs entre crochets, puis envoyez.", l, email=contact["email"]))
+                          "liste OFSP). Complétez les champs entre crochets, puis envoyez.", l, email=contact["email"])
+                       + " " + tr("Cette demande concerne uniquement l'assurance de base (LAMal).", l))
         elif contact:
             st.caption(tr("{caisse} ne publie pas d'adresse e-mail dans la liste officielle de l'OFSP : envoyez la "
                           "demande par la poste (adresse déjà dans la lettre) ou via son site.", l, caisse=ch["caisse"]))
@@ -874,8 +886,8 @@ def afficher_affiliation(m, i, suffixe=""):
                        "page": tr("Assurance de base de {caisse} (site officiel)", l, caisse=ch["caisse"]),
                        "site": tr("Site officiel de {caisse}", l, caisse=ch["caisse"])}[genre]
             st.link_button("🌐 " + libelle, lien, width="stretch")
-            st.caption(tr("Sur le site, choisissez : {produit} ({modele}), franchise {f} CHF, {accidents}, début le "
-                          "{debut}.", l, produit=ch["produit"], modele=tr(ch["modele"], l), f=ch["franchise"],
+            st.caption(tr("Sur le site, choisissez l'assurance de base (LAMal) : {produit} ({modele}), franchise {f} "
+                          "CHF, {accidents}, début le {debut}.", l, produit=ch["produit"], modele=tr(ch["modele"], l), f=ch["franchise"],
                           accidents=tr("accidents inclus", l) if ch["accident"] else tr("accidents exclus", l),
                           debut=f"{debut.day:02d}.{debut.month:02d}.{debut.year}"))
         if m["langue"] != l:
@@ -904,7 +916,9 @@ def afficher_affiliation(m, i, suffixe=""):
                       "l'assurance de base, sans questionnaire de santé.", l))
 
         # Étape 3 : résiliation
-        st.markdown(f"**3. {tr('Résilier votre caisse actuelle avant le {limite}', l, limite=f'{limite.day}.{limite.month:02d}.{limite.year}')}**")
+        st.markdown(f"**3. {tr('Résilier l’assurance de base (LAMal) chez votre caisse actuelle avant le {limite}', l, limite=f'{limite.day}.{limite.month:02d}.{limite.year}')}**")
+        st.caption(tr("La lettre résilie uniquement l'assurance de base (LAMal). Vos assurances complémentaires "
+                      "continuent chez votre caisse actuelle.", l))
         deja = any(x["type"] == "lettre" for x in st.session_state.messages)
         if ch.get("meme_caisse"):
             st.caption("✅ " + tr("Vous restez chez {caisse} : rien à résilier, la demande ci-dessus suffit pour changer "
@@ -921,6 +935,34 @@ def afficher_affiliation(m, i, suffixe=""):
                            data=affiliation.rappel_ics(limite, ch.get("ancienne") or tr("votre caisse actuelle", l), l)
                            .encode("utf-8"), file_name="rappel_resiliation.ics", mime="text/calendar",
                            key=f"rappel_{i}{suffixe}")
+
+        # Étape 4 : ce que l'assurance de base ne couvre pas, et les complémentaires
+        afficher_hors_lamal(ch, contact)
+
+
+def afficher_hors_lamal(ch, contact):
+    """Ce que l'assurance de base ne paie pas (besoins cochés, sinon les cas fréquents), puis un message
+    clair : pour cela, il faut une complémentaire, avec les règles pour ne rien perdre."""
+    l = L()
+    choisis = st.session_state.get("hors_lamal") or []
+    st.markdown(f"**4. {tr('Ce que l’assurance de base ne paie pas', l)}**")
+    if not choisis:
+        st.caption(tr("Vous n'avez rien coché dans le formulaire : voici les cas les plus fréquents.", l))
+    style.tableau_hors_lamal(
+        [tr("Besoin", l), tr("L'assurance de base paie", l), tr("Elle ne paie pas", l)],
+        hors_lamal.lignes(choisis or list(hors_lamal.BESOINS), l), tr("Source", l), " : " if l == "fr" else ": ")
+    site = contact["site"] if contact else None
+    st.info("\n\n".join([
+        "**" + tr("Pour ce que l'assurance de base ne paie pas, il faut une assurance complémentaire.", l) + "**",
+        tr("Les complémentaires sont des assurances privées : la caisse peut poser des questions sur votre santé, "
+           "émettre des réserves ou refuser. Leurs primes ne sont pas publiées : demandez une offre.", l),
+        tr("Vous pouvez avoir l'assurance de base et les complémentaires dans des caisses différentes. Votre caisse "
+           "actuelle ne peut ni vous obliger à résilier vos complémentaires, ni les résilier parce que vous changez "
+           "d'assurance de base (LAMal art. 7 al. 7 et 8).", l),
+        tr("Si vous voulez changer aussi de complémentaire : ne résiliez l'ancienne qu'après avoir reçu "
+           "l'acceptation écrite de la nouvelle.", l)]
+        + ([tr("Complémentaires de {caisse} : [{site}]({lien}).", l, caisse=ch["caisse"],
+               site=site.replace("https://", ""), lien=site)] if site else [])), icon="➕")
 
 
 def repondre_lettre(oui):
@@ -1198,6 +1240,8 @@ def afficher_lettre(m, i):
     if m["langue"] != l:
         st.caption(tr("La lettre est écrite dans une langue officielle de votre canton, celle que votre caisse "
                       "utilise.", l))
+    st.caption(tr("Cette lettre résilie uniquement l'assurance de base (LAMal). Vos assurances complémentaires "
+                  "continuent.", l))
     st.code(m["texte"], language=None, wrap_lines=True)
     st.download_button(tr("Télécharger la lettre (.txt)", l), data=m["texte"].encode("utf-8"),
                        file_name="resiliation_assurance_de_base.txt", mime="text/plain", key=f"lettre_{i}")
@@ -1415,7 +1459,7 @@ def npa_saisi():
     return int(texte) if texte.isdigit() and len(texte) == 4 else None
 
 
-CLES_FORMULAIRE = ("f_naissance", "f_npa", "f_commune", "f_situation", "f_modeles", "f_besoins")
+CLES_FORMULAIRE = ("f_naissance", "f_npa", "f_commune", "f_situation", "f_modeles", "f_besoins", "f_hors_lamal")
 
 
 def sauver_formulaire():
@@ -1450,6 +1494,7 @@ def soumettre_formulaire():
     """Rappel du bouton « Voir mes offres » : s'exécute avant l'affichage suivant."""
     s = st.session_state
     sauver_formulaire()
+    s.hors_lamal = list(s.get("f_hors_lamal") or [])  # gardé après le formulaire (le champ, lui, disparaît)
     npa = npa_saisi()
     try:
         valider_formulaire(s["f_naissance"], npa, commune_choisie(npa), s["f_situation"],
@@ -1487,6 +1532,11 @@ def ecran_profil():
     modeles = st.multiselect(tr("Modèles d'assurance acceptés", l), list(CARE_TYPES),
                              default=None if "f_modeles" in st.session_state else list(CARE_TYPES),
                              format_func=lambda k: tr(CARE_LABELS[k], l), key="f_modeles", placeholder=tr("Choisissez…", l))
+    st.multiselect(tr("Ce qui compte aussi pour moi (facultatif)", l), list(hors_lamal.BESOINS),
+                   default=None if "f_hors_lamal" in st.session_state else [],
+                   format_func=lambda k: hors_lamal.libelle(k, l), key="f_hors_lamal",
+                   placeholder=tr("Lunettes, dentiste, médecines complémentaires…", l))
+    st.caption(tr("Après votre choix, je vous montrerai ce que l'assurance de base ne paie pas pour ces besoins.", l))
     if MODULES_COMPLEMENTAIRES:
         st.multiselect(tr("Besoins en assurances complémentaires (facultatif)", l), list(compl.CATEGORIES),
                        format_func=compl.CATEGORIES.get, key="f_besoins", placeholder=tr("Choisissez…", l))
