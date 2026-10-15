@@ -626,23 +626,34 @@ def poser(question):
     st.session_state.question_en_attente = question
 
 
+def envoyer():
+    """Message écrit dans la zone de saisie : traité en bas de la page (voir main)."""
+    texte = (st.session_state.get("saisie") or "").strip()
+    if texte:
+        st.session_state.question_en_attente = texte
+
+
 def afficher_questions():
-    """En bas de la conversation, juste au-dessus de la zone de saisie : « Posez-moi vos questions », avec les
-    questions proposées d'après le formulaire (sans celles déjà posées). La réponse arrive juste en dessous."""
+    """En bas de la conversation : « Posez-moi vos questions », les questions proposées d'après le formulaire
+    (sans celles déjà posées), puis la zone de saisie. La zone de saisie est dans la page et non collée au bas
+    de l'écran : sinon Streamlit fait sans cesse défiler la page vers le bas, et on ne peut pas ouvrir la page
+    des offres sur la carte du conseiller ni défiler librement."""
     s, l = st.session_state, L()
-    if not s.get("resultats"):
-        return
-    posees = {m.get("contenu") for m in s.messages if m["role"] == "user"}
-    proposees = [(i, tr(q, l)) for i, q in enumerate((s.get("ouverture") or {}).get("suggestions", []))
-                 if tr(q, l) not in posees]
     with st.container(key="questions"):
-        st.markdown(f"**{tr('Posez-moi vos questions', l)}**")
-        if proposees:
-            with st.container(horizontal=True, key="suggestions"):
-                for i, q in proposees:
-                    st.button(q, key=f"suggestion_{i}", on_click=poser, args=(q,))
-        st.caption(tr("Ou écrivez la vôtre ci-dessous, par exemple « que couvre la LAMal ? » ou « et avec une "
-                      "franchise de 300 ? ». La réponse s'affiche juste ici.", l))
+        if s.get("resultats"):
+            posees = {m.get("contenu") for m in s.messages if m["role"] == "user"}
+            proposees = [(i, tr(q, l)) for i, q in enumerate((s.get("ouverture") or {}).get("suggestions", []))
+                         if tr(q, l) not in posees]
+            st.markdown(f"**{tr('Posez-moi vos questions', l)}**")
+            if proposees:
+                with st.container(horizontal=True, key="suggestions"):
+                    for i, q in proposees:
+                        st.button(q, key=f"suggestion_{i}", on_click=poser, args=(q,))
+            st.caption(tr("Ou écrivez la vôtre ci-dessous, par exemple « que couvre la LAMal ? » ou « et avec une "
+                          "franchise de 300 ? ».", l))
+        # Texte d'exemple fixe : s'il changeait d'une étape à l'autre, Streamlit recréerait la zone de
+        # saisie et le premier message écrit après le changement d'étape serait perdu.
+        st.chat_input(langues.PLACEHOLDER, key="saisie", on_submit=envoyer)
 
 
 def faits_formulaire(props):
@@ -1442,7 +1453,7 @@ def passer_au_chat():
     gardé (le conseiller ne le redemande pas), puis le chat pose directement la question suivante."""
     s = st.session_state
     sauver_formulaire()
-    s.remonter = True
+    s.remonter = "haut"
     s.formulaire_valide = True
     c = s.profil["contract"]
     l = L()
@@ -1506,32 +1517,46 @@ def revenir_au_formulaire():
         st.session_state[cle] = valeur
     if langue:
         st.session_state.langue = langue
-    st.session_state.remonter = True
+    st.session_state.remonter = "haut"
 
 
 def haut_de_page():
-    """Après « Voir mes offres » (ou le retour au formulaire), la nouvelle page s'ouvre en haut. Streamlit
-    garde la conversation collée en bas (zone de saisie du chat) : on remonte une fois, pendant ~1,5 s, le
-    temps que les cartes et l'animation de l'ouverture s'affichent."""
-    if st.session_state.pop("remonter", False):
-        st.html("""<script>
-        (() => {
-          // Streamlit colle le chat en bas pendant que la page se construit (~5 s) : on reste en haut
-          // pendant 8 s, sauf si la personne fait défiler elle-même. Un « wheel » vers le haut décolle le chat.
-          let n = 0, stop = false;
-          const arreter = (e) => { if (e.isTrusted) stop = true; };
-          ["wheel", "touchmove", "keydown"].forEach(t => window.addEventListener(t, arreter, {once: true, capture: true}));
-          const haut = () => {
-            if (stop) return;
-            for (const e of document.querySelectorAll('[data-testid="stAppScrollToBottomContainer"], [data-testid="stMain"]')) {
-              if (e.scrollTop > 0) { e.dispatchEvent(new WheelEvent("wheel", {deltaY: -1000, bubbles: true})); e.scrollTop = 0; }
-            }
-            window.scrollTo(0, 0);
-            if (++n < 80) setTimeout(haut, 100);
-          };
-          haut();
-        })();
-        </script>""", unsafe_allow_javascript=True, width="content")
+    """Place la page une fois, sans la bloquer ensuite :
+    - après « Voir mes offres » : sur la carte « Votre conseiller LAMal » ;
+    - après une question : la question en haut de l'écran, la réponse juste dessous ;
+    - après le retour au formulaire : en haut.
+    Le script se replace pendant ~2,5 s le temps que la page s'affiche, et s'arrête dès que la personne
+    fait défiler elle-même (molette, doigt, clavier, clic)."""
+    cible = st.session_state.pop("remonter", None)
+    if not cible:
+        return
+    selecteur = {"conseiller": ".st-key-ouverture", "question": "QUESTION"}.get(cible, ".entete")
+    st.html("""<script>
+    (() => {
+      const SELECTEUR = "%s";
+      const trouver = () => {
+        if (SELECTEUR !== "QUESTION") return document.querySelector(SELECTEUR);
+        const avatars = document.querySelectorAll('[data-testid="stChatMessageAvatarUser"]');
+        return avatars.length ? avatars[avatars.length - 1].closest('[data-testid="stChatMessage"]') : null;
+      };
+      const evenements = ["wheel", "touchstart", "keydown", "pointerdown"];
+      let fini = false, n = 0;
+      const parPersonne = (e) => { if (e.isTrusted) terminer(); };
+      const terminer = () => { fini = true; evenements.forEach(t => window.removeEventListener(t, parPersonne, true)); };
+      evenements.forEach(t => window.addEventListener(t, parPersonne, true));
+      const placer = () => {
+        if (fini) return;
+        const el = trouver();
+        if (el) {
+          const haut = el.getBoundingClientRect().top;
+          if (Math.abs(haut - 80) > 4) { el.style.scrollMarginTop = "80px"; el.scrollIntoView({block: "start"}); }
+        }
+        if (++n >= 25) return terminer();
+        setTimeout(placer, 100);
+      };
+      placer();
+    })();
+    </script>""" % selecteur, unsafe_allow_javascript=True, width="content")
 
 
 def garder_formulaire():
@@ -1547,7 +1572,7 @@ def soumettre_formulaire():
     """Rappel du bouton « Voir mes offres » : s'exécute avant l'affichage suivant."""
     s = st.session_state
     sauver_formulaire()
-    s.remonter = True  # la page suivante s'ouvre en haut
+    s.remonter = "conseiller"  # la page des offres s'ouvre sur la carte du conseiller
     s.hors_lamal = list(s.get("f_hors_lamal") or [])  # gardé après le formulaire (le champ, lui, disparaît)
     npa = npa_saisi()
     try:
@@ -1625,13 +1650,8 @@ def main():
         haut_de_page()
         return
 
-    # Texte d'exemple fixe : s'il changeait d'une étape à l'autre, Streamlit recréerait la zone de
-    # saisie et le premier message écrit après le changement d'étape serait perdu.
-    texte = st.chat_input(langues.PLACEHOLDER)
-    if texte and texte.strip():
-        s.question_en_attente = texte.strip()
-
     afficher_entete()
+    haut_de_page()  # tôt dans la page : le script place la page pendant qu'elle s'affiche
     st.button("← " + tr("Modifier mes réponses", L()), on_click=revenir_au_formulaire, key="retour_formulaire",
               type="tertiary")
 
@@ -1666,6 +1686,7 @@ def main():
                     traiter_message(question)
             except ErreurLLM:
                 dire(tr("Apertus ne répond pas pour le moment. Réessayez dans un instant.", L()))
+        s.remonter = "question"  # après la réponse : la question en haut de l'écran, la réponse dessous
         st.rerun()
     reponses_rapides()
     afficher_questions()
@@ -1673,7 +1694,6 @@ def main():
         ouvrir_fenetre_choix(*s.pop("choix_demande"))
 
     afficher_sources()
-    haut_de_page()
 
 
 def afficher_entete():

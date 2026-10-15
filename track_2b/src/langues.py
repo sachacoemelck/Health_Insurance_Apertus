@@ -908,13 +908,10 @@ _("Complémentaires de {caisse} : [{site}]({lien}).", "Zusatzversicherungen von 
   "Complementari di {caisse}: [{site}]({lien}).", "Supplementary insurance from {caisse}: [{site}]({lien}).")
 
 _("Posez-moi vos questions", "Stellen Sie mir Ihre Fragen", "Mi faccia le sue domande", "Ask me your questions")
-_("Ou écrivez la vôtre ci-dessous, par exemple « que couvre la LAMal ? » ou « et avec une franchise de 300 ? ». "
-  "La réponse s'affiche juste ici.",
+_("Ou écrivez la vôtre ci-dessous, par exemple « que couvre la LAMal ? » ou « et avec une franchise de 300 ? ».",
   "Oder schreiben Sie Ihre eigene unten, zum Beispiel «Was deckt die Grundversicherung?» oder «Und mit einer Franchise von "
-  "300?». Die Antwort erscheint gleich hier.",
-  "Oppure scriva la sua qui sotto, per esempio «Cosa copre la LAMal?» o «E con una franchigia di 300?». La "
-  "risposta appare proprio qui.",
-  "Or write your own below, for example “what does LAMal cover?” or “and with a 300 deductible?”. The answer "
-  "appears right here.")
+  "300?».",
+  "Oppure scriva la sua qui sotto, per esempio «Cosa copre la LAMal?» o «E con una franchigia di 300?».",
+  "Or write your own below, for example “what does LAMal cover?” or “and with a 300 deductible?”.")
 
 TRAD = {fr: dict(zip(("de", "it", "en"), v)) for fr, v in T.items()}
