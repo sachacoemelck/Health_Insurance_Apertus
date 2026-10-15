@@ -1,0 +1,324 @@
+
+==========================================================================================
+[fr] Atupri Gesundheitsversicherung AG – HMO (Médecin de famille / HMO), franchise 2500, accidents inclus, caisse actuelle : Helsana
+==========================================================================================
+Apertus accepté du 1er coup (7.9 s)
+
+[Prénom Nom]
+[Adresse]
+[NPA Localité]
+
+[Lieu, date]
+
+Objet : Demande d'affiliation à l'assurance maladie de base (LAMal) à compter du 1er janvier 2027
+
+Madame, Monsieur,
+
+Je vous prie de bien vouloir procéder à mon affiliation à l'assurance obligatoire des soins (assurance de base) à compter du 1er janvier 2027, selon les modalités suivantes :
+
+- Caisse : Atupri Gesundheitsversicherung AG
+- Produit : HMO
+- Modèle : Médecin de famille / HMO
+- Franchise : 2500 CHF par an
+- Couverture accidents : incluse
+- Prime mensuelle : 456.00 CHF
+
+Ma date de naissance est [Date de naissance] et mon numéro AVS est [Numéro AVS].
+
+Je vous informe que je résilie mon contrat actuel auprès de Helsana. Je vous remercie de bien vouloir m'adresser une confirmation écrite de la couverture, nécessaire pour que la résiliation prenne effet.
+
+Je vous remercie également de bien vouloir m'envoyer la police d'assurance ainsi que les documents à signer pour finaliser mon affiliation.
+
+Je vous remercie par avance pour votre diligence et vous prie d'agréer, Madame, Monsieur, l'expression de mes salutations distinguées.
+
+[Signature]
+
+[Prénom Nom]
+
+==========================================================================================
+[fr] Sanitas – TelMed Basic (Télémédecine / numérique), franchise 300, accidents inclus, caisse actuelle : -
+==========================================================================================
+demande modèle (Apertus refusé 2 fois) (14.2 s)
+
+[Prénom Nom]
+[Adresse]
+[NPA Localité]
+
+Sanitas
+
+[Lieu, date]
+
+Objet : demande d'affiliation à l'assurance obligatoire des soins (assurance de base)
+
+Madame, Monsieur,
+
+Par la présente, je demande mon affiliation à votre assurance de base (LAMal) à partir du 1er janvier 2027 : produit TelMed Basic, modèle Télémédecine / numérique, franchise de 300 CHF, avec la couverture accidents. Selon les primes officielles 2027, la prime est de 452.95 CHF par mois.
+
+Date de naissance : [Date de naissance]
+Numéro AVS : [Numéro AVS]
+
+Je vous prie de me confirmer l'affiliation par écrit.
+
+Merci de m'envoyer la police d'assurance ou les documents à signer.
+
+Veuillez agréer, Madame, Monsieur, mes salutations distinguées.
+
+[Signature]
+[Prénom Nom]
+
+==========================================================================================
+[fr] Assura-Basis SA – PharMed (Médecin de famille / HMO), franchise 1500, accidents exclus, caisse actuelle : CSS
+==========================================================================================
+Apertus accepté du 1er coup (7.1 s)
+
+[Prénom Nom]
+[Adresse]
+[NPA Localité]
+
+[Lieu, date]
+
+Objet : Demande d'affiliation à l'assurance obligatoire des soins (LAMal) à compter du 1er janvier 2027
+
+Madame, Monsieur,
+
+Je vous adresse la présente demande d'affiliation à l'assurance maladie de base (LAMal) pour l'année 2027.
+
+Je souhaite souscrire au produit **PharMed**, modèle **Médecin de famille / HMO**, avec une franchise de **1500 CHF par an**. La couverture accidents est exclue, car je suis déjà assuré par mon employeur.
+
+Ma date de naissance est le [Date de naissance] et mon numéro AVS est le [Numéro AVS].
+
+Je vous informe que je résilie mon contrat actuel auprès de la caisse **CSS**. Je vous remercie de bien vouloir m'adresser une confirmation écrite de la prise d'effet de cette résiliation, indispensable pour que mon affiliation auprès de votre caisse puisse débuter le 1er janvier 2027.
+
+Je vous remercie par avance de bien vouloir m'envoyer la police d'assurance ainsi que les documents à signer pour finaliser mon dossier.
+
+Je vous prie d'agréer, Madame, Monsieur, l'expression de mes salutations distinguées.
+
+[Signature]
+
+[Prénom Nom]
+
+==========================================================================================
+[de] Sanitas – TelMed Basic (Télémédecine / numérique), franchise 2500, accidents exclus, caisse actuelle : CSS
+==========================================================================================
+demande modèle (Apertus refusé 2 fois) (15.3 s)
+
+[Vorname Name]
+[Adresse]
+[PLZ Ort]
+
+Sanitas
+
+[Ort, Datum]
+
+Antrag auf Aufnahme in die obligatorische Krankenpflegeversicherung (Grundversicherung)
+
+Sehr geehrte Damen und Herren
+
+Hiermit beantrage ich die Aufnahme in Ihre Grundversicherung nach KVG ab dem 1. Januar 2027: Produkt TelMed Basic, Modell Telmed / digital, Franchise 2500 CHF, ohne Unfalldeckung (über meinen Arbeitgeber versichert). Gemäss den offiziellen Prämien 2027 beträgt die Prämie 384.05 CHF pro Monat.
+
+Geburtsdatum: [Geburtsdatum]
+AHV-Nummer: [AHV-Nummer]
+
+Meine Grundversicherung bei CSS wird gekündigt. Bitte bestätigen Sie mir die Aufnahme schriftlich, damit die Kündigung wirksam wird.
+
+Bitte senden Sie mir die Police oder die zu unterzeichnenden Unterlagen.
+
+Freundliche Grüsse
+
+[Unterschrift]
+[Vorname Name]
+
+==========================================================================================
+[de] Visana – VIVA - Gesundheitsplan (Médecin de famille / HMO), franchise 300, accidents inclus, caisse actuelle : -
+==========================================================================================
+Apertus accepté au 2e essai (15.0 s)
+
+[Vorname Name]
+[Adresse]
+[PLZ Ort]
+
+[Ort, Datum]
+
+Betreff: Antrag auf Aufnahme in die obligatorische Krankenpflegeversicherung (KVG) per 1. Januar 2027
+
+Sehr geehrte Damen und Herren,
+
+hiermit beantrage ich die Aufnahme in die obligatorische Krankenpflegeversicherung (KVG) bei der Visana per 1. Januar 2027.
+
+Die gewünschten Versicherungsdetails sind wie folgt:
+- Versicherungsprodukt: VIVA - Gesundheitsplan
+- Versicherungsmodell: Hausarzt / HMO
+- Jahresfranchise: 300 CHF
+- Unfallversicherung: eingeschlossen
+- Monatsprämie: 574.70 CHF (gemäss offiziellen Prämien 2027)
+
+Meine persönlichen Daten:
+- Geburtsdatum: [Geburtsdatum]
+- AHV-Nummer: [AHV-Nummer]
+
+Falls ich bereits bei einer anderen Krankenkasse versichert bin, bitte ich um schriftliche Bestätigung der Deckungslücke, damit die Kündigung bei meiner aktuellen Kasse wirksam wird.
+
+Bitte senden Sie mir die Versicherungspolice sowie die zu unterzeichnenden Dokumente zu.
+
+Für Rückfragen stehe ich Ihnen gerne zur Verfügung.
+
+Mit freundlichen Grüssen
+
+[Unterschrift]
+
+[Vorname Name]
+
+==========================================================================================
+[de] Sanitas – Hausarztmodell 1 (Médecin de famille / HMO), franchise 2000, accidents inclus, caisse actuelle : SWICA
+==========================================================================================
+Apertus accepté au 2e essai (15.3 s)
+
+[Vorname Name]
+[Adresse]
+[PLZ Ort]
+
+[Ort, Datum]
+
+Betreff: Antrag auf Aufnahme in die obligatorische Krankenpflegeversicherung (KVG) per 1. Januar 2027
+
+Sehr geehrte Damen und Herren,
+
+hiermit beantrage ich die Aufnahme in die obligatorische Krankenpflegeversicherung (KVG) bei Ihrer Kasse, der Sanitas, per 1. Januar 2027.
+
+Die gewünschten Versicherungsdetails sind wie folgt:
+- Versicherungsmodell: Hausarztmodell 1
+- Versicherungsform: Hausarzt / HMO
+- Jahresfranchise: 2000 CHF
+- Unfallversicherung: eingeschlossen
+- Monatliche Prämie: 378.85 CHF (gemäss offiziellen Prämien 2027)
+
+Meine persönlichen Daten:
+- Geburtsdatum: [Geburtsdatum]
+- AHV-Nummer: [AHV-Nummer]
+
+Da ich bereits bei einer anderen Krankenkasse versichert bin (SWICA), bitte ich um schriftliche Bestätigung der Deckung bis zum Austritt, damit die Kündigung bei der aktuellen Kasse wirksam wird.
+
+Bitte senden Sie mir die Versicherungspolice sowie die zu unterzeichnenden Dokumente zu.
+
+Für Rückfragen stehe ich Ihnen gerne zur Verfügung.
+
+Mit freundlichen Grüssen
+
+[Unterschrift]
+
+[Vorname Name]
+
+==========================================================================================
+[it] Agrisano – AGRIsmart (Télémédecine / numérique), franchise 2500, accidents inclus, caisse actuelle : Helsana
+==========================================================================================
+Apertus accepté du 1er coup (7.6 s)
+
+[Nome Cognome]
+[Indirizzo]
+[NPA Località]
+
+[Luogo, data]
+
+Oggetto: Domanda di affiliazione all'assicurazione malattia di base (LAMal) – Agrisano
+
+Egregi Signori,
+
+con la presente, chiedo di affiliarmi all'assicurazione malattia di base (LAMal) presso la vostra cassa a partire dal 1 gennaio 2027.
+
+I dettagli richiesti sono i seguenti:
+- Prodotto: AGRIsmart
+- Modello: Telemedicina / digitale
+- Franchigia: 2500 CHF per anno
+- Copertura infortuni: inclusa
+- Premio mensile: 505.80 CHF (secondo le tariffe ufficiali 2027)
+
+Data di nascita: [Data di nascita]
+Numero AVS: [Numero AVS]
+
+La mia attuale cassa malati, Helsana, dovrà essere disdetta. Vi prego di inviarmi una conferma scritta della copertura assicurativa, necessaria affinché la disdetta presso Helsana diventi effettiva.
+
+Vi chiedo inoltre di inviarmi la polizza assicurativa o i documenti da firmare per completare l'affiliazione.
+
+Ringraziandovi per l'attenzione, resto in attesa di un vostro riscontro.
+
+Cordiali saluti,
+
+[Firma]
+
+[Nome Cognome]
+
+==========================================================================================
+[it] KPT – KPTwin.smart - Hausarzt mit App (Télémédecine / numérique), franchise 1000, accidents exclus, caisse actuelle : -
+==========================================================================================
+Apertus accepté du 1er coup (8.3 s)
+
+[Nome Cognome]
+[Indirizzo]
+[NPA Località]
+
+[Luogo, data]
+
+Oggetto: Domanda di affiliazione all'assicurazione malattie di base (LAMal) – KPT – dal 1 gennaio 2027
+
+Egregi Signori,
+
+con la presente, chiedo di affiliarmi all'assicurazione malattie di base (LAMal) presso la vostra cassa a partire dal 1 gennaio 2027.
+
+Dati personali:
+- Data di nascita: [Data di nascita]
+- Numero AVS: [Numero AVS]
+
+Dettagli della copertura richiesta:
+- Prodotto: KPTwin.smart - Hausarzt mit App
+- Modello: Telemedicina / digitale
+- Franchigia: 1000 CHF per anno
+- Copertura infortuni: esclusa (già assicurato tramite il datore di lavoro)
+- Premio mensile: 554.40 CHF (secondo le tariffe ufficiali 2027)
+
+Se sono attualmente affiliato presso un'altra cassa malati, chiedo che la mia affiliazione attuale venga disdetta e che mi sia inviata una conferma scritta della copertura, necessaria affinché la disdetta abbia effetto.
+
+Vi prego di inviarmi la polizza d'assicurazione e i documenti da firmare per completare l'affiliazione.
+
+Ringraziandovi per l'attenzione, porgo distinti saluti.
+
+[Firma]
+
+[Nome Cognome]
+
+==========================================================================================
+[it] Sanitas – TelMed Basic (Télémédecine / numérique), franchise 300, accidents inclus, caisse actuelle : CONCORDIA
+==========================================================================================
+Apertus accepté du 1er coup (7.8 s)
+
+[Nome Cognome]
+[Indirizzo]
+[NPA Località]
+
+[Luogo, data]
+
+Oggetto: Domanda di affiliazione all'assicurazione malattie di base (LAMal) presso Sanitas
+
+Egregi Signori,
+
+con la presente, chiedo di affiliarmi all'assicurazione malattie di base (LAMal) presso Sanitas a partire dal 1 gennaio 2027.
+
+I dettagli richiesti sono i seguenti:
+- Prodotto: TelMed Basic
+- Modello: Telemedicina / digitale
+- Franchigia: 300 CHF all'anno
+- Copertura infortuni: inclusa
+- Premio mensile: 447.70 CHF (secondo le tariffe ufficiali 2027)
+
+La mia data di nascita è [Data di nascita] e il mio numero AVS è [Numero AVS].
+
+Qualora fossi già affiliato presso un'altra cassa malati (CONCORDIA), chiedo gentilmente di procedere alla rescissione del contratto a partire dalla data di inizio sopra indicata e di inviarmi una conferma scritta della copertura, necessaria affinché la rescissione abbia effetto.
+
+Vi prego di inviarmi la polizza assicurativa o i documenti da firmare per completare l'affiliazione.
+
+Ringraziandovi per l'attenzione, porgo distinti saluti.
+
+[Firma]
+
+[Nome Cognome]
+
+RÉSUMÉ : demandes d'Apertus acceptées 7/9 (1er coup : 5, 2e essai : 2) ; demande modèle : 2. À relire à la main : ton, exactitude.

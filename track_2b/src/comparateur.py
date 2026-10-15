@@ -164,9 +164,14 @@ def contrepartie(code_modele):
     phrase = MODELES[code_modele]["description"].split(". ")[0]
     return phrase[0].upper() + phrase[1:] + "."
 
+AUTRE_CAISSE = "La moins chère d'une autre caisse"
+
+
 def propositions(offres, priorite=None):
-    """Les 3 propositions, calculées sur toutes_les_offres(). La priorité de l'utilisateur
-    passe en premier ; chaque carte garde le véritable minimum de sa catégorie."""
+    """Jusqu'à 3 propositions, calculées sur toutes_les_offres(). La priorité de l'utilisateur passe en
+    premier ; chaque carte garde le véritable minimum de sa catégorie. Une même offre n'est jamais montrée
+    deux fois : si elle est la moins chère de plusieurs catégories, une seule carte la montre (avec
+    « aussi »), et la place libérée va à l'offre la moins chère d'une autre caisse, pour comparer."""
     if offres.empty:
         return []
     ordre = list(PROPOSITIONS)
@@ -174,6 +179,15 @@ def propositions(offres, priorite=None):
         ordre.remove(priorite)
         ordre.insert(0, priorite)
     prix_min = offres["Prime/mois"].min()
+
+    def carte(cle, titre, o):
+        return {"cle": cle, "titre": titre, "aussi": [], "assureur": o["Assureur"],
+                "modele": o["Modèle"], "produit": o["Produit"],
+                "prime_mois": o["Prime/mois"], "franchise": int(o["Franchise"]),
+                "ecart_mois": round(o["Prime/mois"] - prix_min, 2),
+                "contrepartie": contrepartie(o["Tariftyp"])}
+
+    meme = lambda c, o: (c["assureur"], c["produit"], c["franchise"]) == (o["Assureur"], o["Produit"], int(o["Franchise"]))
     choisies = []
     for cle in ordre:
         titre, code = PROPOSITIONS[cle]
@@ -181,12 +195,17 @@ def propositions(offres, priorite=None):
         if candidates.empty:
             continue
         o = candidates.iloc[0]
-        # Keep the true category minimum even when another card has the same offer.
-        choisies.append({"cle": cle, "titre": titre, "assureur": o["Assureur"],
-                         "modele": o["Modèle"], "produit": o["Produit"],
-                         "prime_mois": o["Prime/mois"], "franchise": int(o["Franchise"]),
-                         "ecart_mois": round(o["Prime/mois"] - prix_min, 2),
-                         "contrepartie": contrepartie(o["Tariftyp"])})
+        deja = next((c for c in choisies if meme(c, o)), None)
+        if deja:
+            deja["aussi"].append(titre)
+        else:
+            choisies.append(carte(cle, titre, o))
+    # Places libres : l'offre la moins chère d'une caisse pas encore montrée
+    for _, o in offres.iterrows():
+        if len(choisies) >= 3:
+            break
+        if o["Assureur"] not in {c["assureur"] for c in choisies}:
+            choisies.append(carte("autre_caisse", AUTRE_CAISSE, o))
     return choisies
 
 if __name__ == "__main__":

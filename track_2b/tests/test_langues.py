@@ -24,7 +24,7 @@ def test_detection():
 
 def test_tous_les_textes_fixes_sont_traduits():
     manquants = []
-    for fichier in ("app.py", "conversation.py", "changement.py", "subsides.py"):
+    for fichier in ("app.py", "conversation.py", "changement.py", "subsides.py", "affiliation.py"):
         for n in ast.walk(ast.parse((SRC / fichier).read_text())):
             if isinstance(n, ast.Call) and getattr(n.func, "id", None) == "tr" and n.args:
                 a = n.args[0]
@@ -37,7 +37,10 @@ def test_tous_les_textes_fixes_sont_traduits():
                   + [comparateur.contrepartie(c) for c in comparateur.MODELES]
                   + [conversation.QUESTION_BUDGET, conversation.TEXTE_SUBSIDES]
                   + [n.value.value for n in ast.walk(ast.parse((SRC / 'app.py').read_text()))
-                     if isinstance(n, ast.Assign) and getattr(n.targets[0], 'id', '') in ('QUESTION_CAISSE', 'APRES_FORMULAIRE')])
+                     if isinstance(n, ast.Assign) and getattr(n.targets[0], 'id', '') in ('QUESTION_CAISSE', 'APRES_FORMULAIRE', 'PRECISION_FORMULAIRE')])
+    arbre = ast.parse((SRC / 'app.py').read_text())  # questions proposées après le formulaire
+    dynamiques += [n.value for f in ast.walk(arbre) if isinstance(f, ast.FunctionDef) and f.name == 'suggestions_formulaire'
+                   for n in ast.walk(f) if isinstance(n, ast.Constant) and isinstance(n.value, str) and n.value.endswith('?')]
     manquants += [t[:60] for t in dynamiques if t not in langues.TRAD]
     assert not manquants, manquants
     for fr, traductions in langues.TRAD.items():  # mêmes {valeurs} dans chaque langue

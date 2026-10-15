@@ -5,6 +5,7 @@ Les couleurs de base sont dans .streamlit/config.toml ([theme]) ; ce fichier ajo
 Sélecteurs vérifiés avec Streamlit 1.65.0.
 """
 import html
+import re
 
 import streamlit as st
 
@@ -12,7 +13,7 @@ CSS = """
 <style>
 /* Couleurs : une variable par rôle, en clair et en sombre. light-dark() suit le thème choisi dans
    Streamlit (menu ⋮ > Settings, ou le réglage du système) : Streamlit pose color-scheme sur .stApp. */
-.stApp {
+.stApp, [data-testid="stDialog"], div[role="dialog"] {
     --texte: light-dark(#1d1d1f, #f5f5f7);
     --texte-2: light-dark(#6e6e73, #a1a1a6);
     --texte-3: light-dark(#86868b, #8e8e93);
@@ -30,7 +31,8 @@ CSS = """
     --filet: light-dark(rgba(0, 0, 0, 0.06), rgba(255, 255, 255, 0.08));
     --ombre: light-dark(rgba(0, 0, 0, 0.08), rgba(0, 0, 0, 0.55));
 }
-html, body, .stApp, .stApp *:not([data-testid="stIconMaterial"]):not(.material-symbols-rounded) {
+html, body, .stApp, .stApp *:not([data-testid="stIconMaterial"]):not(.material-symbols-rounded),
+div[role="dialog"] *:not([data-testid="stIconMaterial"]):not(.material-symbols-rounded) {
     font-family: -apple-system, BlinkMacSystemFont, "SF Pro Text", "SF Pro Display", "Helvetica Neue",
                  Helvetica, Arial, sans-serif;
     -webkit-font-smoothing: antialiased;
@@ -69,6 +71,14 @@ hr { border-color: var(--ligne) !important; }
 }
 .entete .note { font-size: 0.85rem; color: var(--texte-3); margin-top: 1.4rem; }
 .entete .note b { color: var(--texte); font-weight: 600; }
+/* Page des offres : en-tête compact (une ligne), la carte du conseiller est visible tout de suite */
+.entete.compacte { padding: 0 0 0.8rem; }
+.entete.compacte .surtitre { font-size: 0.8rem; margin-bottom: 0.2rem; }
+.entete.compacte h1 { font-size: clamp(1.35rem, 2.6vw, 1.9rem) !important; line-height: 1.2; }
+.entete.compacte h1 br { display: none; }
+.entete.compacte h1 .gris::before { content: " "; }
+.entete.compacte .sous-titre { display: none; }
+.entete.compacte .note { margin-top: 0.5rem; font-size: 0.78rem; }
 
 /* Barre latérale */
 section[data-testid="stSidebar"] { background: var(--surface); border-right: 1px solid var(--filet); }
@@ -113,7 +123,9 @@ section[data-testid="stSidebar"] { background: var(--surface); border-right: 1px
     transition: transform 0.25s ease, box-shadow 0.25s ease;
 }
 .carte:hover { transform: translateY(-3px); box-shadow: 0 10px 30px var(--ombre); }
-.carte.meilleure { background: var(--surface-haute); box-shadow: 0 0 0 2px var(--accent) inset; }
+/* Aucune carte mise en avant : la moins chère n'est pas forcément la bonne pour la personne (le site
+   oriente, il ne recommande pas). Elle garde seulement la mention « La moins chère ». */
+.carte .aussi { font-size: 0.75rem; color: var(--texte-3); margin: -0.4rem 0 0.6rem; line-height: 1.3; }
 .carte .titre { font-size: 0.8rem; font-weight: 600; color: var(--orange); margin: 0 0 0.6rem; line-height: 1.3; }
 .carte .prix { font-size: 2rem; font-weight: 700; letter-spacing: -0.03em; color: var(--texte); margin: 0; line-height: 1.1; }
 .carte .prix span { display: block; font-size: 0.85rem; font-weight: 500; color: var(--texte-3); letter-spacing: 0; }
@@ -121,34 +133,200 @@ section[data-testid="stSidebar"] { background: var(--surface); border-right: 1px
                   word-break: normal; overflow-wrap: normal; hyphens: auto; -webkit-hyphens: auto; }
 .carte .produit { font-size: 0.85rem; color: var(--texte-2); margin: 0; }
 .carte .ecart { font-size: 0.85rem; color: var(--texte); margin: 0.9rem 0 0; }
-.carte .meilleure-ecart { color: var(--accent); font-weight: 600; }
+.carte .meilleure-ecart { font-weight: 600; }
 .carte .note { font-size: 0.78rem; color: var(--texte-3); margin: 0.6rem 0 0; line-height: 1.4; }
+/* Carte d'ouverture après le formulaire : le conseiller reprend les réponses, puis Apertus parle */
+.st-key-ouverture {
+    position: relative; overflow: hidden; background: var(--surface); border: 1px solid var(--filet);
+    border-radius: 24px; padding: 1.4rem 1.5rem 1.2rem; margin: 0.5rem 0 1rem;
+    box-shadow: 0 24px 48px -32px var(--ombre);
+}
+.st-key-ouverture::before {
+    content: ""; position: absolute; inset: 0 0 auto 0; height: 3px;
+    background: linear-gradient(90deg, var(--accent), #5e5ce6, var(--orange));
+}
+.conseiller-tete { display: flex; align-items: center; gap: 0.8rem; margin-bottom: 1rem; }
+.conseiller-avatar {
+    flex: none; width: 44px; height: 44px; border-radius: 50%; display: grid; place-items: center;
+    background: linear-gradient(135deg, var(--accent), #5e5ce6); color: #ffffff; font-weight: 700;
+    font-size: 1.2rem; box-shadow: 0 4px 14px rgba(41, 151, 255, 0.35);
+}
+.conseiller-nom { margin: 0; font-weight: 600; font-size: 1rem; line-height: 1.25; color: var(--texte); }
+.conseiller-statut { margin: 0.1rem 0 0; display: flex; align-items: center; gap: 0.45rem;
+                     font-size: 0.8rem; color: var(--texte-3); }
+.conseiller-statut .point { width: 8px; height: 8px; border-radius: 50%; background: #30d158;
+                            animation: pouls 2.2s ease-out infinite; }
+@keyframes pouls {
+    0% { box-shadow: 0 0 0 0 rgba(48, 209, 88, 0.55); }
+    70%, 100% { box-shadow: 0 0 0 8px rgba(48, 209, 88, 0); }
+}
+.recap-titre { margin: 0 0 0.45rem; font-size: 0.78rem; font-weight: 600; letter-spacing: 0.02em;
+               text-transform: uppercase; color: var(--texte-3); }
+.recap { display: flex; flex-wrap: wrap; gap: 0.45rem; margin: 0 0 1rem; }
+.recap span {
+    display: inline-flex; align-items: center; gap: 0.35rem; padding: 0.3rem 0.75rem; border-radius: 980px;
+    background: var(--fond); border: 1px solid var(--bord); font-size: 0.86rem; color: var(--texte);
+    opacity: 0; animation: apparait 0.35s ease forwards;
+}
+.recap span:nth-child(2) { animation-delay: 0.08s; } .recap span:nth-child(3) { animation-delay: 0.16s; }
+.recap span:nth-child(4) { animation-delay: 0.24s; } .recap span:nth-child(5) { animation-delay: 0.32s; }
+.conseiller-bulle {
+    position: relative; margin: 0 0 1rem; padding: 0.9rem 1.05rem; min-height: 3rem;
+    background: var(--fond); border-radius: 6px 18px 18px 18px; color: var(--texte);
+    font-size: 1rem; line-height: 1.6;
+}
+/* Apertus « écrit » un instant, puis son message apparaît (une seule fois) */
+.conseiller-bulle .points { position: absolute; top: 1.15rem; left: 1.05rem; display: flex; gap: 5px;
+                            animation: efface 0.2s ease 1.1s forwards; }
+.conseiller-bulle .points span { width: 7px; height: 7px; border-radius: 50%; background: var(--texte-3);
+                                 animation: saut 1s ease-in-out infinite; }
+.conseiller-bulle .points span:nth-child(2) { animation-delay: 0.15s; }
+.conseiller-bulle .points span:nth-child(3) { animation-delay: 0.3s; }
+.conseiller-bulle .message { opacity: 0; animation: apparait 0.5s ease 1.2s forwards; }
+@keyframes saut { 0%, 60%, 100% { transform: translateY(0); opacity: 0.5; } 30% { transform: translateY(-4px); opacity: 1; } }
+@keyframes efface { to { opacity: 0; visibility: hidden; } }
+@keyframes apparait { from { opacity: 0; transform: translateY(4px); } to { opacity: 1; transform: none; } }
+@media (prefers-reduced-motion: reduce) {
+    .conseiller-bulle .points { display: none; }
+    .conseiller-bulle .message, .recap span { opacity: 1; animation: none; }
+}
+.st-key-suggestions .stButton > button {
+    padding: 0.38rem 0.95rem; font-size: 0.86rem; font-weight: 400; text-align: left;
+    background: var(--fond); color: var(--texte-2); border-color: var(--bord);
+}
+.st-key-suggestions .stButton > button:hover { color: var(--accent); border-color: var(--accent); background: var(--accent-doux); }
+/* Étape « caisse actuelle » : un encadré à elle, avant la zone des questions */
+.st-key-etape_caisse { margin: 0.4rem 0; padding: 1rem 1.1rem 0.8rem; border: 1px solid var(--bord);
+                       border-radius: 20px; background: var(--surface); }
+.st-key-etape_caisse [data-testid="stTextInputRootElement"] { border: 1.5px solid var(--bord); background: var(--fond); border-radius: 12px; }
+.st-key-etape_caisse [data-testid="stTextInputRootElement"]:focus-within { border-color: var(--accent); }
+/* Questions proposées : le texte passe à la ligne au lieu d'être coupé (téléphone) */
+.st-key-suggestions .stButton > button { height: auto; }
+.st-key-suggestions .stButton > button p { white-space: normal; overflow: visible; text-overflow: clip; }
+/* Zone de saisie dans l'encadré des questions : bien visible (bord, fond) */
+.st-key-questions [data-testid="stChatInput"] > div { border: 1.5px solid var(--bord); background: var(--fond); }
+.st-key-questions [data-testid="stChatInput"]:focus-within > div { border-color: var(--accent); }
+/* « Posez-moi vos questions » : en bas de la conversation */
+.st-key-questions { margin-top: 0.8rem; padding: 1rem 1.1rem 0.6rem; border: 1px solid var(--bord);
+                    border-radius: 20px; background: var(--surface); }
+/* « Check-out » après le choix d'une offre */
+[class*="st-key-checkout_"] {
+    background: var(--surface); border: 1px solid var(--filet); border-radius: 24px;
+    padding: 1.3rem 1.4rem 1.1rem; box-shadow: 0 24px 48px -32px var(--ombre);
+}
+.choix { display: flex; justify-content: space-between; align-items: flex-start; gap: 1rem; margin-bottom: 0.6rem; }
+.choix .titre { margin: 0 0 0.3rem; font-size: 0.78rem; font-weight: 600; letter-spacing: 0.02em;
+                text-transform: uppercase; color: var(--orange); }
+.choix .caisse { margin: 0; font-size: 1.25rem; font-weight: 700; letter-spacing: -0.02em; color: var(--texte); }
+.choix .produit { margin: 0.1rem 0 0.6rem; font-size: 0.9rem; color: var(--texte-2); }
+.choix .prix { margin: 0; font-size: 1.8rem; font-weight: 700; letter-spacing: -0.03em; color: var(--texte);
+               text-align: right; line-height: 1.1; white-space: nowrap; }
+.choix .prix span { display: block; font-size: 0.8rem; font-weight: 500; color: var(--texte-3); letter-spacing: 0; }
+.choix .etiquettes { display: flex; flex-wrap: wrap; gap: 0.4rem; }
+.choix .etiquettes span { padding: 0.22rem 0.7rem; border-radius: 980px; background: var(--fond);
+                          border: 1px solid var(--bord); font-size: 0.82rem; color: var(--texte); }
+[class*="st-key-checkout_"] .stLinkButton a { border-radius: 980px; font-weight: 600; }
+/* Les liens sont bleus (.stApp a), sauf le texte des boutons-liens pleins, en blanc sur le bleu */
+.stApp a[data-testid="stBaseLinkButton-primary"], .stApp a[data-testid="stBaseLinkButton-primary"] * {
+    color: #ffffff !important;
+}
+.stApp a[data-testid="stBaseLinkButton-primary"] { background: var(--accent) !important; border-color: var(--accent) !important; }
+.stApp a[data-testid="stBaseLinkButton-primary"]:hover { background: var(--accent-survol) !important; }
+/* Ce que l'assurance de base ne paie pas : une ligne par besoin ; sur téléphone, les colonnes s'empilent */
+.hors-lamal { width: 100%; border-collapse: separate; border-spacing: 0; margin: 0.3rem 0 0.9rem;
+              border: 1px solid var(--bord); border-radius: 16px; overflow: hidden; font-size: 0.88rem; }
+.hors-lamal th { text-align: left; padding: 0.55rem 0.8rem; font-size: 0.75rem; font-weight: 600;
+                 letter-spacing: 0.02em; text-transform: uppercase; color: var(--texte-3); background: var(--fond); }
+.hors-lamal td { padding: 0.65rem 0.8rem; vertical-align: top; border-top: 1px solid var(--bord); color: var(--texte); }
+.hors-lamal td.besoin { font-weight: 600; width: 22%; }
+.hors-lamal td.non { color: var(--orange); }
+.hors-lamal td.non::before { content: "✕ "; font-weight: 700; }
+.hors-lamal .source { display: block; margin-top: 0.3rem; font-size: 0.76rem; font-weight: 400; color: var(--texte-3); }
+@media (max-width: 640px) {
+    .hors-lamal thead { display: none; }
+    .hors-lamal tr, .hors-lamal td { display: block; width: auto !important; }
+    .hors-lamal tr + tr td.besoin { border-top: 1px solid var(--bord); }
+    .hors-lamal td:not(.besoin) { border-top: 0; padding-top: 0; }
+    .hors-lamal td[data-titre]::before { content: attr(data-titre); color: var(--texte-3); font-weight: 600; }
+    .hors-lamal td.non[data-titre]::before { content: "✕ " attr(data-titre); }
+}
 </style>
 """
 
 
 def appliquer():
-    st.markdown(CSS, unsafe_allow_html=True)
+    # Les fenêtres (st.dialog) sont posées hors de .stApp : elles n'héritent pas de son color-scheme,
+    # donc light-dark() y restait en clair alors que le thème était sombre. On leur donne le thème actif.
+    try:
+        sombre = st.context.theme.type == "dark"
+    except Exception:
+        sombre = False
+    schema = "dark" if sombre else "light"
+    st.markdown(CSS.replace("</style>", f'[data-testid="stDialog"], div[role="dialog"] {{ color-scheme: {schema}; }}\n'
+                                        "</style>"), unsafe_allow_html=True)
 
 
-def entete(surtitre, titre, titre_gris, sous_titre, note=""):
-    """Grand titre centré ; tous les textes sont échappés (ils viennent des traductions)."""
+def entete(surtitre, titre, titre_gris, sous_titre, note="", compact=False):
+    """Grand titre centré ; tous les textes sont échappés (ils viennent des traductions). Compact sur la page
+    des offres : une ligne de titre, pour que la carte du conseiller soit tout de suite visible."""
     e = html.escape
     st.markdown(
-        f'<div class="entete"><p class="surtitre">{e(surtitre)}</p>'
+        f'<div class="entete{" compacte" if compact else ""}"><p class="surtitre">{e(surtitre)}</p>'
         f'<h1>{e(titre)}<br><span class="gris">{e(titre_gris)}</span></h1>'
         f'<p class="sous-titre">{e(sous_titre)}</p>'
         + (f'<p class="note">{note}</p>' if note else "") + "</div>",
         unsafe_allow_html=True)
 
 
-def carte(titre, prix, unite, assureur, produit, ecart, note, meilleure=False):
+def carte(titre, prix, unite, assureur, produit, ecart, note, meilleure=False, aussi=""):
     e = html.escape
     st.markdown(
         f'<div class="carte{" meilleure" if meilleure else ""}">'
         f'<p class="titre">{e(titre)}</p>'
-        f'<p class="prix">{e(prix)}<span>{e(unite)}</span></p>'
+        + (f'<p class="aussi">{e(aussi)}</p>' if aussi else "")
+        + f'<p class="prix">{e(prix)}<span>{e(unite)}</span></p>'
         f'<p class="assureur" lang="de">{e(assureur)}</p><p class="produit">{e(produit)}</p>'
         f'<p class="ecart{" meilleure-ecart" if meilleure else ""}">{e(ecart)}</p>'
         f'<p class="note">{e(note)}</p></div>',
         unsafe_allow_html=True)
+
+
+def ouverture(nom, statut, titre_recap, etiquettes, message):
+    """Haut de la carte d'ouverture : avatar et statut, réponses du formulaire en étiquettes, puis le message
+    d'Apertus (Markdown simple : gras et italique gardés, tout le reste échappé)."""
+    e = html.escape
+    recap = "".join(f"<span>{e(icone)} {e(texte)}</span>" for icone, texte in etiquettes)
+    corps = re.sub(r"\*\*(.+?)\*\*", r"<b>\1</b>", e(message))
+    corps = re.sub(r"(?<!\*)\*(?!\s)(.+?)(?<!\s)\*(?!\*)", r"<i>\1</i>", corps).replace("\n", "<br>")
+    st.markdown(
+        f'<div class="conseiller-tete"><div class="conseiller-avatar">A</div><div>'
+        f'<p class="conseiller-nom">{e(nom)}</p>'
+        f'<p class="conseiller-statut"><span class="point"></span>{e(statut)}</p></div></div>'
+        f'<p class="recap-titre">{e(titre_recap)}</p><div class="recap">{recap}</div>'
+        f'<div class="conseiller-bulle"><div class="points"><span></span><span></span><span></span></div>'
+        f'<div class="message">{corps}</div></div>',
+        unsafe_allow_html=True)
+
+
+def recapitulatif_choix(titre, caisse, produit, etiquettes, prix, unite):
+    """En-tête du « check-out » : l'offre choisie (textes échappés)."""
+    e = html.escape
+    st.markdown(
+        f'<div class="choix"><div><p class="titre">{e(titre)}</p><p class="caisse">{e(caisse)}</p>'
+        f'<p class="produit">{e(produit)}</p><div class="etiquettes">'
+        + "".join(f"<span>{e(x)}</span>" for x in etiquettes)
+        + f'</div></div><p class="prix">{e(prix)}<span>{e(unite)}</span></p></div>',
+        unsafe_allow_html=True)
+
+
+def tableau_hors_lamal(titres, lignes, mot_source, deux_points=" : "):
+    """Tableau « besoin / la base paie / elle ne paie pas », sources fedlex en lien (textes échappés)."""
+    e = html.escape
+    corps = ""
+    for libelle, paie, paie_pas, sources in lignes:
+        refs = " · ".join(f'<a href="{e(lien)}" target="_blank">{e(texte)}</a>' for texte, lien in sources)
+        corps += (f'<tr><td class="besoin">{e(libelle)}<span class="source">{e(mot_source + deux_points)}{refs}</span></td>'
+                  f'<td data-titre="{e(titres[1] + deux_points)}">{e(paie)}</td>'
+                  f'<td class="non" data-titre="{e(titres[2] + deux_points)}">{e(paie_pas)}</td></tr>')
+    st.markdown(f'<table class="hors-lamal"><thead><tr>{"".join(f"<th>{e(t)}</th>" for t in titres)}</tr>'
+                f'</thead><tbody>{corps}</tbody></table>', unsafe_allow_html=True)

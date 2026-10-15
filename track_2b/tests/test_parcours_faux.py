@@ -68,13 +68,15 @@ assert s.etape == "resultats" and s.attente == "caisse", (s.etape, s.attente)
 print("QUESTION :", s.messages[-1]["contenu"][:90])
 dire("Ai-je droit à un subside ?"); print("SUBSIDE:", at.session_state.messages[-1]["contenu"]); assert "Office vaudois" in at.session_state.messages[-1]["contenu"]
 dire("Je suis chez Helsana depuis 10 ans")
-assert s.attente == "lettre", s.attente
+assert s.attente is None and "Choisir cette offre" in s.messages[-1]["contenu"], s.messages[-1]
 assert "CHF" in s.messages[-2]["contenu"]
-at.button(key="lettre_oui").click().run()
+dire("rédigez ma lettre de résiliation")   # demandée par écrit : toujours possible dans la conversation
 m = at.session_state.messages[-1]
 assert m["type"] == "lettre" and m["par"] == "apertus", m
 print("LETTRE (apertus) :", m["texte"][:120].replace("\n", " | "))
-assert not changement.problemes_lettre(m["texte"], "Helsana", "fr", 2027)
+assert "Helsana\nPostfach\n8081 Zürich" in m["texte"]  # adresse officielle (liste OFSP) remplie
+assert not changement.problemes_lettre(m["texte"].replace("Postfach\n8081 Zürich", "[Adresse de la caisse]"),
+                                       "Helsana", "fr", 2027)
 assert len(at.get("download_button")) == 1 if hasattr(at, "get") else True
 # question libre après la lettre : le fil normal reprend
 dire("c'est quoi la quote-part ?")

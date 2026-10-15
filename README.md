@@ -35,6 +35,11 @@ sending a correct cancellation letter before the deadline. Many people never do 
    insurance kept, placeholders for personal data, no invented number) and shows the deadline.
 6. **Subsidies.** If budget is tight, it links to the premium-subsidy office of your canton
    (official FOPH list).
+7. **Apply to the new insurer.** Choose an offer: Apertus writes the application (product, model,
+   deductible, accident cover, start date), Python checks it, and one button opens your email with
+   the application ready, addressed to the insurer's official address (FOPH list of approved insurers).
+   The steps that follow (written confirmation, cancellation before the deadline, calendar reminder)
+   are shown in order. The app never sends anything itself and stores no personal data.
 
 ## How the work is split
 
@@ -104,6 +109,7 @@ No personal data is stored: the conversation lives only in the browser session.
 - `track_2b/src/conversation.py` — Apertus answers and their checks
 - `track_2b/src/lois.py`, `telecharger_lois.py` — law-text search (RAG) and its data
 - `track_2b/src/changement.py`, `subsides.py` — current insurer, savings, cancellation letter, subsidies
+- `track_2b/src/affiliation.py`, `caisses.py` — application to the new insurer, official insurer contacts
 - `track_2b/tests/` — tests without Apertus (`make test`); `tests/apertus/` — tests with the real model
 - `track_2b/technical_report.md` — technical report
 

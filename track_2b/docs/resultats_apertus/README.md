@@ -17,6 +17,8 @@ résumé sont dans le rapport technique.
 | 2026-10-12_questions_lamal_rag_60.txt | test_questions_lamal.py | 60 questions, avec les articles de loi |
 | 2026-10-13_caisse_economie_lettres.txt | test_changement_reel.py | lecture de la caisse, paragraphe d'économie, 9 lettres |
 | 2026-10-14_conversations_langues_24.txt | test_conversation_langues.py | 24 conversations DE/IT/EN, refait après les corrections et le RAG (24/24 dans la bonne langue) |
+| 2026-10-15_demandes_affiliation.txt | test_affiliation_reel.py | 9 demandes d'affiliation à la nouvelle caisse (FR, DE, IT), avant les corrections du 15.10 |
+| 2026-10-15_demandes_affiliation_v2.txt | test_affiliation_reel.py | les mêmes 9 demandes, après les corrections du 15.10 (série de réglage) |
 
 Attention : la colonne « NE SAIT PAS » des fichiers de questions n'est qu'un repérage automatique
 (par mots) ; seule la correction à la main du rapport compte.

@@ -1,0 +1,1361 @@
+
+=== 8 CSS — https://www.css.ch
+   [200] https://www.css.ch/fr/clients-prives/bien-assure/caisse-maladie/assurance-de-base.html   « Assurance de base »   titre : Assurance de base: caisse-maladie obligatoire en Suisse
+   [200] https://www.css.ch/fr/clients-prives/bien-assure/caisse-maladie/assurance-de-base/modele-du-medecin-de-famille.html   « Modèle du médecin de famille »   titre : Modèle du médecin de famille de la CSS – consulter directement le médecin de famille
+   [200] https://www.css.ch/fr/clients-prives/bien-assure/caisse-maladie/assurance-de-base/modele-hmo.html   « Modèle HMO »   titre : Modèle HMO de la CSS – profiter du réseau de médecins
+   [200] https://www.css.ch/fr/clients-prives/bien-assure/caisse-maladie/assurance-de-base/multimed.html   « Multimed »   titre : Multimed de la CSS – idéal en cas de frais médicaux élevés
+   [200] https://www.css.ch/fr/clients-prives/bien-assure/caisse-maladie/assurance-de-base/telmed.html   « Telmed »   titre : Telmed de la CSS – conseil médical numérique ou par téléphone
+   [200] https://www.css.ch/fr/clients-prives/bien-assure/caisse-maladie/assurance-de-base/modele-standard.html   « Découvrir les avantages »   titre : Modèle CSS standard: assurance-maladie obligatoire
+
+=== 32 Aquilana — https://www.aquilana.ch
+   [200] https://calculator.aquilana.ch/   « Prämie berechnen »   titre : Aquilana
+   [200] https://www.aquilana.ch/versicherungen/grundversicherungen   « Grundversicherung          Wählen Sie das für Sie passende V »   titre : Grundversicherungen -  - Aquilana
+   [200] https://www.aquilana.ch/versicherungen/zusatzversicherungen   « Zusatzversicherung          Optimieren Sie in Ergänzung zu I »   titre : Zusatzversicherung - Aquilana
+   [200] https://www.aquilana.ch/versicherungen/grundversicherungen/hausarztmodell-casamed   « CASAMED »   titre : Grundversicherung mit eingeschränkter Arztwahl CASAMED - Aquilana
+   [200] https://www.aquilana.ch/versicherungen/grundversicherungen/smartmed   « SMARTMED »   titre : SMARTMED - Aquilana
+   [200] https://calculator.aquilana.ch   « Jetzt Prämie berechnen »   titre : Aquilana
+   [200] https://www.aquilana.ch/versicherungen/grundversicherungen/obligatorische-krankenpflege   « Obligatorische Krankenpflege »   titre : Grundversicherung mit freier Arztwahl OKP - Aquilana
+   [200] https://www.aquilana.ch/versicherungen/grundversicherungen/faq-smartmed-deutsch   « FAQ SMARTMED Deutsch »   titre : FAQ SMARTMED Deutsch - Aquilana
+   [200] https://www.aquilana.ch/versicherungen/grundversicherungen/faq-smartmed-franzoesisch   « FAQ SMARTMED Französisch »   titre : FAQ  SMARTMED Französisch - Aquilana
+   [200] https://www.aquilana.ch/versicherungen/grundversicherungen/faq-smartmed-italienisch   « FAQ SMARTMED Italienisch »   titre : FAQ SMARTMED Italienisch - Aquilana
+   [200] https://www.aquilana.ch/versicherungen/grundversicherungen/faq-smartmed-englisch   « FAQ SMARTMED Englisch »   titre : FAQ SMARTMED Englisch - Aquilana
+   [200] https://www.aquilana.ch/versicherungen/zusatzversicherungen/baby-vor-geburt   « Baby vor Geburt anmelden »   titre : Baby vor Geburt anmelden und versichern - Aquilana
+
+=== 134 Einsiedler Krankenkasse — https://www.kkeinsiedeln.ch
+   [200] https://kkeinsiedeln.ch/grundversicherung/   « Grundversicherung »   titre : Grundversicherung - Einsiedler Krankenkasse
+   [200] https://kkeinsiedeln.ch/wp-content/uploads/2026/09/Beratungsprotokoll_VAG45_Praemienrechner_04.07.2024.pdf   « Beratungsprotokoll / VAG45 »   titre : 
+
+=== 194 Sumiswalder — https://www.sumiswalder.ch
+   [200] https://sumiswalder.ch/privatkunden/angebot/grundversicherung/   « Grundversicherung »   titre : Grundversicherung » Sumiswalder
+   [200] https://sumiswalder.ch/privatkunden/angebot/grundversicherung/freie-arztwahl-standard/   « Freie Arztwahl (Standard) »   titre : Freie Arztwahl (Standard) » Sumiswalder
+   [200] https://sumiswalder.ch/privatkunden/angebot/grundversicherung/hmo-plus/   « HMO plus »   titre : HMO plus » Sumiswalder
+   [200] https://sumiswalder.ch/privatkunden/angebot/grundversicherung/hausarztmodell/   « Hausarztmodell »   titre : Hausarztmodell » Sumiswalder
+   [200] https://sumiswalder.ch/privatkunden/angebot/grundversicherung/sumis24-telmed/   « sumis24 Telmed »   titre : sumis24 Telmed » Sumiswalder
+   [200] https://sumiswalder.ch/firmenkunden/offertanfrage/   « Offertanfrage »   titre : Offertanfrage » Sumiswalder
+   [200] https://sumiswalder.ch/privatkunden/angebot/grundversicherung/hausarztmodell/hausarzt-wechseln/   « Hausarzt wechseln »   titre : Hausarzt wechseln » Sumiswalder
+   [échec HTTPError] https://sumiswalder.ch/?page_id=191   « Hausarztmodell abschliessen »
+   [200] https://sumiswalder.ch/privatkunden/angebot/grundversicherung/sumis24-telmed/sumis24-telmed-modell-abschliessen/   « sumis24 Telmed-Modell abschliessen »   titre : sumis24 Telmed-Modell abschliessen » Sumiswalder
+   [200] https://sumiswalder.ch/privatkunden/sparen/berechnung-der-optimalen-franchise/heilungskosten-zu-lasten-der-grundversicherung/   « Heilungskosten zu Lasten der Grundversicherung »   titre : Heilungskosten zu Lasten der Grundversicherung » Sumiswalder
+   [200] https://sumiswalder.ch/firmenkunden/offertanfrage/offerte-taggeldversicherung/   « Offerte Taggeldversicherung »   titre : Offerte Taggeldversicherung » Sumiswalder
+   [200] https://portal.sumiswalder.ch/portal/offerten   « Jetzt berechnen! »   titre : Prämienrechner - Grunddaten
+
+=== 246 Steffisburg — https://www.kkst.ch
+   [200] https://www.kkst.ch/grundversicherung   « Grundversicherung »   titre : Krankenkasse Steffisburg - Grundversicherung
+   [200] https://www.kkst.ch/grundversicherung/hausarztmodell-casa   « Hausarztmodell Casa »   titre : Krankenkasse Steffisburg - Hausarztmodell Casa
+   [200] https://www.kkst.ch/grundversicherung/hausarztmodell-medcasa   « Hausarztmodell Medcasa »   titre : Krankenkasse Steffisburg - Hausarztmodell Medcasa
+   [200] https://www.kkst.ch/grundversicherung/hausarztmodell-regiomed   « Hausarztmodell Regiomed »   titre : Krankenkasse Steffisburg - Hausarztmodell Regiomed
+   [200] https://www.kkst.ch/grundversicherung/sanmed24   « Sanmed24 »   titre : Krankenkasse Steffisburg - Sanmed24
+
+=== 290 CONCORDIA — https://www.concordia.ch
+   [200] https://www.concordia.ch/fr/versicherungen/grundversicherung.html   « Assurance de base »   titre : Assurance de base -
+        CONCORDIA
+   [200] https://www.concordia.ch/fr/versicherungen/grundversicherung/mydoc.html   « Modèle de médecin de famille myDoc »   titre : Modèle de médecin de famille myDoc -
+        CONCORDIA
+   [200] https://www.concordia.ch/fr/versicherungen/grundversicherung/hmo.html   « Modèle HMO »   titre : Modèle HMO -
+        CONCORDIA
+   [200] https://www.concordia.ch/fr/versicherungen/grundversicherung/smartdoc.html   « Modèle de télémédecine smartDoc »   titre : Modèle de télémédecine smartDoc -
+        CONCORDIA
+   [200] https://www.concordia.ch/fr/service/myconcordia/registrierung.html   « Inscription »   titre : Inscription myCONCORDIA – simple & sécurisée -
+        CONCORDIA
+   [200] https://my.concordia.ch/auth/ui/app/auth/application/access?lang=fr   « Connexion »   titre : ﻿Loading
+   [200] https://www.concordia.ch/fr/ueber-uns/jobs/job-profile.html   « Carrières et offres d’emploi »   titre : Nos profils de poste -
+        CONCORDIA
+   [200] https://www.praemienrechner.concordia.ch/ipr/?lang=de   « Calculateur de primes »   titre : CONCORDIA Prämienrechner
+   [200] https://www.praemienrechner.concordia.ch/ipr/home?lang=fr   « Calculer »   titre : CONCORDIA Prämienrechner
+   [200] https://www.concordia.ch/fr/versicherungen/grundversicherung.html?tid=Home+fr_Versicherungen-Teaser+schmal-Grundversicherung   « Assurance-maladie de base   Garantit une couverture d’assura »   titre : Assurance de base -
+        CONCORDIA
+   [200] https://www.concordia.ch/fr/magazin/active.html?tid=Home+fr_Aktuell-Teaser+schmal-Active   « CONCORDIA Active   CONCORDIA Active vous fait bénéficier d’e »   titre : CONCORDIA Active -
+        CONCORDIA
+   [200] https://www.concordia.ch/fr/kontakt/offertanfrage.html   « Demande d'offre »   titre : Demande d'offre
+
+=== 312 Atupri Gesundheitsversicherung AG — https://www.atupri.ch
+   [200] https://calculateur-de-primes.atupri.ch   « Calculer la prime »   titre : Atupri Prämienrechner
+   [200] https://shop.atupri.ch/fr   « Calculer votre prime »   titre : Calcul des primes - Atupri
+   [200] https://atupri.ch/fr/assurances/assurance-de-base   « Assurance de base Au plus proche de vos besoins: optez pour  »   titre : Caisse-maladie Atupri modèles d’assurance de base
+
+=== 343 Avenir Krankenversicherung AG — https://www.groupemutuel.ch
+   [200] https://www.groupemutuel.ch/fr/clients-prives/vos-besoins/Vos-besoins-dans-le-domaine-de-la-sante/optimisez-votre-assurance-de-base.html   «  »   titre : Optimiser son assurance-maladie  - Groupe Mutuel
+   [200] https://www.groupemutuel.ch/fr/clients-prives/vos-besoins/Vos-besoins-dans-le-domaine-de-la-sante/Trouver-la-meilleure-assurance-maladie-de-base.html   « Trouver la meilleure assurance de base »   titre : Quelle est la meilleure assurance maladie de base? - Groupe Mutuel
+   [200] https://www.groupemutuel.ch/fr/clients-prives/nos-services/LeClub/Offres-LeClub.html   « Découvrir »   titre : Offres exclusives LeClub pour les assurés du Groupe Mutuel - Groupe Mutuel
+   [200] https://www.groupemutuel.ch/fr/clients-prives/assurance-maladie-pour-toute-la-famille.html   « Voir les offres familles »   titre : Nos solutions pour les familles - Groupe Mutuel
+   [200] https://www.groupemutuel.ch/fr/clients-prives/nos-services/LeClub.html   « Offres »   titre : LeClub - Groupe Mutuel
+   [200] https://www.groupemutuel.ch/fr/entreprises/vos-besoins/Obtenir-une-offre-d-assurances-pour-mon-entreprise/Assurer-mon-entreprise.html   « Assurer mon entreprise »   titre : Quelles assurances pour vos collaborateurs? - Groupe Mutuel
+   [200] https://www.groupemutuel.ch/fr/entreprises/vos-besoins/Obtenir-une-offre-d-assurances-pour-mon-entreprise.html   « Toutes nos offres d'assurance »   titre : Obtenir une offre d’assurance professionnelle - Groupe Mutuel
+
+=== 360 Luzerner Hinterland — https://www.kklh.ch
+   [200] https://www.kklh.ch/versicherungen/grundversicherung/   « Mehr »   titre : Grundversicherung | Krankenkasse Luzerner Hinterland
+
+=== 376 KPT — https://www.kpt.ch
+   [200] https://assistant.kpt.ch/fr/donnees-personnelles   « Lancer le calculateur de primes »   titre : 
+   [200] https://assistant.kpt.ch/fr/preselect/A?part=1&option=193   « Calculer la prime »   titre : 
+   [200] https://assistant.kpt.ch/fr/preselect/A?part=1&option=3   « Calculer la prime »   titre : 
+   [200] https://assistant.kpt.ch/fr/preselect/A?part=1&option=4   « Calculer la prime »   titre : 
+   [200] https://assistant.kpt.ch/fr/preselect/A?part=1&option=1   « Calculer la prime »   titre : 
+   [200] https://assistant.kpt.ch/fr/preselect/A?part=1&option=138   « Calculer la prime »   titre : 
+   [200] https://assistant.kpt.ch/fr/preselect/A?part=1&option=2   « Calculer la prime »   titre : 
+   [200] https://www.kpt.ch/fr/assurances/calcul-prime-assurance-maladie   « Calculateur de primes d’assurance-maladie »   titre : Calculer la prime d’assurance-maladie | Offre 2027 | Demander conseil
+
+=== 455 ÖKK — https://www.oekk.ch
+   [200] https://www.oekk.ch/fr/clients-prives/assurances/assurance-de-base   « Assurance de base »   titre : Assurance de base en Suisse : aperçu de tous les modèles | ÖKK
+   [200] https://www.oekk.ch/fr/clients-prives/assurances/assurance-de-base/libre-choix-du-medecin   « Libre choix du médecin »   titre : Libre choix du médecin dans l’assurance de base | ÖKK
+   [200] https://www.oekk.ch/fr/clients-prives/assurances/assurance-de-base/telmed-appli-pharmacie   « Telmed, appli et la pharmacie »   titre : Premier interlocuteur au choix via Telmed, l’appli ou la pharmacie
+   [200] https://www.oekk.ch/fr/clients-prives/assurances/assurance-de-base/telmed-appli   « Telmed ou l’appli »   titre : Le conseil télémédical de Medgate ou l’appli comme premier contact…
+   [200] https://www.oekk.ch/fr/clients-prives/assurances/assurance-de-base/modele-du-medecin-de-famille   « Modèle du médecin de famille »   titre : Assurance de base Modèle du médecin de famille de ÖKK – le médecin en…
+   [200] https://www.oekk.ch/fr/clients-prives/assurances/assurance-de-base/modele-hmo   « Modèle HMO »   titre : L’assurance de base avec modèle HMO de ÖKK
+   [200] https://www.oekk.ch/fr/clients-prives/assurances/assurance-de-base/pour-les-frontaliers   « Pour les frontaliers »   titre : L’assurance-maladie pour les frontaliers de ÖKK
+   [200] https://www.oekk.ch/fr/clients-prives/assurances/assurance-de-base/economiser-dans-lassurance-de-base   « Economiser dans l’assurance de base »   titre : Economiser dans l’assurance de base avec ÖKK
+   [200] https://www.oekk.ch/fr/clients-prives/services/modifier-lassurance/changer-de-modele-dassurance   « Changer de modèle d’assurance de base »   titre : Changer de modèle d’assurance de base
+   [200] https://www.oekk.ch/fr/clients-prives/services/telechargements-calculateurs   « Téléchargements et calculateurs »   titre : Téléchargements et calculateurs
+   [200] https://www.oekk.ch/fr/clients-prives/services/telechargements-calculateurs/brochures-formulaires-conditions-dassurance   « Brochures, formulaires, conditions d’assurance »   titre : Brochures, formulaires, conditions d’assurance
+   [200] https://www.oekk.ch/fr/clients-prives/services/telechargements-calculateurs/myoekk   « Portail clients / App myÖKK »   titre : myÖKK – le portail clients
+
+=== 509 Vivao Sympany — https://www.sympany.ch
+   [200] https://www.sympany.ch/fr/particuliers/assurance-de-base.html   « Assurances de base en comparaison »   titre : Assurance de base caisse-maladie Suisse | Sympany
+   [200] https://www.sympany.ch/fr/contact/conseil-a-la-vente.html   « Demander conseil/offre »   titre : Contact: conseil à la vente | Sympany
+
+=== 780 Glarner — https://www.glkv.ch
+   [200] https://www.glkv.ch/versicherungen/grundversicherung/grundversicherung.html/48   « Grundversicherung »   titre : Standardmodell– GLKV
+   [200] https://www.glkv.ch/versicherungen/grundversicherung/grundversicherung.html/48   « Standardmodell »   titre : Standardmodell– GLKV
+   [échec HTTPError] https://www.glkv.ch/versicherungen/grundversicherung/telmedmodell-glarnermed24.html/88   « Telmedmodell glarnermed24 »
+
+=== 820 curaulta — https://www.curaulta.ch
+   aucun lien trouvé sur https://www.curaulta.ch (site probablement en JavaScript)
+
+=== 881 EGK — https://www.egk.ch
+   [200] https://www.egk.ch/calculer   « Calculateur »   titre : EGK Calculateur de primes
+   [200] https://www.egk.ch/fr/vie-sante/themes-de-la-vie/inscription-prenatale   « l’inscription prénatale »   titre : Inscription prénatale | Assurer son bébé dès la naissance
+   [200] https://www.egk.ch/fr/assurances/assurance-complementaire/egk-sun   « Voyager l'esprit tranquille pour toute la famille  L'assuran »   titre : EGK-SUN: Assurance complémentaire en médecine complémentaire
+   [200] https://www.egk.ch/fr/vie-sante/themes-de-la-vie/jeunes-adultes   « Enfin 18 ans  À 18 ans, plusieurs changements interviennent  »   titre : Caisse-maladie à partir de 18 ans | Ce qui change
+   [200] https://www.egk.ch/fr/vie-sante/themes-de-la-vie/grossesse   « Grossesse  De l'inscription prénatale à la naissance : une b »   titre : Grossesse et accouchement | Assurance EGK
+   [200] https://www.egk.ch/fr/services/connaissances-aide/economiser-primes   « Économiser sur les primes      Il existe différentes possibi »   titre : Économiser des primes auprès de la caisse-maladie
+   [200] https://www.egk.ch/calculer   « Calculateur »   titre : EGK Calculateur de primes
+   [200] https://www.egk.ch/fr/newsletter   « Inscrivez-vous maintenant »   titre : S'abonner à la newsletter : tout savoir sur les plantes médicinales et l'actualité de l'EG
+
+=== 923 SLKK — https://www.slkk.ch
+   [200] https://slkk.ch/de/grundversicherung-krankenkasse/   « Obligatorische Versicherung »   titre : Obligatorische Grundversicherung | Krankenkasse SLKKDownload IconDownload IconDownload Ico
+   [200] https://slkk.ch/de/aktuelles/mehr-leistung-mehr-komfort-jetzt-zusatzversicherungen-der-slkk-abschliessen/   « #picture-425-500-625 {
+            padding-bottom: 125.0%;
+  »   titre : Zusatzversicherung zur SLKK wechseln: Jetzt profitierenicon-fullscreenStampIcon-PrintIcon-
+
+=== 941 sodalis — https://www.sodalis.ch
+   [200] https://www.sodalis.ch/fr/pour-clients-prives/nos-produits/assurance-de-base   « Assurance de base »   titre : Besoins individuels - de base avantageux | sodalis gesundheitsgruppe
+   [200] https://www.sodalis.ch/fr/pour-clients-prives/nos-produits/assurance-de-base/modele-de-base-medica   « Modèle de base Medica »   titre : Libre choix du médecin dans le modèle de base | sodalis gesundheitsgruppe
+   [200] https://www.sodalis.ch/fr/pour-clients-prives/nos-produits/assurance-de-base/modele-medecin-de-famille-medicasa   « Modèle Médecin de famille Medicasa »   titre : Le médecin de famille comme premier interlocuteur | sodalis gesundheitsgruppe
+   [200] https://www.sodalis.ch/fr/pour-clients-prives/nos-produits/assurance-de-base/modele-telemedecine-telmed   « Modèle Télémédecine Telmed »   titre : Première consultation par téléphone  | sodalis gesundheitsgruppe
+   [200] https://www.sodalis.ch/fr/pour-clients-prives/nos-produits/assurance-de-base/modele-digital-digimed   « Modèle digital Digimed »   titre : Votre médecin numérique - toujours et partout avec vous | sodalis gesundheitsgruppe
+   [200] https://www.sodalis.ch/fr/pour-clients-prives/nos-produits/assurance-de-base/quelles-sont-les-differences   « Quelles sont les différences? »   titre : Quelles sont les différences dans l'assurance de base ?  | sodalis gesundheitsgruppe
+   [200] https://www.sodalis.ch/fr/pour-clients-prives/opter-pour-sodalis/offre-rapide   « Offre rapide »   titre : Offre rapide | sodalis gesundheitsgruppe
+   [200] https://www.sodalis.ch/fr/pour-clients-prives/opter-pour-sodalis/inscription-zermatt   « Inscription Zermatt »   titre : Inscription à Zermatt | sodalis gesundheitsgruppe
+   [échec URLError] https://www.sodalis.ch/fr/generalites/calculateur-franchise   « Calculateur franchise »
+   [200] https://www.sodalis.ch/fr/pour-clients-prives/nos-produits/comprendre-lassurance-maladie/assurance-de-base--78   « Assurance de base »   titre : Assurance de base  | sodalis gesundheitsgruppe
+   [200] https://www.sodalis.ch/fr/pour-clients-prives/nos-produits/comprendre-lassurance-maladie/quels-sont-les-frais-que-je-dois-assumer-moi-meme--58   « Quote-part »   titre : Quels sont les frais que je dois assumer moi-même ?  | sodalis gesundheitsgruppe
+   [200] https://web.sodalis.ch/portal/error/wrongbrowser   « S'inscrire maintenant »   titre : Online-Kundenportal
+
+=== 966 vita surselva — https://www.vitasurselva.ch
+   aucun lien trouvé sur https://www.vitasurselva.ch/home/ (site probablement en JavaScript)
+
+=== 1040 Visperterminen — https://www.kkv.ch
+   [200] https://www.kkv.ch/privatpersonen/grundversicherungen/grundversicherung/   « Grundversicherungen »   titre : KKV Krankenkasse VisperterminenGrundversicherungen - KKV Krankenkasse Visperterminen
+   [200] https://www.kkv.ch/privatpersonen/grundversicherungen/grundversicherung/   « Grundversicherungen »   titre : KKV Krankenkasse VisperterminenGrundversicherungen - KKV Krankenkasse Visperterminen
+   [200] https://www.kkv.ch/privatpersonen/grundversicherungen/medicas-basis/   « Medica Basis »   titre : KKV Krankenkasse VisperterminenMedica Basis - KKV Krankenkasse Visperterminen
+   [200] https://www.kkv.ch/privatpersonen/grundversicherungen/medicasa-hausarzt/   « Medicasa Hausarzt »   titre : KKV Krankenkasse VisperterminenMedicasa Hausarzt - KKV Krankenkasse Visperterminen
+   [200] https://www.kkv.ch/privatpersonen/grundversicherungen/telmed/   « Telmed »   titre : KKV Krankenkasse VisperterminenTelmed - KKV Krankenkasse Visperterminen
+   [200] https://www.kkv.ch/privatpersonen/grundversicherungen/medizinische-beratung/   « Medizinische Beratung »   titre : KKV Krankenkasse VisperterminenMedizinische Beratung - KKV Krankenkasse Visperterminen
+   [200] https://www.kkv.ch/privatpersonen/praemien/praemienrechner-2/   « Prämien Grundversicherung »   titre : KKV Krankenkasse VisperterminenPrämien Grund- und Zusatzversicherung - KKV Krankenkasse Vi
+   [200] https://www.kkv.ch/services-2/downloads/antragsformulare/   « Antragsformulare »   titre : KKV Krankenkasse VisperterminenAntragsformulare - KKV Krankenkasse Visperterminen
+
+=== 1318 Wädenswil — https://www.kkwaedenswil.ch
+   [200] https://www.kkwaedenswil.ch/versicherungen/grundversicherung   « Versicherungen »   titre : Grundversicherung: Standard- & HausarztmodellGrundversicherung: Standard- & Hausarztmodell
+
+=== 1322 Birchmeier — https://www.kkbirchmeier.ch
+   [200] https://www.kkbirchmeier.ch/Versicherungen/Grundversicherung/TELMED-Versicherungsmodell   « TELMED! »   titre : TELMED-Versicherungsmodell - Krankenkasse Birchmeier
+
+=== 1384 SWICA — https://www.swica.ch
+   [200] https://www.swica.ch/fr/prive/services/calculateur-de-primes   « Calculateur »   titre : Calculateur de primes pour les particuliers – SWICA
+   [200] https://www.swica.ch/fr/prive/monde-de-la-sante/promotion-de-la-sante/active4life   « active4life – les offres avantageuses pour les assurés SWICA »   titre : Offres préférentielles active4life – SWICA
+   [200] https://calculate.swica.ch/de?LANGUAGES=2&SWICAKDN=0   « Calculateur »   titre : 
+   [200] https://calculate.swica.ch/de   « Calculateur »   titre : 
+
+=== 1386 GALENOS AG — https://www.galenos.ch
+   [200] https://www.galenos.ch/fr/personnes-privees/assurances/assurance-de-base/   « Assurance de base »   titre : Assurance de base : Les avantages du médecin de famille - Galenos
+   [200] https://www.galenos.ch/fr/portrait-de-galenos/offres-demploi/   « Offres d’emploi »   titre : Offres d’emploi – Galenos
+   [200] https://www.galenos.ch/fr/recherche-par-themes-et-offres-de-galenos/   « search »   titre : Recherche – Galenos
+
+=== 1401 rhenusana — https://www.rhenusana.ch
+   [200] https://rhenusana.ch/grundversicherung/   « Grundversicherung »   titre : Grundversicherung | rhenusana – die rheintaler krankenkasse
+   [200] https://rhenusana.ch/grundversicherung/standardmodell-grundversicherung/   « Standardmodell Grundversicherung »   titre : Standardmodell Grundversicherung | rhenusana – die rheintaler krankenkasse
+   [200] https://rhenusana.ch/grundversicherung/rabattmodell-hausarztsystem/   « Rabattmodell Hausarztsystem »   titre : Rabattmodell Hausarztsystem | rhenusana – die rheintaler krankenkasse
+   [200] https://rhenusana.ch/grundversicherung/rabattmodell-sanmed24/   « Rabattmodell sanmed24 »   titre : Rabattmodell sanmed24 | rhenusana – die rheintaler krankenkasse
+
+=== 1479 Mutuel Krankenversicherung AG — https://www.groupemutuel.ch
+   [200] https://www.groupemutuel.ch/fr/clients-prives/vos-besoins/Vos-besoins-dans-le-domaine-de-la-sante/optimisez-votre-assurance-de-base.html   «  »   titre : Optimiser son assurance-maladie  - Groupe Mutuel
+   [200] https://www.groupemutuel.ch/fr/clients-prives/vos-besoins/Vos-besoins-dans-le-domaine-de-la-sante/Trouver-la-meilleure-assurance-maladie-de-base.html   « Trouver la meilleure assurance de base »   titre : Quelle est la meilleure assurance maladie de base? - Groupe Mutuel
+   [200] https://www.groupemutuel.ch/fr/clients-prives/nos-services/LeClub/Offres-LeClub.html   « Découvrir »   titre : Offres exclusives LeClub pour les assurés du Groupe Mutuel - Groupe Mutuel
+   [200] https://www.groupemutuel.ch/fr/clients-prives/assurance-maladie-pour-toute-la-famille.html   « Voir les offres familles »   titre : Nos solutions pour les familles - Groupe Mutuel
+   [200] https://www.groupemutuel.ch/fr/clients-prives/nos-services/LeClub.html   « Offres »   titre : LeClub - Groupe Mutuel
+   [200] https://www.groupemutuel.ch/fr/entreprises/vos-besoins/Obtenir-une-offre-d-assurances-pour-mon-entreprise/Assurer-mon-entreprise.html   « Assurer mon entreprise »   titre : Quelles assurances pour vos collaborateurs? - Groupe Mutuel
+   [200] https://www.groupemutuel.ch/fr/entreprises/vos-besoins/Obtenir-une-offre-d-assurances-pour-mon-entreprise.html   « Toutes nos offres d'assurance »   titre : Obtenir une offre d’assurance professionnelle - Groupe Mutuel
+
+=== 1509 Sanitas — https://www.sanitas.com
+   aucun lien trouvé sur https://www.sanitas.com (site probablement en JavaScript)
+
+=== 1535 Philos Krankenversicherung AG — https://www.groupemutuel.ch
+   [200] https://www.groupemutuel.ch/fr/clients-prives/vos-besoins/Vos-besoins-dans-le-domaine-de-la-sante/optimisez-votre-assurance-de-base.html   «  »   titre : Optimiser son assurance-maladie  - Groupe Mutuel
+   [200] https://www.groupemutuel.ch/fr/clients-prives/vos-besoins/Vos-besoins-dans-le-domaine-de-la-sante/Trouver-la-meilleure-assurance-maladie-de-base.html   « Trouver la meilleure assurance de base »   titre : Quelle est la meilleure assurance maladie de base? - Groupe Mutuel
+   [200] https://www.groupemutuel.ch/fr/clients-prives/nos-services/LeClub/Offres-LeClub.html   « Découvrir »   titre : Offres exclusives LeClub pour les assurés du Groupe Mutuel - Groupe Mutuel
+   [200] https://www.groupemutuel.ch/fr/clients-prives/assurance-maladie-pour-toute-la-famille.html   « Voir les offres familles »   titre : Nos solutions pour les familles - Groupe Mutuel
+   [200] https://www.groupemutuel.ch/fr/clients-prives/nos-services/LeClub.html   « Offres »   titre : LeClub - Groupe Mutuel
+   [200] https://www.groupemutuel.ch/fr/entreprises/vos-besoins/Obtenir-une-offre-d-assurances-pour-mon-entreprise/Assurer-mon-entreprise.html   « Assurer mon entreprise »   titre : Quelles assurances pour vos collaborateurs? - Groupe Mutuel
+   [200] https://www.groupemutuel.ch/fr/entreprises/vos-besoins/Obtenir-une-offre-d-assurances-pour-mon-entreprise.html   « Toutes nos offres d'assurance »   titre : Obtenir une offre d’assurance professionnelle - Groupe Mutuel
+
+=== 1542 Assura-Basis SA — https://www.assura.ch
+   [200] https://www.assura.ch/fr/assurances/assurances-de-base   « .css-18toxty{box-sizing:border-box;margin:0;min-width:0;colo »   titre : Assurance-maladie de base obligatoire | Assura
+   [200] https://www.assura.ch/fr/assurances/assurance-de-base/basis   « .css-1gyuf3t{box-sizing:border-box;margin:0;min-width:0;font »   titre : Basis, modèle d'assurance de base | Assura
+   [200] https://www.assura.ch/fr/assurances/assurance-de-base/qualimed   « QualiMed »   titre : QualiMed, modèle d'assurance de base | Assura
+   [200] https://www.assura.ch/fr/assurances/assurance-de-base/med-de-famille   « Médecin de famille »   titre : Médecin de famille, modèle d'assurance de base | Assura
+   [200] https://www.assura.ch/fr/assurances/assurance-de-base/pharmed   « PharMed »   titre : PharMed, modèle d'assurance de base | Assura
+   [200] https://www.assura.ch/fr/assurances/assurance-de-base/meditel   « MediTel »   titre : MediTel, modèle d'assurance de base | Assura
+   [200] https://www.assura.ch/fr/assurances/assurances-complementaires/complement-assurance-de-base   « Complément à l’assurance de base »   titre : Complément à l’assurance de base | Assura
+   [200] https://www.assura.ch/fr/club/offres-sport   « Sport »   titre : Offres sport | Club Assura
+   [200] https://www.assura.ch/fr/club/offres-sante   « Santé »   titre : Offres santé | Club Assura
+   [200] https://www.assura.ch/fr/club/offres-pharmacie   « Pharmacie »   titre : Offres pharmacie | Club Assura
+   [200] https://www.assura.ch/fr/club/offres-chirurgie-oculaire   « Chirurgie oculaire »   titre : Offres chirurgie oculaire | Club Assura
+   [200] https://www.assura.ch/fr/club   « Toutes nos offres »   titre : De nombreux avantages pour nos assurés! | Club Assura
+
+=== 1555 Visana — https://www.visana.ch
+   aucun lien trouvé sur https://www.visana.ch/fr/clientele-privee (site probablement en JavaScript)
+
+=== 1560 Agrisano — https://www.agrisano.ch
+   [200] https://calculator.agrisano.ch/public/e/l/premium-calculator-home/de-CH/index   « Prämienrechner »   titre : Startseite
+   [200] https://www.agrisano.ch/de/angebot/krankenkasse-grundversicherung   « Krankenkasse Grundversicherung »   titre : Grundversicherung: Alle Modelle von Agrisano im Vergleich
+   [200] https://www.agrisano.ch/de/angebot/krankenkasse-grundversicherung/grundversicherung-basis   « Grundversicherung BASIS »   titre : Obligatorische Krankenpflegeversicherung - Grundversicherung BASIS
+   [200] https://www.agrisano.ch/de/angebot/krankenkasse-grundversicherung/agri-eco-hausarztversicherung   « AGRI-eco Hausarztversicherung »   titre : AGRI-eco Hausarztversicherung | Agrisano
+   [200] https://www.agrisano.ch/de/angebot/krankenkasse-grundversicherung/agri-contact-telmedmodell   « AGRI-contact Telmedmodell »   titre : AGRI-contact Telmedmodell | Agrisano
+   [200] https://www.agrisano.ch/de/angebot/krankenkasse-grundversicherung/agri-smart-digitales-versicherungsmodell   « AGRI-smart digitales Versicherungsmodell »   titre : AGRI-smart digitales Versicherungsmodell | Agrisano
+   [200] https://www.agrisano.ch/de/ueber-uns/publikationen/newsletter/newsletter-anmeldung   « Jetzt Newsletter abonnieren! »   titre : Agrisano-Newsletter Anmeldung
+
+=== 1562 Helsana — https://www.helsana.ch
+   [200] https://www.helsana.ch/fr/prives/assurances/calculateur-primes.html   « Vérifiez votre couverture d’assurance »   titre : Calculateur de primes 2026 - Helsana
+   [200] https://www.helsana.ch/fr/prives/assurances/assurance-de-base.html   « Accéder aux assurances de base »   titre : Assurance de base caisse-maladie - Helsana
+
+=== 1568 sana24 — https://www.visana.ch
+   aucun lien trouvé sur https://www.visana.ch/fr/clientele-privee (site probablement en JavaScript)
+
+JSON
+{
+ "8": {
+  "site": "https://www.css.ch/fr/clients-prives.html",
+  "liens": [
+   {
+    "url": "https://www.css.ch/fr/clients-prives/bien-assure/caisse-maladie/assurance-de-base.html",
+    "code": 200,
+    "texte": "Assurance de base",
+    "titre": "Assurance de base: caisse-maladie obligatoire en Suisse"
+   },
+   {
+    "url": "https://www.css.ch/fr/clients-prives/bien-assure/caisse-maladie/assurance-de-base/modele-du-medecin-de-famille.html",
+    "code": 200,
+    "texte": "Modèle du médecin de famille",
+    "titre": "Modèle du médecin de famille de la CSS – consulter directement le médecin de famille"
+   },
+   {
+    "url": "https://www.css.ch/fr/clients-prives/bien-assure/caisse-maladie/assurance-de-base/modele-hmo.html",
+    "code": 200,
+    "texte": "Modèle HMO",
+    "titre": "Modèle HMO de la CSS – profiter du réseau de médecins"
+   },
+   {
+    "url": "https://www.css.ch/fr/clients-prives/bien-assure/caisse-maladie/assurance-de-base/multimed.html",
+    "code": 200,
+    "texte": "Multimed",
+    "titre": "Multimed de la CSS – idéal en cas de frais médicaux élevés"
+   },
+   {
+    "url": "https://www.css.ch/fr/clients-prives/bien-assure/caisse-maladie/assurance-de-base/telmed.html",
+    "code": 200,
+    "texte": "Telmed",
+    "titre": "Telmed de la CSS – conseil médical numérique ou par téléphone"
+   },
+   {
+    "url": "https://www.css.ch/fr/clients-prives/bien-assure/caisse-maladie/assurance-de-base/modele-standard.html",
+    "code": 200,
+    "texte": "Découvrir les avantages",
+    "titre": "Modèle CSS standard: assurance-maladie obligatoire"
+   }
+  ]
+ },
+ "32": {
+  "site": "https://www.aquilana.ch",
+  "liens": [
+   {
+    "url": "https://calculator.aquilana.ch/",
+    "code": 200,
+    "texte": "Prämie berechnen",
+    "titre": "Aquilana"
+   },
+   {
+    "url": "https://www.aquilana.ch/versicherungen/grundversicherungen",
+    "code": 200,
+    "texte": "Grundversicherung          Wählen Sie das für Sie passende V",
+    "titre": "Grundversicherungen -  - Aquilana"
+   },
+   {
+    "url": "https://www.aquilana.ch/versicherungen/zusatzversicherungen",
+    "code": 200,
+    "texte": "Zusatzversicherung          Optimieren Sie in Ergänzung zu I",
+    "titre": "Zusatzversicherung - Aquilana"
+   },
+   {
+    "url": "https://www.aquilana.ch/versicherungen/grundversicherungen/hausarztmodell-casamed",
+    "code": 200,
+    "texte": "CASAMED",
+    "titre": "Grundversicherung mit eingeschränkter Arztwahl CASAMED - Aquilana"
+   },
+   {
+    "url": "https://www.aquilana.ch/versicherungen/grundversicherungen/smartmed",
+    "code": 200,
+    "texte": "SMARTMED",
+    "titre": "SMARTMED - Aquilana"
+   },
+   {
+    "url": "https://calculator.aquilana.ch",
+    "code": 200,
+    "texte": "Jetzt Prämie berechnen",
+    "titre": "Aquilana"
+   },
+   {
+    "url": "https://www.aquilana.ch/versicherungen/grundversicherungen/obligatorische-krankenpflege",
+    "code": 200,
+    "texte": "Obligatorische Krankenpflege",
+    "titre": "Grundversicherung mit freier Arztwahl OKP - Aquilana"
+   },
+   {
+    "url": "https://www.aquilana.ch/versicherungen/grundversicherungen/faq-smartmed-deutsch",
+    "code": 200,
+    "texte": "FAQ SMARTMED Deutsch",
+    "titre": "FAQ SMARTMED Deutsch - Aquilana"
+   },
+   {
+    "url": "https://www.aquilana.ch/versicherungen/grundversicherungen/faq-smartmed-franzoesisch",
+    "code": 200,
+    "texte": "FAQ SMARTMED Französisch",
+    "titre": "FAQ  SMARTMED Französisch - Aquilana"
+   },
+   {
+    "url": "https://www.aquilana.ch/versicherungen/grundversicherungen/faq-smartmed-italienisch",
+    "code": 200,
+    "texte": "FAQ SMARTMED Italienisch",
+    "titre": "FAQ SMARTMED Italienisch - Aquilana"
+   },
+   {
+    "url": "https://www.aquilana.ch/versicherungen/grundversicherungen/faq-smartmed-englisch",
+    "code": 200,
+    "texte": "FAQ SMARTMED Englisch",
+    "titre": "FAQ SMARTMED Englisch - Aquilana"
+   },
+   {
+    "url": "https://www.aquilana.ch/versicherungen/zusatzversicherungen/baby-vor-geburt",
+    "code": 200,
+    "texte": "Baby vor Geburt anmelden",
+    "titre": "Baby vor Geburt anmelden und versichern - Aquilana"
+   }
+  ]
+ },
+ "134": {
+  "site": "https://kkeinsiedeln.ch/",
+  "liens": [
+   {
+    "url": "https://kkeinsiedeln.ch/grundversicherung/",
+    "code": 200,
+    "texte": "Grundversicherung",
+    "titre": "Grundversicherung - Einsiedler Krankenkasse"
+   },
+   {
+    "url": "https://kkeinsiedeln.ch/wp-content/uploads/2026/09/Beratungsprotokoll_VAG45_Praemienrechner_04.07.2024.pdf",
+    "code": 200,
+    "texte": "Beratungsprotokoll / VAG45",
+    "titre": ""
+   }
+  ]
+ },
+ "194": {
+  "site": "https://sumiswalder.ch/",
+  "liens": [
+   {
+    "url": "https://sumiswalder.ch/privatkunden/angebot/grundversicherung/",
+    "code": 200,
+    "texte": "Grundversicherung",
+    "titre": "Grundversicherung » Sumiswalder"
+   },
+   {
+    "url": "https://sumiswalder.ch/privatkunden/angebot/grundversicherung/freie-arztwahl-standard/",
+    "code": 200,
+    "texte": "Freie Arztwahl (Standard)",
+    "titre": "Freie Arztwahl (Standard) » Sumiswalder"
+   },
+   {
+    "url": "https://sumiswalder.ch/privatkunden/angebot/grundversicherung/hmo-plus/",
+    "code": 200,
+    "texte": "HMO plus",
+    "titre": "HMO plus » Sumiswalder"
+   },
+   {
+    "url": "https://sumiswalder.ch/privatkunden/angebot/grundversicherung/hausarztmodell/",
+    "code": 200,
+    "texte": "Hausarztmodell",
+    "titre": "Hausarztmodell » Sumiswalder"
+   },
+   {
+    "url": "https://sumiswalder.ch/privatkunden/angebot/grundversicherung/sumis24-telmed/",
+    "code": 200,
+    "texte": "sumis24 Telmed",
+    "titre": "sumis24 Telmed » Sumiswalder"
+   },
+   {
+    "url": "https://sumiswalder.ch/firmenkunden/offertanfrage/",
+    "code": 200,
+    "texte": "Offertanfrage",
+    "titre": "Offertanfrage » Sumiswalder"
+   },
+   {
+    "url": "https://sumiswalder.ch/privatkunden/angebot/grundversicherung/hausarztmodell/hausarzt-wechseln/",
+    "code": 200,
+    "texte": "Hausarzt wechseln",
+    "titre": "Hausarzt wechseln » Sumiswalder"
+   },
+   {
+    "url": "https://sumiswalder.ch/privatkunden/angebot/grundversicherung/sumis24-telmed/sumis24-telmed-modell-abschliessen/",
+    "code": 200,
+    "texte": "sumis24 Telmed-Modell abschliessen",
+    "titre": "sumis24 Telmed-Modell abschliessen » Sumiswalder"
+   },
+   {
+    "url": "https://sumiswalder.ch/privatkunden/sparen/berechnung-der-optimalen-franchise/heilungskosten-zu-lasten-der-grundversicherung/",
+    "code": 200,
+    "texte": "Heilungskosten zu Lasten der Grundversicherung",
+    "titre": "Heilungskosten zu Lasten der Grundversicherung » Sumiswalder"
+   },
+   {
+    "url": "https://sumiswalder.ch/firmenkunden/offertanfrage/offerte-taggeldversicherung/",
+    "code": 200,
+    "texte": "Offerte Taggeldversicherung",
+    "titre": "Offerte Taggeldversicherung » Sumiswalder"
+   },
+   {
+    "url": "https://portal.sumiswalder.ch/portal/offerten",
+    "code": 200,
+    "texte": "Jetzt berechnen!",
+    "titre": "Prämienrechner - Grunddaten"
+   }
+  ]
+ },
+ "246": {
+  "site": "https://www.kkst.ch/home",
+  "liens": [
+   {
+    "url": "https://www.kkst.ch/grundversicherung",
+    "code": 200,
+    "texte": "Grundversicherung",
+    "titre": "Krankenkasse Steffisburg - Grundversicherung"
+   },
+   {
+    "url": "https://www.kkst.ch/grundversicherung/hausarztmodell-casa",
+    "code": 200,
+    "texte": "Hausarztmodell Casa",
+    "titre": "Krankenkasse Steffisburg - Hausarztmodell Casa"
+   },
+   {
+    "url": "https://www.kkst.ch/grundversicherung/hausarztmodell-medcasa",
+    "code": 200,
+    "texte": "Hausarztmodell Medcasa",
+    "titre": "Krankenkasse Steffisburg - Hausarztmodell Medcasa"
+   },
+   {
+    "url": "https://www.kkst.ch/grundversicherung/hausarztmodell-regiomed",
+    "code": 200,
+    "texte": "Hausarztmodell Regiomed",
+    "titre": "Krankenkasse Steffisburg - Hausarztmodell Regiomed"
+   },
+   {
+    "url": "https://www.kkst.ch/grundversicherung/sanmed24",
+    "code": 200,
+    "texte": "Sanmed24",
+    "titre": "Krankenkasse Steffisburg - Sanmed24"
+   }
+  ]
+ },
+ "290": {
+  "site": "https://www.concordia.ch/fr.html",
+  "liens": [
+   {
+    "url": "https://www.concordia.ch/fr/versicherungen/grundversicherung.html",
+    "code": 200,
+    "texte": "Assurance de base",
+    "titre": "Assurance de base -\r\n        CONCORDIA"
+   },
+   {
+    "url": "https://www.concordia.ch/fr/versicherungen/grundversicherung/mydoc.html",
+    "code": 200,
+    "texte": "Modèle de médecin de famille myDoc",
+    "titre": "Modèle de médecin de famille myDoc -\r\n        CONCORDIA"
+   },
+   {
+    "url": "https://www.concordia.ch/fr/versicherungen/grundversicherung/hmo.html",
+    "code": 200,
+    "texte": "Modèle HMO",
+    "titre": "Modèle HMO -\r\n        CONCORDIA"
+   },
+   {
+    "url": "https://www.concordia.ch/fr/versicherungen/grundversicherung/smartdoc.html",
+    "code": 200,
+    "texte": "Modèle de télémédecine smartDoc",
+    "titre": "Modèle de télémédecine smartDoc -\r\n        CONCORDIA"
+   },
+   {
+    "url": "https://www.concordia.ch/fr/service/myconcordia/registrierung.html",
+    "code": 200,
+    "texte": "Inscription",
+    "titre": "Inscription myCONCORDIA – simple & sécurisée -\r\n        CONCORDIA"
+   },
+   {
+    "url": "https://my.concordia.ch/auth/ui/app/auth/application/access?lang=fr",
+    "code": 200,
+    "texte": "Connexion",
+    "titre": "﻿Loading"
+   },
+   {
+    "url": "https://www.concordia.ch/fr/ueber-uns/jobs/job-profile.html",
+    "code": 200,
+    "texte": "Carrières et offres d’emploi",
+    "titre": "Nos profils de poste -\r\n        CONCORDIA"
+   },
+   {
+    "url": "https://www.praemienrechner.concordia.ch/ipr/?lang=de",
+    "code": 200,
+    "texte": "Calculateur de primes",
+    "titre": "CONCORDIA Prämienrechner"
+   },
+   {
+    "url": "https://www.praemienrechner.concordia.ch/ipr/home?lang=fr",
+    "code": 200,
+    "texte": "Calculer",
+    "titre": "CONCORDIA Prämienrechner"
+   },
+   {
+    "url": "https://www.concordia.ch/fr/versicherungen/grundversicherung.html?tid=Home+fr_Versicherungen-Teaser+schmal-Grundversicherung",
+    "code": 200,
+    "texte": "Assurance-maladie de base   Garantit une couverture d’assura",
+    "titre": "Assurance de base -\r\n        CONCORDIA"
+   },
+   {
+    "url": "https://www.concordia.ch/fr/magazin/active.html?tid=Home+fr_Aktuell-Teaser+schmal-Active",
+    "code": 200,
+    "texte": "CONCORDIA Active   CONCORDIA Active vous fait bénéficier d’e",
+    "titre": "CONCORDIA Active -\r\n        CONCORDIA"
+   },
+   {
+    "url": "https://www.concordia.ch/fr/kontakt/offertanfrage.html",
+    "code": 200,
+    "texte": "Demande d'offre",
+    "titre": "Demande d'offre"
+   }
+  ]
+ },
+ "312": {
+  "site": "https://atupri.ch/fr",
+  "liens": [
+   {
+    "url": "https://calculateur-de-primes.atupri.ch",
+    "code": 200,
+    "texte": "Calculer la prime",
+    "titre": "Atupri Prämienrechner"
+   },
+   {
+    "url": "https://shop.atupri.ch/fr",
+    "code": 200,
+    "texte": "Calculer votre prime",
+    "titre": "Calcul des primes - Atupri"
+   },
+   {
+    "url": "https://atupri.ch/fr/assurances/assurance-de-base",
+    "code": 200,
+    "texte": "Assurance de base Au plus proche de vos besoins: optez pour ",
+    "titre": "Caisse-maladie Atupri modèles d’assurance de base"
+   }
+  ]
+ },
+ "343": {
+  "site": "https://www.groupemutuel.ch/fr/clients-prives.html",
+  "liens": [
+   {
+    "url": "https://www.groupemutuel.ch/fr/clients-prives/vos-besoins/Vos-besoins-dans-le-domaine-de-la-sante/optimisez-votre-assurance-de-base.html",
+    "code": 200,
+    "texte": "",
+    "titre": "Optimiser son assurance-maladie  - Groupe Mutuel"
+   },
+   {
+    "url": "https://www.groupemutuel.ch/fr/clients-prives/vos-besoins/Vos-besoins-dans-le-domaine-de-la-sante/Trouver-la-meilleure-assurance-maladie-de-base.html",
+    "code": 200,
+    "texte": "Trouver la meilleure assurance de base",
+    "titre": "Quelle est la meilleure assurance maladie de base? - Groupe Mutuel"
+   },
+   {
+    "url": "https://www.groupemutuel.ch/fr/clients-prives/nos-services/LeClub/Offres-LeClub.html",
+    "code": 200,
+    "texte": "Découvrir",
+    "titre": "Offres exclusives LeClub pour les assurés du Groupe Mutuel - Groupe Mutuel"
+   },
+   {
+    "url": "https://www.groupemutuel.ch/fr/clients-prives/assurance-maladie-pour-toute-la-famille.html",
+    "code": 200,
+    "texte": "Voir les offres familles",
+    "titre": "Nos solutions pour les familles - Groupe Mutuel"
+   },
+   {
+    "url": "https://www.groupemutuel.ch/fr/clients-prives/nos-services/LeClub.html",
+    "code": 200,
+    "texte": "Offres",
+    "titre": "LeClub - Groupe Mutuel"
+   },
+   {
+    "url": "https://www.groupemutuel.ch/fr/entreprises/vos-besoins/Obtenir-une-offre-d-assurances-pour-mon-entreprise/Assurer-mon-entreprise.html",
+    "code": 200,
+    "texte": "Assurer mon entreprise",
+    "titre": "Quelles assurances pour vos collaborateurs? - Groupe Mutuel"
+   },
+   {
+    "url": "https://www.groupemutuel.ch/fr/entreprises/vos-besoins/Obtenir-une-offre-d-assurances-pour-mon-entreprise.html",
+    "code": 200,
+    "texte": "Toutes nos offres d'assurance",
+    "titre": "Obtenir une offre d’assurance professionnelle - Groupe Mutuel"
+   }
+  ]
+ },
+ "360": {
+  "site": "https://www.kklh.ch",
+  "liens": [
+   {
+    "url": "https://www.kklh.ch/versicherungen/grundversicherung/",
+    "code": 200,
+    "texte": "Mehr",
+    "titre": "Grundversicherung | Krankenkasse Luzerner Hinterland"
+   }
+  ]
+ },
+ "376": {
+  "site": "https://www.kpt.ch/fr",
+  "liens": [
+   {
+    "url": "https://assistant.kpt.ch/fr/donnees-personnelles",
+    "code": 200,
+    "texte": "Lancer le calculateur de primes",
+    "titre": ""
+   },
+   {
+    "url": "https://assistant.kpt.ch/fr/preselect/A?part=1&option=193",
+    "code": 200,
+    "texte": "Calculer la prime",
+    "titre": ""
+   },
+   {
+    "url": "https://assistant.kpt.ch/fr/preselect/A?part=1&option=3",
+    "code": 200,
+    "texte": "Calculer la prime",
+    "titre": ""
+   },
+   {
+    "url": "https://assistant.kpt.ch/fr/preselect/A?part=1&option=4",
+    "code": 200,
+    "texte": "Calculer la prime",
+    "titre": ""
+   },
+   {
+    "url": "https://assistant.kpt.ch/fr/preselect/A?part=1&option=1",
+    "code": 200,
+    "texte": "Calculer la prime",
+    "titre": ""
+   },
+   {
+    "url": "https://assistant.kpt.ch/fr/preselect/A?part=1&option=138",
+    "code": 200,
+    "texte": "Calculer la prime",
+    "titre": ""
+   },
+   {
+    "url": "https://assistant.kpt.ch/fr/preselect/A?part=1&option=2",
+    "code": 200,
+    "texte": "Calculer la prime",
+    "titre": ""
+   },
+   {
+    "url": "https://www.kpt.ch/fr/assurances/calcul-prime-assurance-maladie",
+    "code": 200,
+    "texte": "Calculateur de primes d’assurance-maladie",
+    "titre": "Calculer la prime d’assurance-maladie | Offre 2027 | Demander conseil"
+   }
+  ]
+ },
+ "455": {
+  "site": "https://www.oekk.ch/fr/clients-prives",
+  "liens": [
+   {
+    "url": "https://www.oekk.ch/fr/clients-prives/assurances/assurance-de-base",
+    "code": 200,
+    "texte": "Assurance de base",
+    "titre": "Assurance de base en Suisse : aperçu de tous les modèles | ÖKK"
+   },
+   {
+    "url": "https://www.oekk.ch/fr/clients-prives/assurances/assurance-de-base/libre-choix-du-medecin",
+    "code": 200,
+    "texte": "Libre choix du médecin",
+    "titre": "Libre choix du médecin dans l’assurance de base | ÖKK"
+   },
+   {
+    "url": "https://www.oekk.ch/fr/clients-prives/assurances/assurance-de-base/telmed-appli-pharmacie",
+    "code": 200,
+    "texte": "Telmed, appli et la pharmacie",
+    "titre": "Premier interlocuteur au choix via Telmed, l’appli ou la pharmacie"
+   },
+   {
+    "url": "https://www.oekk.ch/fr/clients-prives/assurances/assurance-de-base/telmed-appli",
+    "code": 200,
+    "texte": "Telmed ou l’appli",
+    "titre": "Le conseil télémédical de Medgate ou l’appli comme premier contact…"
+   },
+   {
+    "url": "https://www.oekk.ch/fr/clients-prives/assurances/assurance-de-base/modele-du-medecin-de-famille",
+    "code": 200,
+    "texte": "Modèle du médecin de famille",
+    "titre": "Assurance de base Modèle du médecin de famille de ÖKK – le médecin en…"
+   },
+   {
+    "url": "https://www.oekk.ch/fr/clients-prives/assurances/assurance-de-base/modele-hmo",
+    "code": 200,
+    "texte": "Modèle HMO",
+    "titre": "L’assurance de base avec modèle HMO de ÖKK"
+   },
+   {
+    "url": "https://www.oekk.ch/fr/clients-prives/assurances/assurance-de-base/pour-les-frontaliers",
+    "code": 200,
+    "texte": "Pour les frontaliers",
+    "titre": "L’assurance-maladie pour les frontaliers de ÖKK"
+   },
+   {
+    "url": "https://www.oekk.ch/fr/clients-prives/assurances/assurance-de-base/economiser-dans-lassurance-de-base",
+    "code": 200,
+    "texte": "Economiser dans l’assurance de base",
+    "titre": "Economiser dans l’assurance de base avec ÖKK"
+   },
+   {
+    "url": "https://www.oekk.ch/fr/clients-prives/services/modifier-lassurance/changer-de-modele-dassurance",
+    "code": 200,
+    "texte": "Changer de modèle d’assurance de base",
+    "titre": "Changer de modèle d’assurance de base"
+   },
+   {
+    "url": "https://www.oekk.ch/fr/clients-prives/services/telechargements-calculateurs",
+    "code": 200,
+    "texte": "Téléchargements et calculateurs",
+    "titre": "Téléchargements et calculateurs"
+   },
+   {
+    "url": "https://www.oekk.ch/fr/clients-prives/services/telechargements-calculateurs/brochures-formulaires-conditions-dassurance",
+    "code": 200,
+    "texte": "Brochures, formulaires, conditions d’assurance",
+    "titre": "Brochures, formulaires, conditions d’assurance"
+   },
+   {
+    "url": "https://www.oekk.ch/fr/clients-prives/services/telechargements-calculateurs/myoekk",
+    "code": 200,
+    "texte": "Portail clients / App myÖKK",
+    "titre": "myÖKK – le portail clients"
+   }
+  ]
+ },
+ "509": {
+  "site": "https://www.sympany.ch/fr.html",
+  "liens": [
+   {
+    "url": "https://www.sympany.ch/fr/particuliers/assurance-de-base.html",
+    "code": 200,
+    "texte": "Assurances de base en comparaison",
+    "titre": "Assurance de base caisse-maladie Suisse | Sympany"
+   },
+   {
+    "url": "https://www.sympany.ch/fr/contact/conseil-a-la-vente.html",
+    "code": 200,
+    "texte": "Demander conseil/offre",
+    "titre": "Contact: conseil à la vente | Sympany"
+   }
+  ]
+ },
+ "780": {
+  "site": "https://www.glkv.ch",
+  "liens": [
+   {
+    "url": "https://www.glkv.ch/versicherungen/grundversicherung/grundversicherung.html/48",
+    "code": 200,
+    "texte": "Grundversicherung",
+    "titre": "Standardmodell– GLKV"
+   },
+   {
+    "url": "https://www.glkv.ch/versicherungen/grundversicherung/grundversicherung.html/48",
+    "code": 200,
+    "texte": "Standardmodell",
+    "titre": "Standardmodell– GLKV"
+   }
+  ]
+ },
+ "820": {
+  "site": "https://www.curaulta.ch",
+  "liens": []
+ },
+ "881": {
+  "site": "https://www.egk.ch/fr",
+  "liens": [
+   {
+    "url": "https://www.egk.ch/calculer",
+    "code": 200,
+    "texte": "Calculateur",
+    "titre": "EGK Calculateur de primes"
+   },
+   {
+    "url": "https://www.egk.ch/fr/vie-sante/themes-de-la-vie/inscription-prenatale",
+    "code": 200,
+    "texte": "l’inscription prénatale",
+    "titre": "Inscription prénatale | Assurer son bébé dès la naissance"
+   },
+   {
+    "url": "https://www.egk.ch/fr/assurances/assurance-complementaire/egk-sun",
+    "code": 200,
+    "texte": "Voyager l'esprit tranquille pour toute la famille  L'assuran",
+    "titre": "EGK-SUN: Assurance complémentaire en médecine complémentaire"
+   },
+   {
+    "url": "https://www.egk.ch/fr/vie-sante/themes-de-la-vie/jeunes-adultes",
+    "code": 200,
+    "texte": "Enfin 18 ans  À 18 ans, plusieurs changements interviennent ",
+    "titre": "Caisse-maladie à partir de 18 ans | Ce qui change"
+   },
+   {
+    "url": "https://www.egk.ch/fr/vie-sante/themes-de-la-vie/grossesse",
+    "code": 200,
+    "texte": "Grossesse  De l'inscription prénatale à la naissance : une b",
+    "titre": "Grossesse et accouchement | Assurance EGK"
+   },
+   {
+    "url": "https://www.egk.ch/fr/services/connaissances-aide/economiser-primes",
+    "code": 200,
+    "texte": "Économiser sur les primes      Il existe différentes possibi",
+    "titre": "Économiser des primes auprès de la caisse-maladie"
+   },
+   {
+    "url": "https://www.egk.ch/calculer",
+    "code": 200,
+    "texte": "Calculateur",
+    "titre": "EGK Calculateur de primes"
+   },
+   {
+    "url": "https://www.egk.ch/fr/newsletter",
+    "code": 200,
+    "texte": "Inscrivez-vous maintenant",
+    "titre": "S'abonner à la newsletter : tout savoir sur les plantes médicinales et l'actualité de l'EG"
+   }
+  ]
+ },
+ "923": {
+  "site": "https://slkk.ch/de/",
+  "liens": [
+   {
+    "url": "https://slkk.ch/de/grundversicherung-krankenkasse/",
+    "code": 200,
+    "texte": "Obligatorische Versicherung",
+    "titre": "Obligatorische Grundversicherung | Krankenkasse SLKKDownload IconDownload IconDownload Ico"
+   },
+   {
+    "url": "https://slkk.ch/de/aktuelles/mehr-leistung-mehr-komfort-jetzt-zusatzversicherungen-der-slkk-abschliessen/",
+    "code": 200,
+    "texte": "#picture-425-500-625 {\n            padding-bottom: 125.0%;\n ",
+    "titre": "Zusatzversicherung zur SLKK wechseln: Jetzt profitierenicon-fullscreenStampIcon-PrintIcon-"
+   }
+  ]
+ },
+ "941": {
+  "site": "https://www.sodalis.ch/fr",
+  "liens": [
+   {
+    "url": "https://www.sodalis.ch/fr/pour-clients-prives/nos-produits/assurance-de-base",
+    "code": 200,
+    "texte": "Assurance de base",
+    "titre": "Besoins individuels - de base avantageux | sodalis gesundheitsgruppe"
+   },
+   {
+    "url": "https://www.sodalis.ch/fr/pour-clients-prives/nos-produits/assurance-de-base/modele-de-base-medica",
+    "code": 200,
+    "texte": "Modèle de base Medica",
+    "titre": "Libre choix du médecin dans le modèle de base | sodalis gesundheitsgruppe"
+   },
+   {
+    "url": "https://www.sodalis.ch/fr/pour-clients-prives/nos-produits/assurance-de-base/modele-medecin-de-famille-medicasa",
+    "code": 200,
+    "texte": "Modèle Médecin de famille Medicasa",
+    "titre": "Le médecin de famille comme premier interlocuteur | sodalis gesundheitsgruppe"
+   },
+   {
+    "url": "https://www.sodalis.ch/fr/pour-clients-prives/nos-produits/assurance-de-base/modele-telemedecine-telmed",
+    "code": 200,
+    "texte": "Modèle Télémédecine Telmed",
+    "titre": "Première consultation par téléphone  | sodalis gesundheitsgruppe"
+   },
+   {
+    "url": "https://www.sodalis.ch/fr/pour-clients-prives/nos-produits/assurance-de-base/modele-digital-digimed",
+    "code": 200,
+    "texte": "Modèle digital Digimed",
+    "titre": "Votre médecin numérique - toujours et partout avec vous | sodalis gesundheitsgruppe"
+   },
+   {
+    "url": "https://www.sodalis.ch/fr/pour-clients-prives/nos-produits/assurance-de-base/quelles-sont-les-differences",
+    "code": 200,
+    "texte": "Quelles sont les différences?",
+    "titre": "Quelles sont les différences dans l'assurance de base ?  | sodalis gesundheitsgruppe"
+   },
+   {
+    "url": "https://www.sodalis.ch/fr/pour-clients-prives/opter-pour-sodalis/offre-rapide",
+    "code": 200,
+    "texte": "Offre rapide",
+    "titre": "Offre rapide | sodalis gesundheitsgruppe"
+   },
+   {
+    "url": "https://www.sodalis.ch/fr/pour-clients-prives/opter-pour-sodalis/inscription-zermatt",
+    "code": 200,
+    "texte": "Inscription Zermatt",
+    "titre": "Inscription à Zermatt | sodalis gesundheitsgruppe"
+   },
+   {
+    "url": "https://www.sodalis.ch/fr/pour-clients-prives/nos-produits/comprendre-lassurance-maladie/assurance-de-base--78",
+    "code": 200,
+    "texte": "Assurance de base",
+    "titre": "Assurance de base  | sodalis gesundheitsgruppe"
+   },
+   {
+    "url": "https://www.sodalis.ch/fr/pour-clients-prives/nos-produits/comprendre-lassurance-maladie/quels-sont-les-frais-que-je-dois-assumer-moi-meme--58",
+    "code": 200,
+    "texte": "Quote-part",
+    "titre": "Quels sont les frais que je dois assumer moi-même ?  | sodalis gesundheitsgruppe"
+   },
+   {
+    "url": "https://web.sodalis.ch/portal/error/wrongbrowser",
+    "code": 200,
+    "texte": "S'inscrire maintenant",
+    "titre": "Online-Kundenportal"
+   }
+  ]
+ },
+ "966": {
+  "site": "https://www.vitasurselva.ch/home/",
+  "liens": []
+ },
+ "1040": {
+  "site": "https://www.kkv.ch",
+  "liens": [
+   {
+    "url": "https://www.kkv.ch/privatpersonen/grundversicherungen/grundversicherung/",
+    "code": 200,
+    "texte": "Grundversicherungen",
+    "titre": "KKV Krankenkasse VisperterminenGrundversicherungen - KKV Krankenkasse Visperterminen"
+   },
+   {
+    "url": "https://www.kkv.ch/privatpersonen/grundversicherungen/grundversicherung/",
+    "code": 200,
+    "texte": "Grundversicherungen",
+    "titre": "KKV Krankenkasse VisperterminenGrundversicherungen - KKV Krankenkasse Visperterminen"
+   },
+   {
+    "url": "https://www.kkv.ch/privatpersonen/grundversicherungen/medicas-basis/",
+    "code": 200,
+    "texte": "Medica Basis",
+    "titre": "KKV Krankenkasse VisperterminenMedica Basis - KKV Krankenkasse Visperterminen"
+   },
+   {
+    "url": "https://www.kkv.ch/privatpersonen/grundversicherungen/medicasa-hausarzt/",
+    "code": 200,
+    "texte": "Medicasa Hausarzt",
+    "titre": "KKV Krankenkasse VisperterminenMedicasa Hausarzt - KKV Krankenkasse Visperterminen"
+   },
+   {
+    "url": "https://www.kkv.ch/privatpersonen/grundversicherungen/telmed/",
+    "code": 200,
+    "texte": "Telmed",
+    "titre": "KKV Krankenkasse VisperterminenTelmed - KKV Krankenkasse Visperterminen"
+   },
+   {
+    "url": "https://www.kkv.ch/privatpersonen/grundversicherungen/medizinische-beratung/",
+    "code": 200,
+    "texte": "Medizinische Beratung",
+    "titre": "KKV Krankenkasse VisperterminenMedizinische Beratung - KKV Krankenkasse Visperterminen"
+   },
+   {
+    "url": "https://www.kkv.ch/privatpersonen/praemien/praemienrechner-2/",
+    "code": 200,
+    "texte": "Prämien Grundversicherung",
+    "titre": "KKV Krankenkasse VisperterminenPrämien Grund- und Zusatzversicherung - KKV Krankenkasse Vi"
+   },
+   {
+    "url": "https://www.kkv.ch/services-2/downloads/antragsformulare/",
+    "code": 200,
+    "texte": "Antragsformulare",
+    "titre": "KKV Krankenkasse VisperterminenAntragsformulare - KKV Krankenkasse Visperterminen"
+   }
+  ]
+ },
+ "1318": {
+  "site": "https://www.kkwaedenswil.ch",
+  "liens": [
+   {
+    "url": "https://www.kkwaedenswil.ch/versicherungen/grundversicherung",
+    "code": 200,
+    "texte": "Versicherungen",
+    "titre": "Grundversicherung: Standard- & HausarztmodellGrundversicherung: Standard- & Hausarztmodell"
+   }
+  ]
+ },
+ "1322": {
+  "site": "https://www.kkbirchmeier.ch",
+  "liens": [
+   {
+    "url": "https://www.kkbirchmeier.ch/Versicherungen/Grundversicherung/TELMED-Versicherungsmodell",
+    "code": 200,
+    "texte": "TELMED!",
+    "titre": "TELMED-Versicherungsmodell - Krankenkasse Birchmeier"
+   }
+  ]
+ },
+ "1384": {
+  "site": "https://www.swica.ch/fr/private",
+  "liens": [
+   {
+    "url": "https://www.swica.ch/fr/prive/services/calculateur-de-primes",
+    "code": 200,
+    "texte": "Calculateur",
+    "titre": "Calculateur de primes pour les particuliers – SWICA"
+   },
+   {
+    "url": "https://www.swica.ch/fr/prive/monde-de-la-sante/promotion-de-la-sante/active4life",
+    "code": 200,
+    "texte": "active4life – les offres avantageuses pour les assurés SWICA",
+    "titre": "Offres préférentielles active4life – SWICA"
+   },
+   {
+    "url": "https://calculate.swica.ch/de?LANGUAGES=2&SWICAKDN=0",
+    "code": 200,
+    "texte": "Calculateur",
+    "titre": ""
+   },
+   {
+    "url": "https://calculate.swica.ch/de",
+    "code": 200,
+    "texte": "Calculateur",
+    "titre": ""
+   }
+  ]
+ },
+ "1386": {
+  "site": "https://www.galenos.ch/fr/accueil/",
+  "liens": [
+   {
+    "url": "https://www.galenos.ch/fr/personnes-privees/assurances/assurance-de-base/",
+    "code": 200,
+    "texte": "Assurance de base",
+    "titre": "Assurance de base : Les avantages du médecin de famille - Galenos"
+   },
+   {
+    "url": "https://www.galenos.ch/fr/portrait-de-galenos/offres-demploi/",
+    "code": 200,
+    "texte": "Offres d’emploi",
+    "titre": "Offres d’emploi – Galenos"
+   },
+   {
+    "url": "https://www.galenos.ch/fr/recherche-par-themes-et-offres-de-galenos/",
+    "code": 200,
+    "texte": "search",
+    "titre": "Recherche – Galenos"
+   }
+  ]
+ },
+ "1401": {
+  "site": "https://rhenusana.ch/",
+  "liens": [
+   {
+    "url": "https://rhenusana.ch/grundversicherung/",
+    "code": 200,
+    "texte": "Grundversicherung",
+    "titre": "Grundversicherung | rhenusana – die rheintaler krankenkasse"
+   },
+   {
+    "url": "https://rhenusana.ch/grundversicherung/standardmodell-grundversicherung/",
+    "code": 200,
+    "texte": "Standardmodell Grundversicherung",
+    "titre": "Standardmodell Grundversicherung | rhenusana – die rheintaler krankenkasse"
+   },
+   {
+    "url": "https://rhenusana.ch/grundversicherung/rabattmodell-hausarztsystem/",
+    "code": 200,
+    "texte": "Rabattmodell Hausarztsystem",
+    "titre": "Rabattmodell Hausarztsystem | rhenusana – die rheintaler krankenkasse"
+   },
+   {
+    "url": "https://rhenusana.ch/grundversicherung/rabattmodell-sanmed24/",
+    "code": 200,
+    "texte": "Rabattmodell sanmed24",
+    "titre": "Rabattmodell sanmed24 | rhenusana – die rheintaler krankenkasse"
+   }
+  ]
+ },
+ "1479": {
+  "site": "https://www.groupemutuel.ch/fr/clients-prives.html",
+  "liens": [
+   {
+    "url": "https://www.groupemutuel.ch/fr/clients-prives/vos-besoins/Vos-besoins-dans-le-domaine-de-la-sante/optimisez-votre-assurance-de-base.html",
+    "code": 200,
+    "texte": "",
+    "titre": "Optimiser son assurance-maladie  - Groupe Mutuel"
+   },
+   {
+    "url": "https://www.groupemutuel.ch/fr/clients-prives/vos-besoins/Vos-besoins-dans-le-domaine-de-la-sante/Trouver-la-meilleure-assurance-maladie-de-base.html",
+    "code": 200,
+    "texte": "Trouver la meilleure assurance de base",
+    "titre": "Quelle est la meilleure assurance maladie de base? - Groupe Mutuel"
+   },
+   {
+    "url": "https://www.groupemutuel.ch/fr/clients-prives/nos-services/LeClub/Offres-LeClub.html",
+    "code": 200,
+    "texte": "Découvrir",
+    "titre": "Offres exclusives LeClub pour les assurés du Groupe Mutuel - Groupe Mutuel"
+   },
+   {
+    "url": "https://www.groupemutuel.ch/fr/clients-prives/assurance-maladie-pour-toute-la-famille.html",
+    "code": 200,
+    "texte": "Voir les offres familles",
+    "titre": "Nos solutions pour les familles - Groupe Mutuel"
+   },
+   {
+    "url": "https://www.groupemutuel.ch/fr/clients-prives/nos-services/LeClub.html",
+    "code": 200,
+    "texte": "Offres",
+    "titre": "LeClub - Groupe Mutuel"
+   },
+   {
+    "url": "https://www.groupemutuel.ch/fr/entreprises/vos-besoins/Obtenir-une-offre-d-assurances-pour-mon-entreprise/Assurer-mon-entreprise.html",
+    "code": 200,
+    "texte": "Assurer mon entreprise",
+    "titre": "Quelles assurances pour vos collaborateurs? - Groupe Mutuel"
+   },
+   {
+    "url": "https://www.groupemutuel.ch/fr/entreprises/vos-besoins/Obtenir-une-offre-d-assurances-pour-mon-entreprise.html",
+    "code": 200,
+    "texte": "Toutes nos offres d'assurance",
+    "titre": "Obtenir une offre d’assurance professionnelle - Groupe Mutuel"
+   }
+  ]
+ },
+ "1509": {
+  "site": "https://www.sanitas.com",
+  "liens": []
+ },
+ "1535": {
+  "site": "https://www.groupemutuel.ch/fr/clients-prives.html",
+  "liens": [
+   {
+    "url": "https://www.groupemutuel.ch/fr/clients-prives/vos-besoins/Vos-besoins-dans-le-domaine-de-la-sante/optimisez-votre-assurance-de-base.html",
+    "code": 200,
+    "texte": "",
+    "titre": "Optimiser son assurance-maladie  - Groupe Mutuel"
+   },
+   {
+    "url": "https://www.groupemutuel.ch/fr/clients-prives/vos-besoins/Vos-besoins-dans-le-domaine-de-la-sante/Trouver-la-meilleure-assurance-maladie-de-base.html",
+    "code": 200,
+    "texte": "Trouver la meilleure assurance de base",
+    "titre": "Quelle est la meilleure assurance maladie de base? - Groupe Mutuel"
+   },
+   {
+    "url": "https://www.groupemutuel.ch/fr/clients-prives/nos-services/LeClub/Offres-LeClub.html",
+    "code": 200,
+    "texte": "Découvrir",
+    "titre": "Offres exclusives LeClub pour les assurés du Groupe Mutuel - Groupe Mutuel"
+   },
+   {
+    "url": "https://www.groupemutuel.ch/fr/clients-prives/assurance-maladie-pour-toute-la-famille.html",
+    "code": 200,
+    "texte": "Voir les offres familles",
+    "titre": "Nos solutions pour les familles - Groupe Mutuel"
+   },
+   {
+    "url": "https://www.groupemutuel.ch/fr/clients-prives/nos-services/LeClub.html",
+    "code": 200,
+    "texte": "Offres",
+    "titre": "LeClub - Groupe Mutuel"
+   },
+   {
+    "url": "https://www.groupemutuel.ch/fr/entreprises/vos-besoins/Obtenir-une-offre-d-assurances-pour-mon-entreprise/Assurer-mon-entreprise.html",
+    "code": 200,
+    "texte": "Assurer mon entreprise",
+    "titre": "Quelles assurances pour vos collaborateurs? - Groupe Mutuel"
+   },
+   {
+    "url": "https://www.groupemutuel.ch/fr/entreprises/vos-besoins/Obtenir-une-offre-d-assurances-pour-mon-entreprise.html",
+    "code": 200,
+    "texte": "Toutes nos offres d'assurance",
+    "titre": "Obtenir une offre d’assurance professionnelle - Groupe Mutuel"
+   }
+  ]
+ },
+ "1542": {
+  "site": "https://www.assura.ch/fr",
+  "liens": [
+   {
+    "url": "https://www.assura.ch/fr/assurances/assurances-de-base",
+    "code": 200,
+    "texte": ".css-18toxty{box-sizing:border-box;margin:0;min-width:0;colo",
+    "titre": "Assurance-maladie de base obligatoire | Assura"
+   },
+   {
+    "url": "https://www.assura.ch/fr/assurances/assurance-de-base/basis",
+    "code": 200,
+    "texte": ".css-1gyuf3t{box-sizing:border-box;margin:0;min-width:0;font",
+    "titre": "Basis, modèle d'assurance de base | Assura"
+   },
+   {
+    "url": "https://www.assura.ch/fr/assurances/assurance-de-base/qualimed",
+    "code": 200,
+    "texte": "QualiMed",
+    "titre": "QualiMed, modèle d'assurance de base | Assura"
+   },
+   {
+    "url": "https://www.assura.ch/fr/assurances/assurance-de-base/med-de-famille",
+    "code": 200,
+    "texte": "Médecin de famille",
+    "titre": "Médecin de famille, modèle d'assurance de base | Assura"
+   },
+   {
+    "url": "https://www.assura.ch/fr/assurances/assurance-de-base/pharmed",
+    "code": 200,
+    "texte": "PharMed",
+    "titre": "PharMed, modèle d'assurance de base | Assura"
+   },
+   {
+    "url": "https://www.assura.ch/fr/assurances/assurance-de-base/meditel",
+    "code": 200,
+    "texte": "MediTel",
+    "titre": "MediTel, modèle d'assurance de base | Assura"
+   },
+   {
+    "url": "https://www.assura.ch/fr/assurances/assurances-complementaires/complement-assurance-de-base",
+    "code": 200,
+    "texte": "Complément à l’assurance de base",
+    "titre": "Complément à l’assurance de base | Assura"
+   },
+   {
+    "url": "https://www.assura.ch/fr/club/offres-sport",
+    "code": 200,
+    "texte": "Sport",
+    "titre": "Offres sport | Club Assura"
+   },
+   {
+    "url": "https://www.assura.ch/fr/club/offres-sante",
+    "code": 200,
+    "texte": "Santé",
+    "titre": "Offres santé | Club Assura"
+   },
+   {
+    "url": "https://www.assura.ch/fr/club/offres-pharmacie",
+    "code": 200,
+    "texte": "Pharmacie",
+    "titre": "Offres pharmacie | Club Assura"
+   },
+   {
+    "url": "https://www.assura.ch/fr/club/offres-chirurgie-oculaire",
+    "code": 200,
+    "texte": "Chirurgie oculaire",
+    "titre": "Offres chirurgie oculaire | Club Assura"
+   },
+   {
+    "url": "https://www.assura.ch/fr/club",
+    "code": 200,
+    "texte": "Toutes nos offres",
+    "titre": "De nombreux avantages pour nos assurés! | Club Assura"
+   }
+  ]
+ },
+ "1555": {
+  "site": "https://www.visana.ch/fr/clientele-privee",
+  "liens": []
+ },
+ "1560": {
+  "site": "https://www.agrisano.ch/de/",
+  "liens": [
+   {
+    "url": "https://calculator.agrisano.ch/public/e/l/premium-calculator-home/de-CH/index",
+    "code": 200,
+    "texte": "Prämienrechner",
+    "titre": "Startseite"
+   },
+   {
+    "url": "https://www.agrisano.ch/de/angebot/krankenkasse-grundversicherung",
+    "code": 200,
+    "texte": "Krankenkasse Grundversicherung",
+    "titre": "Grundversicherung: Alle Modelle von Agrisano im Vergleich"
+   },
+   {
+    "url": "https://www.agrisano.ch/de/angebot/krankenkasse-grundversicherung/grundversicherung-basis",
+    "code": 200,
+    "texte": "Grundversicherung BASIS",
+    "titre": "Obligatorische Krankenpflegeversicherung - Grundversicherung BASIS"
+   },
+   {
+    "url": "https://www.agrisano.ch/de/angebot/krankenkasse-grundversicherung/agri-eco-hausarztversicherung",
+    "code": 200,
+    "texte": "AGRI-eco Hausarztversicherung",
+    "titre": "AGRI-eco Hausarztversicherung | Agrisano"
+   },
+   {
+    "url": "https://www.agrisano.ch/de/angebot/krankenkasse-grundversicherung/agri-contact-telmedmodell",
+    "code": 200,
+    "texte": "AGRI-contact Telmedmodell",
+    "titre": "AGRI-contact Telmedmodell | Agrisano"
+   },
+   {
+    "url": "https://www.agrisano.ch/de/angebot/krankenkasse-grundversicherung/agri-smart-digitales-versicherungsmodell",
+    "code": 200,
+    "texte": "AGRI-smart digitales Versicherungsmodell",
+    "titre": "AGRI-smart digitales Versicherungsmodell | Agrisano"
+   },
+   {
+    "url": "https://www.agrisano.ch/de/ueber-uns/publikationen/newsletter/newsletter-anmeldung",
+    "code": 200,
+    "texte": "Jetzt Newsletter abonnieren!",
+    "titre": "Agrisano-Newsletter Anmeldung"
+   }
+  ]
+ },
+ "1562": {
+  "site": "https://www.helsana.ch/fr/prives.html",
+  "liens": [
+   {
+    "url": "https://www.helsana.ch/fr/prives/assurances/calculateur-primes.html",
+    "code": 200,
+    "texte": "Vérifiez votre couverture d’assurance",
+    "titre": "Calculateur de primes 2026 - Helsana"
+   },
+   {
+    "url": "https://www.helsana.ch/fr/prives/assurances/assurance-de-base.html",
+    "code": 200,
+    "texte": "Accéder aux assurances de base",
+    "titre": "Assurance de base caisse-maladie - Helsana"
+   }
+  ]
+ },
+ "1568": {
+  "site": "https://www.visana.ch/fr/clientele-privee",
+  "liens": []
+ }
+}

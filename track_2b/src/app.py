@@ -25,6 +25,9 @@ from openai import OpenAI
 import chatbot
 import complementaires as compl
 import sante
+import affiliation
+import caisses
+import hors_lamal
 import changement
 import conversation
 import langues
@@ -37,11 +40,12 @@ import subsides
 from chatbot import (Profile, State, CARE_TYPES, CARE_LABELS, QUESTIONS,
                      FRANCHISES, NOMS_PRIORITE, PROMPT_INTRO, extraire_json,
                      faits_propositions, lire_config, localiser, nom_simple)
-from comparateur import classe_age, communes_du_npa, propositions
+from comparateur import ASSUREURS, classe_age, communes_du_npa, propositions
 
 def L():
     """Langue de la conversation : détectée dans les messages, ou choisie dans la barre latérale."""
-    return st.session_state.get("langue", "fr")
+    s = st.session_state
+    return s.get("langue_detectee") or s.get("langue", "fr")
 
 
 def nom_langue():
@@ -469,7 +473,9 @@ def traiter_message(texte):
     s.messages.append({"role": "user", "type": "texte", "contenu": texte})
     detectee = langues.detecter(texte)
     if detectee:
-        s.langue = detectee  # la personne écrit dans une autre langue : on lui répond dans celle-ci
+        # La personne écrit dans une autre langue : on lui répond dans celle-ci. Le menu « Langue » est déjà
+        # affiché quand le message est traité (en bas de la page) : il prend la langue au tour suivant.
+        s.langue_detectee = detectee
     question = conversation.est_question(texte)
     tour = {"texte": texte, "question": question, "avant": faits_connus()}
     if s.attente == "commune" and choisir_commune_texte(texte):
@@ -545,6 +551,170 @@ def repondre_apres_resultats(texte):
 # --------------------------------------------------------------------------------------
 INTRO_DE_SECOURS = "Voici les offres retenues selon vos catégories acceptées. Comparez les primes, franchises et conditions."
 
+PROMPT_OUVERTURE = """Tu ouvres la conversation : la personne vient de remplir le formulaire de l'application, et tu es
+son conseiller en assurance maladie de base (LAMal), propulsé par Apertus, le modèle de langue suisse. Ses offres
+sont affichées juste en dessous de ton texte.
+Écris un seul paragraphe de 4 à 6 phrases, dans cet ordre :
+1. Remercie-la d'avoir rempli le formulaire et présente-toi en une phrase.
+2. Reprends ce qu'elle a indiqué dans le formulaire (âge en 2027, commune, situation professionnelle, modèles
+   acceptés) et dis ce que cela change pour elle, d'après les faits (catégorie d'âge, couverture accidents).
+3. Présente l'offre la moins chère et le compromis entre le prix et les contraintes, d'après les faits.
+4. Dis que toutes les franchises ont été comparées et donne le seuil de frais indiqué dans les faits, s'il y en a un.
+5. Si les faits contiennent des besoins hors assurance de base, dis en une phrase ce que l'assurance de base ne
+   paie pas pour eux et qu'il faut une assurance complémentaire pour cela.
+6. Termine en l'invitant à te poser ses questions, par exemple sur la franchise ou sur un modèle.
+Règles strictes :
+- Utilise UNIQUEMENT les faits fournis. N'ajoute aucune information extérieure.
+- Ne fais AUCUN calcul. Recopie les montants exactement (avec les centimes) ou n'en cite pas.
+- Ne recommande aucune offre : présente les compromis, la décision reste à la personne.
+- Vouvoie la personne. Écris en {langue} simple et chaleureux, sans liste ni titre."""
+
+_CATEGORIES_AGE = {"AKA_01_KIN": "enfant (jusqu'à 18 ans)", "AKA_02_JUG": "jeune adulte (19 à 25 ans)",
+                   "AKA_03_ERW": "adulte (26 ans et plus)"}
+
+
+def recapitulatif_formulaire(l):
+    """Les réponses du formulaire en étiquettes courtes, affichées dans la carte d'ouverture."""
+    p = st.session_state.profil
+    c = p["contract"]
+    modeles = c.known("care_access") or []
+    etiquettes = [("🎂", tr("{age} ans en {annee}", l, age=p["age"], annee=c.premium_year)),
+                  ("📍", f"{p['commune']} ({p['canton']})")]
+    if c.accident() is not None:
+        etiquettes.append(("🩹", tr("Accidents inclus", l) if c.accident() else tr("Accidents exclus (employeur)", l)))
+    etiquettes.append(("🩺", tr("Tous les modèles", l) if set(modeles) == set(CARE_TYPES)
+                       else ", ".join(tr(CARE_LABELS[k], l) for k in modeles)))
+    etiquettes.append(("💰", tr("Toutes les franchises comparées", l)))
+    if st.session_state.get("caisse_formulaire"):
+        etiquettes.append(("🏥", tr("Aujourd'hui : {caisse}", l, caisse=st.session_state.caisse_formulaire)))
+    besoins = st.session_state.get("hors_lamal") or []
+    if besoins:
+        etiquettes.append(("➕", tr("Hors assurance de base : {x}", l,
+                                    x=", ".join(hors_lamal.libelle(c, l).lower() for c in besoins))))
+    return etiquettes
+
+
+def suggestions_formulaire(props):
+    """Questions proposées d'après le formulaire et les offres (textes français, traduits à l'affichage)."""
+    p = st.session_state.profil
+    c = p["contract"]
+    questions = ["Quelle franchise est la plus avantageuse pour moi ?"]
+    modele = props[0]["modele"] if props else ""
+    if modele.startswith("Médecin de famille"):
+        questions.append("Comment fonctionne le modèle médecin de famille ?")
+    elif modele.startswith("Télémédecine"):
+        questions.append("Comment fonctionne la télémédecine ?")
+    elif modele.startswith("Pharmacie"):
+        questions.append("Comment fonctionne le modèle pharmacie ?")
+    if st.session_state.get("f_situation") in ("sans_emploi", "salarie_moins") or (p["age"] or 99) <= 25:
+        questions.append("Ai-je droit à un subside pour payer ma prime ?")
+    elif c.accident() is False:
+        questions.append("Que se passe-t-il pour les accidents si je quitte mon emploi ?")
+    questions.append("Jusqu'à quand puis-je changer de caisse ?")
+    return questions[:4]
+
+
+def afficher_ouverture():
+    """Carte d'ouverture : le conseiller reprend le formulaire (étiquettes), puis le message d'Apertus.
+    Les questions proposées sont en bas de la conversation (afficher_questions)."""
+    s, l = st.session_state, L()
+    with st.container(key="ouverture"):
+        style.ouverture(tr("Votre conseiller LAMal", l), tr("Apertus · en ligne", l),
+                        tr("D'après votre formulaire", l), recapitulatif_formulaire(l), s.ouverture["texte"])
+
+
+def poser(question):
+    """Clic sur une question proposée : elle est traitée en bas de la page, comme un message écrit."""
+    st.session_state.question_en_attente = question
+
+
+def envoyer():
+    """Message écrit dans la zone de saisie : traité en bas de la page (voir main)."""
+    texte = (st.session_state.get("saisie") or "").strip()
+    if texte:
+        st.session_state.question_en_attente = texte
+
+
+def afficher_questions():
+    """En bas de la conversation : « Posez-moi vos questions », les questions proposées d'après le formulaire
+    (sans celles déjà posées), puis la zone de saisie. La zone de saisie est dans la page et non collée au bas
+    de l'écran : sinon Streamlit fait sans cesse défiler la page vers le bas, et on ne peut pas ouvrir la page
+    des offres sur la carte du conseiller ni défiler librement."""
+    s, l = st.session_state, L()
+    with st.container(key="questions"):
+        resultats = bool(s.get("resultats"))
+        if resultats:
+            st.markdown(f"**{tr('Une question ? Posez-la-moi', l)}**")
+        # Zone de saisie d'abord (c'est l'action principale), puis des exemples à cliquer.
+        # Clé fixe : la zone n'est pas recréée d'une étape à l'autre (le message écrit n'est pas perdu).
+        st.chat_input(tr("Écrivez votre question ici…", l) if resultats else langues.PLACEHOLDER,
+                      key="saisie", on_submit=envoyer)
+        if resultats:
+            posees = {m.get("contenu") for m in s.messages if m["role"] == "user"}
+            proposees = [(i, tr(q, l)) for i, q in enumerate((s.get("ouverture") or {}).get("suggestions", []))
+                         if tr(q, l) not in posees]
+            if proposees:
+                st.caption(tr("Par exemple :", l))
+                with st.container(horizontal=True, key="suggestions"):
+                    for i, q in proposees:
+                        st.button(q, key=f"suggestion_{i}", on_click=poser, args=(q,))
+
+
+def calculer_caisse():
+    """Bouton « Calculer mon économie » de l'étape caisse actuelle : le texte est traité comme un message
+    (Apertus 8B lit la caisse, le modèle et la prime ; Python calcule)."""
+    texte = (st.session_state.get("caisse_texte") or "").strip()
+    if texte:
+        st.session_state.question_en_attente = texte
+
+
+def etape_caisse():
+    """Étape facultative « caisse actuelle » : un champ à elle, avec un exemple, et deux boutons clairs.
+    Séparée de la zone des questions pour qu'on ne confonde pas les deux."""
+    l = L()
+    with st.container(key="etape_caisse"):
+        st.markdown(f"**{tr('Combien économiseriez-vous ? (facultatif)', l)}**")
+        st.text_input(tr("Votre caisse actuelle, et votre modèle si vous le connaissez", l), key="caisse_texte",
+                      placeholder=tr("Ex. : Helsana, médecin de famille", l))
+        with st.container(horizontal=True):
+            st.button(tr("Calculer mon économie", l), key="caisse_calculer", on_click=calculer_caisse,
+                      type="primary")
+            bouton(tr("Passer", l), passer_caisse, cle="caisse_passer")
+
+
+def faits_formulaire(props):
+    """Ce que la personne a rempli dans le formulaire et ce que cela change, puis ses offres : la base de
+    l'ouverture rédigée par Apertus. Tout vient du formulaire et des calculs Python."""
+    s = st.session_state
+    p = s.profil
+    c = p["contract"]
+    lignes = ["Ce que la personne a rempli dans le formulaire, et ce que cela change :",
+              f"- Année de naissance {c.known('birth_year')} : {p['age']} ans en {c.premium_year}, catégorie de "
+              f"primes {_CATEGORIES_AGE[classe_age(p['age'])]}.",
+              f"- Domicile : {p['commune']} ({p['canton']}), code postal {p['npa']}, région de primes {p['region']}."]
+    if s.get("f_situation") in SITUATIONS:
+        lignes.append(f"- Situation professionnelle : {SITUATIONS[s.f_situation]}.")
+    if c.accident() is True:
+        lignes.append("- Couverture accidents : incluse dans l'assurance de base, car aucun employeur ne l'assure "
+                      "contre les accidents non professionnels (il faut au moins 8 h par semaine chez un même "
+                      "employeur pour cela).")
+    elif c.accident() is False:
+        lignes.append("- Couverture accidents : exclue de l'assurance de base, car son employeur l'assure déjà contre "
+                      "les accidents non professionnels (au moins 8 h par semaine chez lui) ; la prime est plus basse.")
+    modeles = c.known("care_access") or []
+    lignes.append("- Modèles acceptés : " + ("tous (" if set(modeles) == set(CARE_TYPES) else "")
+                  + ", ".join(CARE_LABELS[k] for k in modeles) + (")" if set(modeles) == set(CARE_TYPES) else "") + ".")
+    lignes.append("- Franchise : le formulaire ne la demande pas ; toutes les franchises sont comparées.")
+    besoins = hors_lamal.faits(s.get("hors_lamal") or [])
+    if besoins:
+        lignes += ["Besoins cochés dans le formulaire, hors assurance de base (l'application les détaille après "
+                   "le choix d'une offre) :"] + besoins
+    lignes += ["Offres affichées sous ton texte :", faits_propositions(props, p["priorite"])]
+    retenir = [l.replace("À RETENIR : ", "- ") for l in chiffres_franchise().splitlines() if l.startswith("À RETENIR")]
+    if retenir:
+        lignes += ["Franchise (calculs de l'application) :"] + retenir
+    return "\n".join(lignes)
+
 
 def calculer():
     """3 propositions LAMal (Python), introduction vérifiée (70B), meilleurs produits complémentaires."""
@@ -559,7 +729,15 @@ def calculer():
     props = propositions(offres, p["priorite"])
     bloc = {"offres": offres, "propositions": props, "intro": None, "compl": None,
             "preferences": chatbot.couts_des_preferences(c), "soins": dict(p["soins"])}
-    if props:
+    ouverture = bool(props and s.get("profil_formulaire") and not s.resultats)
+    if ouverture:
+        # Juste après le formulaire : Apertus ouvre la conversation en reprenant ce qui a été rempli
+        s.ouverture = {"texte": chatbot.expliquer(
+                           client().with_options(timeout=DELAI_70B), cfg["LLM_NAME_RESTITUTION"],
+                           faits_formulaire(props), nom_langue(), prompt=PROMPT_OUVERTURE,
+                           secours=tr(APRES_FORMULAIRE, L())),
+                       "suggestions": suggestions_formulaire(props)}
+    elif props:
         bloc["intro"] = chatbot.expliquer(client().with_options(timeout=DELAI_70B), cfg["LLM_NAME_RESTITUTION"],
                                           faits_propositions(props, p["priorite"]), nom_langue(),
                                           prompt=PROMPT_INTRO, secours=tr(INTRO_DE_SECOURS, L()))
@@ -576,6 +754,8 @@ def calculer():
     bloc["faits"] = faits_resultats(bloc)
     bloc["chiffres_franchise"] = chiffres_franchise()
     s.resultats.append(bloc)
+    if ouverture:
+        s.messages.append({"role": "assistant", "type": "ouverture"})
     s.messages.append({"role": "assistant", "type": "resultats", "index": len(s.resultats) - 1})
     s.etape, s.attente = "resultats", None
     if props and s.get("caisse_lue") is None and not s.get("caisse_demandee"):
@@ -638,8 +818,11 @@ def montrer_economie(numero=None, modele=None, prime_mois=None, rediger=True):
         dire(texte or changement.texte_economie_secours(e, L()))
         s.economie = e
     if rediger and e["caisse"] and s.economie.get("autre_caisse"):
-        dire(tr("Souhaitez-vous que je rédige votre lettre de résiliation pour {caisse} ?", L(), caisse=e["caisse"]))
-        s.attente = "lettre"
+        # Ordre de la vraie vie : choisir et demander la nouvelle caisse d'abord, résilier ensuite. La lettre
+        # est proposée dans les étapes du choix (étape 3), plus ici.
+        dire(tr("Pour changer, cliquez sur « Choisir cette offre » sous l'offre qui vous convient : je vous guide "
+                "jusqu'à l'inscription, puis je rédige votre lettre de résiliation pour {caisse}.", L(),
+                caisse=e["caisse"]))
     return True
 
 
@@ -650,17 +833,234 @@ def choisir_caisse(numero):
     montrer_economie(numero, lu.get("modele"), lu.get("prime_mois"))
 
 
-def ecrire_lettre():
-    """Lettre de résiliation rédigée par Apertus 70B ; Python vérifie les éléments obligatoires."""
+def ecrire_lettre(numero=None, dans_fiche=False):
+    """Lettre de résiliation rédigée par Apertus 70B ; Python vérifie les éléments obligatoires.
+    Caisse : celle de l'économie, ou `numero` (choisie dans la liste à l'étape 3 du choix). Depuis le choix
+    d'une offre, la lettre s'affiche dans l'étape 3 (dans_fiche) ; sinon dans la conversation."""
     s, cfg = st.session_state, config()
-    e, profil = s.economie, s.profil["comparison"]
+    profil = s.profil["comparison"]
+    if numero is None:
+        numero, caisse = (s.get("economie") or {}).get("numero"), (s.get("economie") or {}).get("caisse")
+    else:
+        caisse = changement.CAISSES[numero]
     langue = changement.langue_lettre(L(), profil.canton)
     # La lettre est la tâche principale de ce tour : un délai à elle (deux essais au plus)
     rediger = appel("demander_llm", cfg["LLM_NAME_RESTITUTION"], 40)
-    lettre, par = changement.rediger_lettre(rediger, e["caisse"], langue, profil.premium_year)
-    s.messages.append({"role": "assistant", "type": "lettre", "texte": lettre, "langue": langue, "par": par,
-                       "annee": profil.premium_year})
+    lettre, par = changement.rediger_lettre(rediger, caisse, langue, profil.premium_year)
+    adresse = caisses.adresse_postale(numero)
+    if adresse:  # adresse officielle de la caisse (liste OFSP) à la place du champ à compléter
+        lettre = lettre.replace(changement.CHAMP_ADRESSE_CAISSE[langue], "\n".join(adresse[1:]))
+    m = {"role": "assistant", "type": "lettre", "texte": lettre, "langue": langue, "par": par,
+         "annee": profil.premium_year, "caisse": caisse}
+    if dans_fiche:
+        s.lettre_fiche = m
+    else:
+        s.messages.append(m)
     s.attente = None
+
+
+def lettre_choisie(cle):
+    """Étape 3 sans caisse connue : la caisse est choisie dans la liste, puis la lettre est rédigée."""
+    numero = st.session_state.get(cle)
+    if numero is not None:
+        lancer(ecrire_lettre, numero, True)
+
+
+NUMEROS_CAISSES = {nom: numero for numero, nom in ASSUREURS.items()}
+
+
+def lancer(action, *args):
+    """Rappel de bouton : l'action s'exécute avant l'affichage suivant (Apertus peut ne pas répondre)."""
+    try:
+        action(*args)
+    except ErreurLLM:
+        dire(tr("Apertus ne répond pas pour le moment. Réessayez dans un instant.", L()))
+
+
+def choisir_offre(index, j):
+    """« Choisir cette offre » : Apertus rédige la demande d'affiliation, Python la vérifie ; l'écran
+    suivant donne tout ce qu'il faut pour l'envoyer (e-mail prêt, contacts officiels, étapes)."""
+    s, cfg = st.session_state, config()
+    p = s.resultats[index]["propositions"][j]
+    profil = s.profil["comparison"]
+    numero = NUMEROS_CAISSES.get(p["assureur"])
+    ancienne = (s.get("economie") or {}).get("caisse")
+    choix = {"caisse": p["assureur"], "numero": numero, "produit": p["produit"], "modele": p["modele"],
+             "franchise": int(p["franchise"]), "prime_mois": float(p["prime_mois"]),
+             "accident": bool(profil.include_accident), "annee": profil.premium_year,
+             "ancienne": ancienne if ancienne and ancienne != p["assureur"] else None,
+             "meme_caisse": bool(ancienne and ancienne == p["assureur"]),
+             "numero_ancienne": (s.get("economie") or {}).get("numero")}
+    l = L()
+    # Pas de faux message « Je choisis … » au nom de la personne : elle ne l'a pas écrit (retour de Damian).
+    langue = changement.langue_lettre(l, profil.canton)
+    rediger = appel("demander_llm", cfg["LLM_NAME_RESTITUTION"], 40)
+    texte, par = affiliation.rediger(rediger, choix, langue)
+    s.choix = choix
+    # Un seul choix à la fois : la nouvelle offre remplace l'ancienne fiche dans la conversation (sinon
+    # l'ancienne restait affichée plus haut et on croyait que le choix n'avait pas changé).
+    s.messages = [m for m in s.messages if m["type"] != "affiliation"]
+    s.messages.append({"role": "assistant", "type": "affiliation", "choix": choix, "texte": texte, "par": par,
+                       "langue": langue, "objet": affiliation.objet(choix, langue)})
+    s.attente = None
+
+
+def demander_choix(index, j):
+    """Clic sur « Choisir cette offre » : la fenêtre du choix s'ouvre à l'affichage suivant."""
+    st.session_state.choix_demande = (index, j)
+
+
+def ouvrir_fenetre_choix(index, j):
+    """Fenêtre qui s'ouvre par-dessus la page : Apertus prépare la demande, puis les étapes jusqu'à
+    l'inscription. Le choix reste aussi dans la conversation (on peut fermer la fenêtre et y revenir)."""
+    s, l = st.session_state, L()
+    p = s.resultats[index]["propositions"][j]
+
+    @st.dialog(tr("Votre choix : {caisse}", l, caisse=p["assureur"]), width="large", on_dismiss="rerun")
+    def fenetre():
+        if s.get("choix_affiche") != (index, j):  # rédigée une seule fois, même si la fenêtre se réaffiche
+            try:
+                with st.spinner(tr("Apertus prépare votre demande d'affiliation…", l)):
+                    choisir_offre(index, j)
+            except ErreurLLM:
+                st.error(tr("Apertus ne répond pas pour le moment. Réessayez dans un instant.", l))
+                return
+            s.choix_affiche = (index, j)
+        i = max(k for k, m in enumerate(s.messages) if m["type"] == "affiliation")
+        afficher_affiliation(s.messages[i], i, suffixe="_fenetre")
+
+    fenetre()
+
+
+def afficher_affiliation(m, i, suffixe=""):
+    """« Check-out » : récapitulatif du choix, puis les étapes, chacune avec ce qu'il faut pour la faire."""
+    l, ch = L(), m["choix"]
+    contact = caisses.contact(ch["numero"])
+    debut = affiliation.debut_couverture(ch["annee"])
+    fin, limite = changement.dates(ch["annee"])
+    with st.container(key=f"checkout_{i}{suffixe}"):
+        style.recapitulatif_choix(
+            tr("Votre choix : assurance de base (LAMal)", l), ch["caisse"], f"{ch['produit']} — {tr(ch['modele'], l)}",
+            [tr("Assurance de base (LAMal) uniquement", l), tr("Franchise {f} CHF", l, f=ch["franchise"]),
+             tr("Accidents inclus", l) if ch["accident"] else tr("Accidents exclus (employeur)", l),
+             tr("Dès le {debut}", l, debut=f"{debut.day:02d}.{debut.month:02d}.{debut.year}")],
+            f"{ch['prime_mois']:.2f}", tr("CHF / mois", l))
+        st.caption(tr("Vous avez cliqué sur « Choisir cette offre ». Rien n'est envoyé ni signé : c'est vous qui "
+                      "décidez d'envoyer la demande. Vous pouvez choisir une autre offre plus haut.", l))
+
+        # Étape 1 : demande d'affiliation
+        st.markdown(f"**1. {tr('Demander l’assurance de base (LAMal) à {caisse}', l, caisse=ch['caisse'])}**")
+        if m["par"] == "apertus":
+            st.caption(tr("Demande rédigée par Apertus ; les éléments obligatoires ont été vérifiés par l'application.", l))
+        else:
+            st.caption(tr("Demande modèle de l'application (celle d'Apertus n'était pas complète).", l))
+        texte = m["texte"]
+        if contact and contact["email"]:
+            st.link_button("✉️ " + tr("Envoyer ma demande à {caisse}", l, caisse=ch["caisse"]),
+                           affiliation.lien_mailto(contact["email"], m["objet"], texte), type="primary",
+                           width="stretch")
+            st.caption(tr("Votre messagerie s'ouvre avec la demande prête, adressée à {email} (adresse officielle, "
+                          "liste OFSP). Complétez les champs entre crochets, puis envoyez.", l, email=contact["email"])
+                       + " " + tr("Cette demande concerne uniquement l'assurance de base (LAMal).", l))
+        elif contact:
+            st.caption(tr("{caisse} ne publie pas d'adresse e-mail dans la liste officielle de l'OFSP : envoyez la "
+                          "demande par la poste (adresse déjà dans la lettre) ou via son site.", l, caisse=ch["caisse"]))
+        lien, genre = caisses.lien_inscription(ch["numero"])
+        if lien:
+            libelle = {"offre": tr("Calculer et demander mon offre chez {caisse}", l, caisse=ch["caisse"]),
+                       "page": tr("Assurance de base de {caisse} (site officiel)", l, caisse=ch["caisse"]),
+                       "site": tr("Site officiel de {caisse}", l, caisse=ch["caisse"])}[genre]
+            st.link_button("🌐 " + libelle, lien, width="stretch")
+            st.caption(tr("Sur le site, choisissez l'assurance de base (LAMal) : {produit} ({modele}), franchise {f} "
+                          "CHF, {accidents}, début le {debut}.", l, produit=ch["produit"], modele=tr(ch["modele"], l), f=ch["franchise"],
+                          accidents=tr("accidents inclus", l) if ch["accident"] else tr("accidents exclus", l),
+                          debut=f"{debut.day:02d}.{debut.month:02d}.{debut.year}"))
+        if m["langue"] != l:
+            st.caption(tr("La demande est écrite dans une langue officielle de votre canton.", l))
+        lettre = affiliation.avec_adresse(texte, ch["numero"], ch["caisse"])
+        with st.expander(tr("Voir et copier la demande", l)):
+            st.code(lettre, language=None, wrap_lines=True)
+            st.download_button(tr("Télécharger la demande (.txt)", l), data=lettre.encode("utf-8"),
+                               file_name="demande_affiliation.txt", mime="text/plain", key=f"affiliation_{i}{suffixe}")
+        if contact:
+            liens = []
+            if contact["telephone"]:
+                liens.append(f"📞 {contact['telephone']}")
+            adresse = caisses.adresse_postale(ch["numero"], ch["caisse"])
+            if adresse:
+                liens.append("📮 " + ", ".join(adresse[1:]))
+            st.markdown(" · ".join(liens))
+        if ch["modele"].startswith("Médecin de famille"):
+            st.caption(tr("Modèle médecin de famille : choisissez votre médecin dans la liste de {caisse} (sur son "
+                          "site) et indiquez-le dans la demande ou à la réception des documents.", l, caisse=ch["caisse"]))
+
+        # Étape 2 : confirmation de la nouvelle caisse
+        st.markdown(f"**2. {tr('Attendre la confirmation écrite de {caisse}', l, caisse=ch['caisse'])}**")
+        st.caption(tr("Votre assurance actuelle ne prend fin que lorsque la nouvelle caisse a confirmé votre "
+                      "couverture (LAMal art. 7 al. 5). Toute caisse doit accepter chaque personne pour "
+                      "l'assurance de base, sans questionnaire de santé.", l))
+
+        # Étape 3 : résiliation
+        st.markdown(f"**3. {tr('Résilier l’assurance de base (LAMal) chez votre caisse actuelle avant le {limite}', l, limite=f'{limite.day}.{limite.month:02d}.{limite.year}')}**")
+        st.caption(tr("La lettre résilie uniquement l'assurance de base (LAMal). Vos assurances complémentaires "
+                      "continuent chez votre caisse actuelle.", l))
+        s = st.session_state
+        actuelle = (s.get("economie") or {}).get("caisse")  # caisse dite dans le formulaire ou plus tard
+        ancienne = actuelle if actuelle and actuelle != ch["caisse"] else None
+        fiche = s.get("lettre_fiche")
+        dans_chat = [x for x in s.messages if x["type"] == "lettre"]
+        if actuelle and actuelle == ch["caisse"]:
+            st.caption("✅ " + tr("Vous restez chez {caisse} : rien à résilier, la demande ci-dessus suffit pour changer "
+                                 "de produit ou de franchise (même délai).", l, caisse=ch["caisse"]))
+        elif fiche and fiche["caisse"] != ch["caisse"]:
+            afficher_lettre(fiche, f"fiche_{i}{suffixe}", titre=False)
+            ancienne = fiche["caisse"]
+        elif dans_chat:
+            st.caption("✅ " + tr("Votre lettre de résiliation est prête plus haut dans la conversation.", l))
+        elif ancienne:
+            bouton("✍️ " + tr("Rédiger ma lettre de résiliation pour {caisse}", l, caisse=ancienne), ecrire_lettre,
+                   None, True, cle=f"resiliation_{i}{suffixe}")
+        else:
+            cle = f"ancienne_{i}{suffixe}"
+            st.selectbox(tr("Votre caisse actuelle", l), [n for n in sorted(changement.CAISSES,
+                         key=lambda n: changement.CAISSES[n]) if changement.CAISSES[n] != ch["caisse"]],
+                         index=None, format_func=changement.CAISSES.get, key=cle,
+                         placeholder=tr("Choisissez votre caisse actuelle…", l))
+            st.button("✍️ " + tr("Rédiger ma lettre de résiliation", l), key=f"resiliation_{i}{suffixe}",
+                      on_click=lettre_choisie, args=(cle,))
+            st.caption(tr("Si vous arrivez en Suisse, il n'y a rien à résilier.", l))
+        st.download_button("📅 " + tr("Ajouter un rappel à mon agenda", l),
+                           data=affiliation.rappel_ics(limite, ancienne or tr("votre caisse actuelle", l), l)
+                           .encode("utf-8"), file_name="rappel_resiliation.ics", mime="text/calendar",
+                           key=f"rappel_{i}{suffixe}")
+
+        # Étape 4 : ce que l'assurance de base ne couvre pas, et les complémentaires
+        afficher_hors_lamal(ch, contact)
+
+
+def afficher_hors_lamal(ch, contact):
+    """Ce que l'assurance de base ne paie pas (besoins cochés, sinon les cas fréquents), puis un message
+    clair : pour cela, il faut une complémentaire, avec les règles pour ne rien perdre."""
+    l = L()
+    choisis = st.session_state.get("hors_lamal") or []
+    st.markdown(f"**4. {tr('Ce que l’assurance de base ne paie pas', l)}**")
+    if not choisis:
+        st.caption(tr("Vous n'avez rien coché dans le formulaire : voici les cas les plus fréquents.", l))
+    style.tableau_hors_lamal(
+        [tr("Besoin", l), tr("L'assurance de base paie", l), tr("Elle ne paie pas", l)],
+        hors_lamal.lignes(choisis or list(hors_lamal.BESOINS), l), tr("Source", l), " : " if l == "fr" else ": ")
+    site = contact["site"] if contact else None
+    st.info("\n\n".join([
+        "**" + tr("Pour ce que l'assurance de base ne paie pas, il faut une assurance complémentaire.", l) + "**",
+        tr("Les complémentaires sont des assurances privées : la caisse peut poser des questions sur votre santé, "
+           "émettre des réserves ou refuser. Leurs primes ne sont pas publiées : demandez une offre.", l),
+        tr("Vous pouvez avoir l'assurance de base et les complémentaires dans des caisses différentes. Votre caisse "
+           "actuelle ne peut ni vous obliger à résilier vos complémentaires, ni les résilier parce que vous changez "
+           "d'assurance de base (LAMal art. 7 al. 7 et 8).", l),
+        tr("Si vous voulez changer aussi de complémentaire : ne résiliez l'ancienne qu'après avoir reçu "
+           "l'acceptation écrite de la nouvelle.", l)]
+        + ([tr("Complémentaires de {caisse} : [{site}]({lien}).", l, caisse=ch["caisse"],
+               site=site.replace("https://", ""), lien=site)] if site else [])), icon="➕")
 
 
 def repondre_lettre(oui):
@@ -824,12 +1224,13 @@ def texte_produit(prod, avec_conditions=True):
     return texte
 
 
-def afficher_propositions(bloc):
+def afficher_propositions(bloc, index=None):
     props = bloc["propositions"]
     if not props:
         st.write(tr("Aucune prime trouvée pour ce profil.", L()))
         return
-    st.write(bloc["intro"])
+    if bloc["intro"]:
+        st.write(bloc["intro"])
     l = L()
     for colonne, p in zip(st.columns(len(props)), props):
         with colonne:
@@ -838,7 +1239,12 @@ def afficher_propositions(bloc):
                         tr("La moins chère", l) if p["ecart_mois"] == 0
                         else tr("+{x} CHF / mois par rapport à la moins chère", l, x=f"{p['ecart_mois']:.2f}"),
                         tr("Franchise : {f} CHF. Contrepartie : {c}", l, f=p["franchise"], c=tr(p["contrepartie"], l)),
-                        meilleure=p["ecart_mois"] == 0)
+                        meilleure=p["ecart_mois"] == 0,
+                        aussi=tr("Aussi : {x}", l, x=", ".join(tr(x, l).lower() for x in p.get("aussi", [])))
+                        if p.get("aussi") else "")
+            if index is not None:
+                st.button(tr("Choisir cette offre", l), key=f"choisir_{index}_{props.index(p)}",
+                          on_click=demander_choix, args=(index, props.index(p)), width="stretch")
     st.caption(tr("Compatibilité par catégorie seulement : réseau de médecins, application et conditions du produit à "
                   "vérifier. " + RAPPEL_LAMAL, L()))
     if bloc["offres"]["Franchise"].nunique() > 1:
@@ -921,9 +1327,10 @@ def afficher_preferences(lignes, positions=None):
                   "les conditions du produit avant de changer.", lg))
 
 
-def afficher_lettre(m, i):
+def afficher_lettre(m, i, titre=True):
     l = L()
-    st.markdown(f"**{tr('Votre lettre de résiliation', l)}**")
+    if titre:
+        st.markdown(f"**{tr('Votre lettre de résiliation', l)}**")
     if m["par"] == "apertus":
         st.caption(tr("Rédigée par Apertus ; les éléments obligatoires ont été vérifiés par l'application.", l))
     else:
@@ -931,14 +1338,17 @@ def afficher_lettre(m, i):
     if m["langue"] != l:
         st.caption(tr("La lettre est écrite dans une langue officielle de votre canton, celle que votre caisse "
                       "utilise.", l))
+    if titre:  # dans l'étape 3 du choix, cette phrase est déjà juste au-dessus
+        st.caption(tr("Cette lettre résilie uniquement l'assurance de base (LAMal). Vos assurances complémentaires "
+                      "continuent.", l))
     st.code(m["texte"], language=None, wrap_lines=True)
     st.download_button(tr("Télécharger la lettre (.txt)", l), data=m["texte"].encode("utf-8"),
                        file_name="resiliation_assurance_de_base.txt", mime="text/plain", key=f"lettre_{i}")
     st.info(changement.conseils_envoi(l, m["annee"]), icon="📮")
 
 
-def afficher_resultats(bloc):
-    afficher_propositions(bloc)
+def afficher_resultats(bloc, index=None):
+    afficher_propositions(bloc, index)
     resume = resume_budget(bloc)
     if resume:
         st.markdown(f"**{resume}**")
@@ -955,8 +1365,6 @@ def afficher_resultats(bloc):
     if bloc["compl"]:
         afficher_meilleurs_complementaires(bloc["compl"])
     afficher_toutes_les_offres(bloc)
-    st.caption(tr("Posez-moi vos questions (« quelle franchise me conviendrait ? », « que couvre la LAMal ? ») ou "
-                  "changez une information (« et avec une franchise de 300 ? »).", L()))
 
 
 def bouton(libelle, action, *args, cle):
@@ -1024,7 +1432,7 @@ def reponses_rapides():
         bouton(tr("J'accepte tous les modèles", l), repondre_bouton, tr("J'accepte tous les modèles", l), "care_access",
                list(CARE_TYPES), cle="care_all")
     elif s.attente == "caisse":
-        bouton(tr("Passer", L()), passer_caisse, cle="caisse_passer")
+        etape_caisse()
     elif s.attente == "caisse_choix" and s.get("choix_caisses"):
         colonnes = st.columns(min(len(s.choix_caisses), 3))
         for i, n in enumerate(s.choix_caisses):
@@ -1055,7 +1463,10 @@ SITUATIONS = {
     "sans_emploi": "Sans emploi, étudiant(e) ou retraité(e)",
     "ne_sait_pas": "Je ne sais pas",
 }
-# Après le formulaire, l'assistant se présente : c'est là que commence la conversation avec Apertus
+# Après le formulaire, Apertus ouvre la conversation en reprenant le formulaire (PROMPT_OUVERTURE) ;
+# ce texte fixe n'est que le secours si sa réponse ne passe pas les contrôles.
+PRECISION_FORMULAIRE = ("Merci d'avoir rempli le formulaire ! 👋 Je suis votre conseiller LAMal, propulsé par Apertus, "
+                        "le modèle de langue suisse. Une précision avant de calculer vos offres :")
 APRES_FORMULAIRE = ("Merci d'avoir rempli le formulaire ! 👋 Je suis votre conseiller LAMal, propulsé par Apertus, le "
                     "modèle de langue suisse. Je compare les primes officielles, je réponds à vos questions à partir "
                     "de la loi, et je peux rédiger votre lettre de résiliation. Voici vos offres, avec toutes les "
@@ -1091,14 +1502,18 @@ def valider_formulaire(annee, npa, commune, situation, modeles, besoins):
     p["besoins"] = list(besoins)
     synchroniser_profil()
     s.formulaire_valide = s.profil_formulaire = True
-    s.messages = [{"role": "assistant", "type": "texte", "contenu": tr(APRES_FORMULAIRE, L())}]
+    s.messages = []
     avancer()  # résout le lieu, puis calcule les offres ; s'il manque quelque chose, le chat le demande
+    if not s.resultats:  # « Je ne sais pas » (accidents) ou commune à préciser : une question d'abord
+        s.messages.insert(0, {"role": "assistant", "type": "texte", "contenu": tr(PRECISION_FORMULAIRE, L())})
 
 
 def passer_au_chat():
     """« Je préfère décrire ma situation dans le chat » : ce qui est déjà rempli dans le formulaire est
     gardé (le conseiller ne le redemande pas), puis le chat pose directement la question suivante."""
     s = st.session_state
+    sauver_formulaire()
+    s.remonter = "haut"
     s.formulaire_valide = True
     c = s.profil["contract"]
     l = L()
@@ -1142,13 +1557,97 @@ def npa_saisi():
     return int(texte) if texte.isdigit() and len(texte) == 4 else None
 
 
+CLES_FORMULAIRE = ("f_naissance", "f_npa", "f_commune", "f_situation", "f_modeles", "f_besoins", "f_hors_lamal",
+                   "f_caisse")
+
+
+def sauver_formulaire():
+    """Copie des réponses du formulaire : Streamlit efface l'état d'un champ qui n'est plus affiché, et on
+    veut les retrouver en revenant au formulaire."""
+    s = st.session_state
+    s.formulaire_sauve = {k: s[k] for k in CLES_FORMULAIRE if k in s}
+
+
+def revenir_au_formulaire():
+    """« ← Modifier mes réponses » : retour au formulaire, déjà rempli avec les réponses précédentes. La
+    conversation et les offres sont recalculées au prochain envoi (comme « Nouvelle comparaison »)."""
+    s = st.session_state
+    sauve, langue = dict(s.get("formulaire_sauve") or {}), s.get("langue")
+    recommencer()
+    for cle, valeur in sauve.items():
+        st.session_state[cle] = valeur
+    if langue:
+        st.session_state.langue = langue
+    st.session_state.remonter = "haut"
+
+
+def haut_de_page():
+    """Place la page une fois, sans la bloquer ensuite :
+    - après « Voir mes offres » : sur la carte « Votre conseiller LAMal » ;
+    - après une question : la question en haut de l'écran, la réponse juste dessous ;
+    - après le retour au formulaire : en haut.
+    Le script se replace pendant ~2,5 s le temps que la page s'affiche, et s'arrête dès que la personne
+    fait défiler elle-même (molette, doigt, clavier, clic)."""
+    cible = st.session_state.pop("remonter", None)
+    if not cible:
+        return
+    selecteur = {"conseiller": ".st-key-ouverture", "question": "QUESTION"}.get(cible, ".entete")
+    st.html("""<script>
+    (() => {
+      const SELECTEUR = "%s";
+      const trouver = () => {
+        if (SELECTEUR !== "QUESTION") return document.querySelector(SELECTEUR);
+        const avatars = document.querySelectorAll('[data-testid="stChatMessageAvatarUser"]');
+        return avatars.length ? avatars[avatars.length - 1].closest('[data-testid="stChatMessage"]') : null;
+      };
+      const evenements = ["wheel", "touchstart", "keydown", "pointerdown"];
+      let fini = false, n = 0;
+      const parPersonne = (e) => { if (e.isTrusted) terminer(); };
+      const terminer = () => { fini = true; evenements.forEach(t => window.removeEventListener(t, parPersonne, true)); };
+      evenements.forEach(t => window.addEventListener(t, parPersonne, true));
+      const placer = () => {
+        if (fini) return;
+        const el = trouver();
+        if (el) {
+          const haut = el.getBoundingClientRect().top;
+          if (Math.abs(haut - 80) > 4) { el.style.scrollMarginTop = "80px"; el.scrollIntoView({block: "start"}); }
+        }
+        if (++n >= 25) return terminer();
+        setTimeout(placer, 100);
+      };
+      placer();
+    })();
+    </script>""" % selecteur, unsafe_allow_javascript=True, width="content")
+
+
+def garder_formulaire():
+    """Changement de langue : les choix traduits du formulaire (situation, modèles) sont remis tels quels.
+    Sans cela, Streamlit les compare à leurs libellés dans la nouvelle langue et les perd."""
+    s = st.session_state
+    for cle in CLES_FORMULAIRE:
+        if cle in s:
+            s[cle] = s[cle]
+
+
 def soumettre_formulaire():
     """Rappel du bouton « Voir mes offres » : s'exécute avant l'affichage suivant."""
     s = st.session_state
+    sauver_formulaire()
+    s.remonter = "conseiller"  # la page des offres s'ouvre sur la carte du conseiller
+    s.hors_lamal = list(s.get("f_hors_lamal") or [])  # gardé après le formulaire (le champ, lui, disparaît)
+    s.caisse_formulaire = str(s.get("f_caisse") or "").strip()
+    if s.caisse_formulaire:
+        s.caisse_demandee = True  # déjà dite : le conseiller ne la redemande pas
     npa = npa_saisi()
     try:
         valider_formulaire(s["f_naissance"], npa, commune_choisie(npa), s["f_situation"],
                            s["f_modeles"], s.get("f_besoins", []))
+        if s.caisse_formulaire and s.resultats:
+            # Apertus 8B lit la caisse, le modèle et la prime ; Python calcule l'économie juste sous les offres
+            if not traiter_caisse(s.caisse_formulaire):
+                dire(tr("Je n'ai pas reconnu la caisse « {texte} ». Indiquez-la ci-dessous (ex. : Helsana).", L(),
+                        texte=s.caisse_formulaire))
+                s.attente = "caisse"
     except ErreurLLM:
         dire(tr("Apertus ne répond pas pour le moment. Réessayez dans un instant.", L()))
 
@@ -1178,8 +1677,18 @@ def ecran_profil():
                          format_func=lambda k: tr(SITUATIONS[k], l), key="f_situation")
     st.caption(tr("Elle indique si la couverture accident doit être incluse : un employeur assure contre les "
                   "accidents ses salariés qui travaillent au moins 8 h par semaine chez lui.", l))
-    modeles = st.multiselect(tr("Modèles d'assurance acceptés", l), list(CARE_TYPES), default=list(CARE_TYPES),
+    # Tous les modèles au premier affichage ; ensuite la valeur gardée (changement de langue, retour)
+    modeles = st.multiselect(tr("Modèles d'assurance acceptés", l), list(CARE_TYPES),
+                             default=None if "f_modeles" in st.session_state else list(CARE_TYPES),
                              format_func=lambda k: tr(CARE_LABELS[k], l), key="f_modeles", placeholder=tr("Choisissez…", l))
+    st.text_input(tr("Votre caisse actuelle (facultatif)", l), key="f_caisse",
+                  placeholder=tr("Ex. : Helsana, médecin de famille", l))
+    st.caption(tr("Je calcule ce que vous économiseriez en changeant. Si vous arrivez en Suisse, laissez vide.", l))
+    st.multiselect(tr("Ce qui compte aussi pour moi (facultatif)", l), list(hors_lamal.BESOINS),
+                   default=None if "f_hors_lamal" in st.session_state else [],
+                   format_func=lambda k: hors_lamal.libelle(k, l), key="f_hors_lamal",
+                   placeholder=tr("Lunettes, dentiste, médecines complémentaires…", l))
+    st.caption(tr("Après votre choix, je vous montrerai ce que l'assurance de base ne paie pas pour ces besoins.", l))
     if MODULES_COMPLEMENTAIRES:
         st.multiselect(tr("Besoins en assurances complémentaires (facultatif)", l), list(compl.CATEGORIES),
                        format_func=compl.CATEGORIES.get, key="f_besoins", placeholder=tr("Choisissez…", l))
@@ -1204,26 +1713,25 @@ def main():
     style.appliquer()
     config()  # arrête l'app avec un message clair si une variable LLM_* manque
     s = etat()
+    if s.get("langue_detectee"):  # langue détectée dans le dernier message : appliquée au menu avant son affichage
+        s.langue = s.pop("langue_detectee")
 
     if not s.get("formulaire_valide"):  # écran de profil avant le conseiller
         afficher_entete()
         ecran_profil()
         afficher_sources()
+        haut_de_page()
         return
 
-    # Texte d'exemple fixe : s'il changeait d'une étape à l'autre, Streamlit recréerait la zone de
-    # saisie et le premier message écrit après le changement d'étape serait perdu.
-    texte = st.chat_input(langues.PLACEHOLDER)
-    if texte:
-        try:
-            with st.spinner(tr("Apertus réfléchit…", L())):
-                traiter_message(texte.strip())
-        except ErreurLLM:
-            dire(tr("Apertus ne répond pas pour le moment. Réessayez dans un instant.", L()))
-
     afficher_entete()
+    haut_de_page()  # tôt dans la page : le script place la page pendant qu'elle s'affiche
+    st.button("← " + tr("Modifier mes réponses", L()), on_click=revenir_au_formulaire, key="retour_formulaire",
+              type="tertiary")
 
     for i, m in enumerate(s.messages):
+        if m["type"] == "ouverture":
+            afficher_ouverture()
+            continue
         with st.chat_message(m["role"]):
             if m["type"] == "accueil":
                 st.markdown(tr(ACCUEIL, L()))
@@ -1235,24 +1743,47 @@ def main():
                 afficher_profil(m["profil"], m.get("sante", 0))
             elif m["type"] == "lettre":
                 afficher_lettre(m, i)
+            elif m["type"] == "affiliation":
+                afficher_affiliation(m, i)
             else:
-                afficher_resultats(s.resultats[m["index"]])
+                afficher_resultats(s.resultats[m["index"]], m["index"])
+    # Message écrit ou question cliquée : il s'affiche tout de suite en bas, Apertus répond juste en dessous
+    # (avant, la réponse se préparait en haut de la page, sans rien montrer là où la personne regardait).
+    question = s.pop("question_en_attente", None)
+    if question:
+        with st.chat_message("user"):
+            st.markdown(question)
+        with st.chat_message("assistant"):
+            try:
+                with st.spinner(tr("Apertus réfléchit…", L())):
+                    traiter_message(question)
+            except ErreurLLM:
+                dire(tr("Apertus ne répond pas pour le moment. Réessayez dans un instant.", L()))
+        s.remonter = "question"  # après la réponse : la question en haut de l'écran, la réponse dessous
+        st.rerun()
     reponses_rapides()
+    afficher_questions()
+    if s.get("choix_demande"):  # « Choisir cette offre » : la fenêtre du choix s'ouvre
+        ouvrir_fenetre_choix(*s.pop("choix_demande"))
 
     afficher_sources()
 
 
 def afficher_entete():
     with st.sidebar:
-        st.selectbox(tr("Langue", L()), langues.CODES, key="langue",
+        st.selectbox(tr("Langue", L()), langues.CODES, key="langue", on_change=garder_formulaire,
                      format_func={"fr": "Français", "de": "Deutsch", "it": "Italiano", "en": "English"}.get)
+        if st.session_state.get("formulaire_valide"):
+            st.button("← " + tr("Modifier mes réponses", L()), on_click=revenir_au_formulaire,
+                      key="retour_formulaire_barre")
         st.button(tr("Nouvelle comparaison", L()), on_click=recommencer)
     l = L()
     style.entete(tr("Assurance de base LAMal 2027", l), tr("Votre assurance maladie.", l),
                  tr("Comparée simplement.", l),
                  tr("Les primes officielles de toutes les caisses, puis un conseiller qui répond à vos questions.", l),
                  note=html.escape(tr(AVERTISSEMENT, l)) + "<br>"
-                 + html.escape(tr("Les informations de santé ne sont pas enregistrées.", l)))
+                 + html.escape(tr("Les informations de santé ne sont pas enregistrées.", l)),
+                 compact=bool(st.session_state.get("formulaire_valide")))
 
 
 def afficher_sources():
