@@ -1442,6 +1442,7 @@ def passer_au_chat():
     gardé (le conseiller ne le redemande pas), puis le chat pose directement la question suivante."""
     s = st.session_state
     sauver_formulaire()
+    s.remonter = True
     s.formulaire_valide = True
     c = s.profil["contract"]
     l = L()
@@ -1505,6 +1506,32 @@ def revenir_au_formulaire():
         st.session_state[cle] = valeur
     if langue:
         st.session_state.langue = langue
+    st.session_state.remonter = True
+
+
+def haut_de_page():
+    """Après « Voir mes offres » (ou le retour au formulaire), la nouvelle page s'ouvre en haut. Streamlit
+    garde la conversation collée en bas (zone de saisie du chat) : on remonte une fois, pendant ~1,5 s, le
+    temps que les cartes et l'animation de l'ouverture s'affichent."""
+    if st.session_state.pop("remonter", False):
+        st.html("""<script>
+        (() => {
+          // Streamlit colle le chat en bas pendant que la page se construit (~5 s) : on reste en haut
+          // pendant 8 s, sauf si la personne fait défiler elle-même. Un « wheel » vers le haut décolle le chat.
+          let n = 0, stop = false;
+          const arreter = (e) => { if (e.isTrusted) stop = true; };
+          ["wheel", "touchmove", "keydown"].forEach(t => window.addEventListener(t, arreter, {once: true, capture: true}));
+          const haut = () => {
+            if (stop) return;
+            for (const e of document.querySelectorAll('[data-testid="stAppScrollToBottomContainer"], [data-testid="stMain"]')) {
+              if (e.scrollTop > 0) { e.dispatchEvent(new WheelEvent("wheel", {deltaY: -1000, bubbles: true})); e.scrollTop = 0; }
+            }
+            window.scrollTo(0, 0);
+            if (++n < 80) setTimeout(haut, 100);
+          };
+          haut();
+        })();
+        </script>""", unsafe_allow_javascript=True, width="content")
 
 
 def garder_formulaire():
@@ -1520,6 +1547,7 @@ def soumettre_formulaire():
     """Rappel du bouton « Voir mes offres » : s'exécute avant l'affichage suivant."""
     s = st.session_state
     sauver_formulaire()
+    s.remonter = True  # la page suivante s'ouvre en haut
     s.hors_lamal = list(s.get("f_hors_lamal") or [])  # gardé après le formulaire (le champ, lui, disparaît)
     npa = npa_saisi()
     try:
@@ -1594,6 +1622,7 @@ def main():
         afficher_entete()
         ecran_profil()
         afficher_sources()
+        haut_de_page()
         return
 
     # Texte d'exemple fixe : s'il changeait d'une étape à l'autre, Streamlit recréerait la zone de
@@ -1644,6 +1673,7 @@ def main():
         ouvrir_fenetre_choix(*s.pop("choix_demande"))
 
     afficher_sources()
+    haut_de_page()
 
 
 def afficher_entete():
