@@ -44,7 +44,8 @@ from comparateur import ASSUREURS, classe_age, communes_du_npa, propositions
 
 def L():
     """Langue de la conversation : détectée dans les messages, ou choisie dans la barre latérale."""
-    return st.session_state.get("langue", "fr")
+    s = st.session_state
+    return s.get("langue_detectee") or s.get("langue", "fr")
 
 
 def nom_langue():
@@ -472,7 +473,9 @@ def traiter_message(texte):
     s.messages.append({"role": "user", "type": "texte", "contenu": texte})
     detectee = langues.detecter(texte)
     if detectee:
-        s.langue = detectee  # la personne écrit dans une autre langue : on lui répond dans celle-ci
+        # La personne écrit dans une autre langue : on lui répond dans celle-ci. Le menu « Langue » est déjà
+        # affiché quand le message est traité (en bas de la page) : il prend la langue au tour suivant.
+        s.langue_detectee = detectee
     question = conversation.est_question(texte)
     tour = {"texte": texte, "question": question, "avant": faits_connus()}
     if s.attente == "commune" and choisir_commune_texte(texte):
@@ -610,15 +613,36 @@ def suggestions_formulaire(props):
 
 
 def afficher_ouverture():
-    """Carte d'ouverture : le conseiller reprend le formulaire (étiquettes), puis le message d'Apertus et des
-    questions proposées d'après les réponses."""
+    """Carte d'ouverture : le conseiller reprend le formulaire (étiquettes), puis le message d'Apertus.
+    Les questions proposées sont en bas de la conversation (afficher_questions)."""
     s, l = st.session_state, L()
     with st.container(key="ouverture"):
         style.ouverture(tr("Votre conseiller LAMal", l), tr("Apertus · en ligne", l),
                         tr("D'après votre formulaire", l), recapitulatif_formulaire(l), s.ouverture["texte"])
-        with st.container(horizontal=True, key="suggestions"):
-            for i, q in enumerate(s.ouverture["suggestions"]):
-                bouton(tr(q, l), traiter_message, tr(q, l), cle=f"suggestion_{i}")
+
+
+def poser(question):
+    """Clic sur une question proposée : elle est traitée en bas de la page, comme un message écrit."""
+    st.session_state.question_en_attente = question
+
+
+def afficher_questions():
+    """En bas de la conversation, juste au-dessus de la zone de saisie : « Posez-moi vos questions », avec les
+    questions proposées d'après le formulaire (sans celles déjà posées). La réponse arrive juste en dessous."""
+    s, l = st.session_state, L()
+    if not s.get("resultats"):
+        return
+    posees = {m.get("contenu") for m in s.messages if m["role"] == "user"}
+    proposees = [(i, tr(q, l)) for i, q in enumerate((s.get("ouverture") or {}).get("suggestions", []))
+                 if tr(q, l) not in posees]
+    with st.container(key="questions"):
+        st.markdown(f"**{tr('Posez-moi vos questions', l)}**")
+        if proposees:
+            with st.container(horizontal=True, key="suggestions"):
+                for i, q in proposees:
+                    st.button(q, key=f"suggestion_{i}", on_click=poser, args=(q,))
+        st.caption(tr("Ou écrivez la vôtre ci-dessous, par exemple « que couvre la LAMal ? » ou « et avec une "
+                      "franchise de 300 ? ». La réponse s'affiche juste ici.", l))
 
 
 def faits_formulaire(props):
@@ -1270,8 +1294,6 @@ def afficher_resultats(bloc, index=None):
     if bloc["compl"]:
         afficher_meilleurs_complementaires(bloc["compl"])
     afficher_toutes_les_offres(bloc)
-    st.caption(tr("Posez-moi vos questions (« quelle franchise me conviendrait ? », « que couvre la LAMal ? ») ou "
-                  "changez une information (« et avec une franchise de 300 ? »).", L()))
 
 
 def bouton(libelle, action, *args, cle):
@@ -1565,6 +1587,8 @@ def main():
     style.appliquer()
     config()  # arrête l'app avec un message clair si une variable LLM_* manque
     s = etat()
+    if s.get("langue_detectee"):  # langue détectée dans le dernier message : appliquée au menu avant son affichage
+        s.langue = s.pop("langue_detectee")
 
     if not s.get("formulaire_valide"):  # écran de profil avant le conseiller
         afficher_entete()
@@ -1575,12 +1599,8 @@ def main():
     # Texte d'exemple fixe : s'il changeait d'une étape à l'autre, Streamlit recréerait la zone de
     # saisie et le premier message écrit après le changement d'étape serait perdu.
     texte = st.chat_input(langues.PLACEHOLDER)
-    if texte:
-        try:
-            with st.spinner(tr("Apertus réfléchit…", L())):
-                traiter_message(texte.strip())
-        except ErreurLLM:
-            dire(tr("Apertus ne répond pas pour le moment. Réessayez dans un instant.", L()))
+    if texte and texte.strip():
+        s.question_en_attente = texte.strip()
 
     afficher_entete()
     st.button("← " + tr("Modifier mes réponses", L()), on_click=revenir_au_formulaire, key="retour_formulaire",
@@ -1605,7 +1625,21 @@ def main():
                 afficher_affiliation(m, i)
             else:
                 afficher_resultats(s.resultats[m["index"]], m["index"])
+    # Message écrit ou question cliquée : il s'affiche tout de suite en bas, Apertus répond juste en dessous
+    # (avant, la réponse se préparait en haut de la page, sans rien montrer là où la personne regardait).
+    question = s.pop("question_en_attente", None)
+    if question:
+        with st.chat_message("user"):
+            st.markdown(question)
+        with st.chat_message("assistant"):
+            try:
+                with st.spinner(tr("Apertus réfléchit…", L())):
+                    traiter_message(question)
+            except ErreurLLM:
+                dire(tr("Apertus ne répond pas pour le moment. Réessayez dans un instant.", L()))
+        st.rerun()
     reponses_rapides()
+    afficher_questions()
     if s.get("choix_demande"):  # « Choisir cette offre » : la fenêtre du choix s'ouvre
         ouvrir_fenetre_choix(*s.pop("choix_demande"))
 

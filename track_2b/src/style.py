@@ -186,6 +186,9 @@ section[data-testid="stSidebar"] { background: var(--surface); border-right: 1px
     background: var(--fond); color: var(--texte-2); border-color: var(--bord);
 }
 .st-key-suggestions .stButton > button:hover { color: var(--accent); border-color: var(--accent); background: var(--accent-doux); }
+/* « Posez-moi vos questions » : en bas de la conversation, au-dessus de la zone de saisie */
+.st-key-questions { margin-top: 0.8rem; padding: 1rem 1.1rem 0.6rem; border: 1px solid var(--bord);
+                    border-radius: 20px; background: var(--surface); }
 /* « Check-out » après le choix d'une offre */
 [class*="st-key-checkout_"] {
     background: var(--surface); border: 1px solid var(--filet); border-radius: 24px;

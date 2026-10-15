@@ -167,6 +167,10 @@ assert "exclue" in OUVERTURES[-1], OUVERTURES[-1]                 # salarié 8 h
 assert "Que se passe-t-il pour les accidents si je quitte mon emploi ?" in at6.session_state.ouverture["suggestions"]
 at6.button(key="suggestion_0").click().run()                       # question proposée -> réponse dans le chat
 assert at6.session_state.messages[-2]["contenu"] == "Quelle franchise est la plus avantageuse pour moi ?", at6.session_state.messages[-2]
+assert "suggestion_0" not in [b.key for b in at6.button] and "suggestion_1" in [b.key for b in at6.button]  # déjà posée -> retirée
+assert at6.session_state.messages[-1]["role"] == "assistant"            # la réponse suit la question, en bas
+at6.chat_input[0].set_value("Que couvre la LAMal ?").run()              # message écrit : même chemin
+assert at6.session_state.messages[-2]["contenu"] == "Que couvre la LAMal ?" and at6.session_state.messages[-1]["role"] == "assistant"
 # « Je ne sais pas » : une précision d'abord, puis l'ouverture quand les offres sont calculées
 MODE["ouverture"] = None
 at7 = AppTest.from_file(os.path.abspath("src/app.py"), default_timeout=120).run()

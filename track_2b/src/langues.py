@@ -430,14 +430,6 @@ _("Assurance de base (LAMal) : {n} offres, de la moins chère à la plus chère 
   "Grundversicherung (KVG): {n} Angebote, vom günstigsten zum teuersten (CHF)",
   "Assicurazione di base (LAMal): {n} offerte, dalla meno cara alla più cara (CHF)",
   "Basic insurance: {n} offers, from cheapest to most expensive (CHF)")
-_("Posez-moi vos questions (« quelle franchise me conviendrait ? », « que couvre la LAMal ? ») ou changez "
-  "une information (« et avec une franchise de 300 ? »).",
-  "Stellen Sie mir Fragen (« Welche Franchise passt zu mir? », « Was deckt die Grundversicherung? ») "
-  "oder ändern Sie eine Angabe (« und mit 300 Franchise? »).",
-  "Mi faccia domande (« quale franchigia mi conviene? », « cosa copre la LAMal? ») o cambi "
-  "un'informazione (« e con una franchigia di 300? »).",
-  "Ask me questions (« which deductible suits me? », « what does basic insurance cover? ») or change "
-  "something (« and with a 300 deductible? »).")
 _("Avec un petit budget : selon votre revenu, vous pourriez avoir droit à une réduction individuelle des "
   "primes (subside) versée par votre canton. Renseignez-vous auprès du service cantonal compétent ; la "
   "démarche dépend du canton.",
@@ -914,5 +906,15 @@ _("Si vous voulez changer aussi de complémentaire : ne résiliez l'ancienne qu'
   "you in writing.")
 _("Complémentaires de {caisse} : [{site}]({lien}).", "Zusatzversicherungen von {caisse}: [{site}]({lien}).",
   "Complementari di {caisse}: [{site}]({lien}).", "Supplementary insurance from {caisse}: [{site}]({lien}).")
+
+_("Posez-moi vos questions", "Stellen Sie mir Ihre Fragen", "Mi faccia le sue domande", "Ask me your questions")
+_("Ou écrivez la vôtre ci-dessous, par exemple « que couvre la LAMal ? » ou « et avec une franchise de 300 ? ». "
+  "La réponse s'affiche juste ici.",
+  "Oder schreiben Sie Ihre eigene unten, zum Beispiel «Was deckt die Grundversicherung?» oder «Und mit einer Franchise von "
+  "300?». Die Antwort erscheint gleich hier.",
+  "Oppure scriva la sua qui sotto, per esempio «Cosa copre la LAMal?» o «E con una franchigia di 300?». La "
+  "risposta appare proprio qui.",
+  "Or write your own below, for example “what does LAMal cover?” or “and with a 300 deductible?”. The answer "
+  "appears right here.")
 
 TRAD = {fr: dict(zip(("de", "it", "en"), v)) for fr, v in T.items()}
