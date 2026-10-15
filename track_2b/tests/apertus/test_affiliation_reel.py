@@ -42,8 +42,9 @@ def main():
     essais = []
 
     def ecrire(systeme, message):
-        essais.append(1)
-        return chatbot.demander_llm(client, cfg["LLM_NAME_RESTITUTION"], systeme, message)
+        texte = chatbot.demander_llm(client, cfg["LLM_NAME_RESTITUTION"], systeme, message)
+        essais.append(texte)
+        return texte
 
     journal, premier, second, modele = [], 0, 0, 0
     for langue, canton, region, commune, age, franchise, accident, ancienne, rang in CAS:
@@ -66,9 +67,11 @@ def main():
         else:
             second += 1
             resultat = "Apertus accepté au 2e essai"
+        refus = "".join(f"\nessai {k + 1} refusé : " + " ; ".join(affiliation.problemes(affiliation.nettoyer(x), choix, langue))
+                        for k, x in enumerate(essais) if affiliation.problemes(affiliation.nettoyer(x), choix, langue))
         journal.append(f"\n{'=' * 90}\n[{langue}] {o['Assureur']} – {o['Produit']} ({o['Modèle']}), franchise "
                        f"{franchise}, accidents {'inclus' if accident else 'exclus'}, caisse actuelle : "
-                       f"{ancienne or '-'}\n{'=' * 90}\n{resultat} ({duree:.1f} s)\n\n{texte}")
+                       f"{ancienne or '-'}\n{'=' * 90}\n{resultat} ({duree:.1f} s){refus}\n\n{texte}")
         print(journal[-1], flush=True)
     resume = (f"\nRÉSUMÉ : demandes d'Apertus acceptées {premier + second}/{len(CAS)} (1er coup : {premier}, "
               f"2e essai : {second}) ; demande modèle : {modele}. À relire à la main : ton, exactitude.")
