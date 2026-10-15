@@ -104,6 +104,7 @@ assert "8081 Zürich" in m["texte"] and "[Adresse de la caisse]" not in m["texte
 at.button(key="choisir_0_0").click().run()
 m = at.session_state.messages[-1]
 assert m["type"] == "affiliation" and m["par"] == "apertus", (m["type"], m.get("par"))
+assert not any(x["role"] == "user" and "choisis" in x.get("contenu", "") for x in at.session_state.messages)  # rien écrit à sa place
 assert m["choix"]["caisse"].startswith("Atupri") and m["choix"]["ancienne"] == "Helsana", m["choix"]
 assert "Helsana" in m["texte"] and "[Numéro AVS]" in m["texte"] and "1er janvier 2027" in m["texte"]
 liens = [b for b in at.get("link_button")]
@@ -124,6 +125,8 @@ MODE["affiliation"] = "mauvaise"   # numéro AVS inventé -> refusé deux fois -
 at.button(key="choisir_0_1").click().run()
 m = at.session_state.messages[-1]
 assert m["par"] == "modele" and "756" not in m["texte"] and m["choix"]["caisse"].upper().startswith("GALENOS")
+fiches = [x for x in at.session_state.messages if x["type"] == "affiliation"]
+assert len(fiches) == 1 and fiches[0]["choix"]["caisse"].upper().startswith("GALENOS"), fiches   # l'ancien choix est remplacé
 MODE["affiliation"] = None
 at.chat_input[0].set_value("Ai-je droit à un subside ?").run()
 assert "Office vaudois" in at.session_state.messages[-1]["contenu"]

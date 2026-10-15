@@ -811,12 +811,14 @@ def choisir_offre(index, j):
              "meme_caisse": bool(ancienne and ancienne == p["assureur"]),
              "numero_ancienne": (s.get("economie") or {}).get("numero")}
     l = L()
-    s.messages.append({"role": "user", "type": "texte", "contenu": tr("Je choisis {caisse} – {produit}.", l,
-                                                                       caisse=p["assureur"], produit=p["produit"])})
+    # Pas de faux message « Je choisis … » au nom de la personne : elle ne l'a pas écrit (retour de Damian).
     langue = changement.langue_lettre(l, profil.canton)
     rediger = appel("demander_llm", cfg["LLM_NAME_RESTITUTION"], 40)
     texte, par = affiliation.rediger(rediger, choix, langue)
     s.choix = choix
+    # Un seul choix à la fois : la nouvelle offre remplace l'ancienne fiche dans la conversation (sinon
+    # l'ancienne restait affichée plus haut et on croyait que le choix n'avait pas changé).
+    s.messages = [m for m in s.messages if m["type"] != "affiliation"]
     s.messages.append({"role": "assistant", "type": "affiliation", "choix": choix, "texte": texte, "par": par,
                        "langue": langue, "objet": affiliation.objet(choix, langue)})
     s.attente = None
@@ -862,6 +864,8 @@ def afficher_affiliation(m, i, suffixe=""):
              tr("Accidents inclus", l) if ch["accident"] else tr("Accidents exclus (employeur)", l),
              tr("Dès le {debut}", l, debut=f"{debut.day:02d}.{debut.month:02d}.{debut.year}")],
             f"{ch['prime_mois']:.2f}", tr("CHF / mois", l))
+        st.caption(tr("Vous avez cliqué sur « Choisir cette offre ». Rien n'est envoyé ni signé : c'est vous qui "
+                      "décidez d'envoyer la demande. Vous pouvez choisir une autre offre plus haut.", l))
 
         # Étape 1 : demande d'affiliation
         st.markdown(f"**1. {tr('Demander l’assurance de base (LAMal) à {caisse}', l, caisse=ch['caisse'])}**")

@@ -708,8 +708,14 @@ _("Modifier mes réponses", "Antworten ändern", "Modificare le risposte", "Edit
 
 # --- Choix d'une offre et demande d'affiliation (« check-out ») ---------------------------------
 _("Choisir cette offre", "Dieses Angebot wählen", "Scegliere questa offerta", "Choose this offer")
-_("Je choisis {caisse} – {produit}.", "Ich wähle {caisse} – {produit}.", "Scelgo {caisse} – {produit}.",
-  "I choose {caisse} – {produit}.")
+_("Vous avez cliqué sur « Choisir cette offre ». Rien n'est envoyé ni signé : c'est vous qui décidez d'envoyer "
+  "la demande. Vous pouvez choisir une autre offre plus haut.",
+  "Sie haben auf «Dieses Angebot wählen» geklickt. Nichts wird gesendet oder unterschrieben: Sie entscheiden selbst, "
+  "ob Sie den Antrag senden. Sie können weiter oben ein anderes Angebot wählen.",
+  "Ha cliccato su «Scegliere questa offerta». Nulla viene inviato né firmato: è lei a decidere se inviare la "
+  "domanda. Può scegliere un'altra offerta più in alto.",
+  "You clicked “Choose this offer”. Nothing is sent or signed: you decide whether to send the application. You "
+  "can choose another offer above.")
 _("Franchise {f} CHF", "Franchise {f} CHF", "Franchigia {f} CHF", "Deductible {f} CHF")
 _("Dès le {debut}", "Ab {debut}", "Dal {debut}", "From {debut}")
 _("Demande rédigée par Apertus ; les éléments obligatoires ont été vérifiés par l'application.",
