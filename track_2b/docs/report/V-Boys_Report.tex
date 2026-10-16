@@ -1,0 +1,389 @@
+% Technical report — LAMal Navigator (Hack Apertus 2026, Track 2B) — team V-Boys
+% Build: xelatex V-Boys_Report.tex (twice). Fonts: Caladea, Inter, DejaVu Sans Mono.
+\documentclass[10pt,a4paper]{article}
+\usepackage[a4paper,top=1.5cm,bottom=1.6cm,left=1.75cm,right=1.75cm]{geometry}
+\usepackage{fontspec}
+\setmainfont{Caladea}[Scale=1.02]
+\setsansfont{Inter}[Scale=0.92]
+\setmonofont{DejaVu Sans Mono}[Scale=0.78]
+\newfontfamily\titre{Inter}[Scale=1.0]
+\usepackage{microtype}
+\usepackage{xcolor}
+\definecolor{encre}{gray}{0.0}
+\definecolor{gris}{gray}{0.38}
+\definecolor{fond}{gray}{0.95}
+\definecolor{lien}{gray}{0.0}
+\usepackage{titlesec}
+\titleformat{\section}{\sffamily\large\bfseries}{\thesection}{0.7em}{}
+\titleformat{\subsection}{\sffamily\normalsize\bfseries}{\thesubsection}{0.6em}{}
+\titleformat{name=\section,numberless}{\sffamily\large\bfseries}{}{0pt}{}
+\titleformat{name=\subsection,numberless}{\sffamily\normalsize\bfseries}{}{0pt}{}
+\titlespacing*{\section}{0pt}{11pt}{4pt}
+\titlespacing*{\subsection}{0pt}{8pt}{3pt}
+\usepackage{enumitem}
+\setlist{itemsep=1.5pt,topsep=3pt,parsep=0pt,leftmargin=1.3em}
+\setlist[enumerate]{leftmargin=1.5em,label=\sffamily\bfseries\arabic*}
+\setlength{\parindent}{0pt}
+\setlength{\parskip}{4pt}
+\linespread{1.08}
+\usepackage{booktabs,tabularx,array,etoolbox,graphicx}
+\setlength{\heavyrulewidth}{0.7pt}\setlength{\lightrulewidth}{0.35pt}
+\setlength{\aboverulesep}{2.5pt}\setlength{\belowrulesep}{2.5pt}
+\renewcommand{\arraystretch}{1.12}
+\newcolumntype{Y}{>{\raggedright\arraybackslash}X}
+\AtBeginEnvironment{tabularx}{\small}
+\AfterEndEnvironment{tabularx}{\vspace{5pt}}
+\newcommand{\entete}[1]{\textsf{\bfseries\footnotesize #1}}
+\usepackage{tikz}
+\usetikzlibrary{positioning,arrows.meta}
+\setlength{\textfloatsep}{10pt plus 2pt minus 2pt}\setlength{\floatsep}{8pt}\setlength{\intextsep}{8pt}
+\renewcommand{\topfraction}{0.85}\renewcommand{\bottomfraction}{0.7}\renewcommand{\textfraction}{0.1}
+\usepackage[most]{tcolorbox}
+\newtcolorbox{encadre}{enhanced,colback=fond,colframe=fond,boxrule=0pt,sharp corners,
+  borderline west={1.6pt}{0pt}{black},left=9pt,right=8pt,top=5pt,bottom=5pt}
+\usepackage{fancyhdr}
+\pagestyle{fancy}\fancyhf{}
+\renewcommand{\headrulewidth}{0pt}
+\fancyfoot[L]{\sffamily\scriptsize\color{gris}LAMal Navigator \quad·\quad V-Boys \quad·\quad Hack Apertus 2026, Track 2B}
+\fancyfoot[R]{\sffamily\scriptsize\color{gris}\thepage}
+\usepackage[colorlinks=true,urlcolor=lien,linkcolor=lien]{hyperref}
+\urlstyle{tt}
+\newcommand{\gras}[1]{\textbf{#1}}
+
+\begin{document}
+
+% ------------------------------------------------------------------ title
+{\titre\fontsize{24}{28}\selectfont\bfseries LAMal Navigator}\par\vspace{2pt}
+{\large\itshape Compare, understand and switch Swiss basic health insurance — with Apertus}\par\vspace{8pt}
+{\sffamily\small
+\begin{tabular}{@{}l@{\hspace{1.2em}}l@{\hspace{3em}}l@{\hspace{1.2em}}l@{}}
+\color{gris}Team & \textbf{V-Boys} — Sacha Coemelck, Damian Kovar & \color{gris}Track & Track 2B — own project · online event \\
+\color{gris}Demo & \url{https://youtu.be/bMkfqNypMic} & \color{gris}Code & \href{https://github.com/sachacoemelck/Health_Insurance_Apertus}{\texttt{github.com/sachacoemelck/Health\_Insurance\_Apertus}} \\
+\end{tabular}}\par\vspace{4pt}
+{\color{black}\rule{\textwidth}{0.7pt}}
+
+% ------------------------------------------------------------------ 1
+\section{Summary}
+
+\gras{Problem.} Every autumn, everyone living in Switzerland may change basic health insurance (LAMal). Coverage
+is identical by law, yet for the same person premiums differ by several hundred francs a year. Choosing means
+finding one's premium region, age class, deductible, accident cover and acceptable insurance models among
+\gras{219,916 official premium rows}, understanding the law, applying to a new insurer and sending a valid
+cancellation letter before the end of November. Many people never do it and overpay.
+
+\gras{Solution.} LAMal Navigator takes a person from a short form to a ready-to-send application, in
+French, German, Italian or English. Python looks up the official 2027 premiums of the Federal Office of Public
+Health (FOPH). An Apertus advisor then opens the conversation from the form, shows the saving against the current
+insurer, answers questions \gras{from the actual federal law texts with linked citations}, writes the application
+to the new insurer and the cancellation letter to the old one, and states plainly what basic insurance does not
+pay. Where Priminfo, the official comparator, answers \emph{“what does this cost?”}, LAMal Navigator also answers
+\emph{“which one fits me, what does the law say, and how do I switch?”}
+
+\gras{Design principle: Apertus handles language, Python handles every number.} No premium, saving or date comes
+from the model, and every model text is checked by code before it is shown.
+
+\begin{encadre}
+\gras{Headline results} (real Apertus endpoint; raw outputs in \texttt{docs/resultats\_apertus/}; every grade
+checked and finalised by the team, by hand):
+\begin{itemize}
+\item \gras{Law questions: 47/60 correct, 6 wrong} with retrieved law paragraphs, versus 26/60 correct and 20 wrong
+      with a fact sheet only. On a control series never used for tuning: \gras{11/15 vs 6/15}.
+\item \gras{Profile understanding: 94.7\%} of 300 unseen sentences fully correct with Apertus 8B + Python rules,
+      versus 32.3\% for Apertus 8B alone.
+\item \gras{24/24} German, Italian and English conversations answered in the user's language; cancellation letters
+      \gras{9/9} accepted by the checks on the first try; every amount shown is \gras{computed by Python or present in
+      the cited source}.
+\end{itemize}
+\end{encadre}
+
+\begin{tabularx}{\textwidth}{@{}>{\raggedright\arraybackslash}p{3.6cm}Y@{}}
+\toprule
+\entete{Judging criterion} & \entete{Where the evidence is} \\
+\midrule
+Purposeful use of AI & Apertus only where language is needed (reading free text, legal search terms, writing in 4
+languages); Python where an error would be costly (§3). Gains measured against simpler baselines (§5). \\
+Technical rigour & Every model output checked by code; tuning sets separated from control sets; failures
+reported, including a real timeout found during the final test (§5.5). \\
+Value, cost \& scalability & Saving shown in francs; end-to-end switching; the small 8B with rules beats the 70B alone;
+stateless container, national data refreshed yearly by replacing files (§5, §8). \\
+Sovereign deployability & Swiss open-weights model, official Swiss data inside the container, no other runtime
+service, no personal data stored (§2). \\
+Implementation feasibility & Working product, \texttt{make run}, 77 unit tests + 2 full journeys, clean-clone test (§7). \\
+\bottomrule
+\end{tabularx}
+
+% ------------------------------------------------------------------ 2
+\section{Architecture}
+
+\gras{The user journey}, in the order of real life:
+\begin{enumerate}
+\item \gras{Form} — year of birth, postcode (municipality), employment situation (decides accident cover), accepted
+  insurance models; optionally the current insurer \emph{in free text} and needs outside basic insurance (glasses,
+  dentist, complementary medicine, private ward, treatment abroad).
+\item \gras{Offers} — Python resolves the premium region at municipality level (some models exist only in certain
+  municipalities) and shows three neutral proposals (cheapest overall, cheapest with free choice of doctor,
+  cheapest from another insurer), all offers, and what each refused model would cost.
+\item \gras{Advisor} — Apertus opens the conversation from the form: age class, accident cover, the cheapest offer
+  and the deductible break-even computed by Python. The saving against the current insurer follows.
+\item \gras{Questions} — at any time, with suggestions chosen from the profile; answers come from the law.
+\item \gras{Check-out} — \emph{Choose this offer}: (1) the application, written by Apertus, opens in the user's email,
+  addressed to the insurer's official address (FOPH list), plus a link to the insurer's own calculator (verified
+  for 26 of 32 insurers); (2) wait for written confirmation (LAMal art.~7 para.~5); (3) on request, the cancellation
+  letter with the old insurer's official address and a calendar reminder; (4) what basic insurance does not pay.
+  Letters are written in an official language of the canton, which the insurer must process; every step says it
+  concerns \gras{basic insurance only}.
+\end{enumerate}
+The app never sends anything itself, never highlights a “best” offer, and stores no personal data.
+
+\begin{center}
+\begin{tikzpicture}[
+  font=\sffamily\footnotesize,
+  boite/.style={draw=black, fill=#1, rounded corners=2pt, align=center, inner sep=5pt, minimum height=1cm,
+                line width=0.5pt, font=\sffamily\footnotesize},
+  fl/.style={-{Stealth[length=5pt]}, line width=0.6pt, draw=black}]
+\node[boite=white, minimum width=15.6cm] (ui) {\gras{Browser} — form, offers, advisor, questions, check-out (FR / DE / IT / EN)};
+\node[boite=fond, below=0.6cm of ui, xshift=-5.45cm, text width=4.0cm] (lire) {\gras{Apertus 8B — reads}\\free text $\rightarrow$ JSON (profile, current\\insurer) · question $\rightarrow$ legal keywords};
+\node[boite=white, right=0.95cm of lire, text width=4.6cm] (py) {\gras{Python — computes \& checks}\\FOPH premiums, saving, deductible break-even,\\deadlines · BM25 law search · output checks};
+\node[boite=fond, right=0.95cm of py, text width=4.0cm] (ecrit) {\gras{Apertus 70B — writes}\\opening, answers with [L1] citations,\\saving, application, cancellation letter};
+\node[boite=white, below=0.55cm of py, minimum width=15.6cm, text width=15.2cm] (data) {\gras{Inside the container (28 MB):} FOPH 2027 premiums, regions and catchment areas · approved insurers and their official addresses · LAMal, OAMal, OPAS, LAA in FR/DE/IT (fedlex) · cantonal subsidy offices};
+\draw[fl] (ui.south -| lire.north) -- (lire.north);
+\draw[fl] (lire) -- node[above,font=\scriptsize]{facts} (py);
+\draw[fl] (py) -- node[above,font=\scriptsize]{facts} (ecrit);
+\draw[fl] (ecrit.north) -- node[right]{\scriptsize verified text only} (ui.south -| ecrit.north);
+\draw[fl] (data.north -| py.south) -- (py.south);
+\end{tikzpicture}
+\end{center}
+
+\subsection*{Target architecture (mandatory): (a) on-premise}
+One Docker container (\texttt{python:3.12-slim}, Streamlit 1.65, pandas). \gras{All data is inside the image.} The
+only runtime dependency is an OpenAI-compatible endpoint serving Apertus (\texttt{LLM\_BASE\_URL}): an organisation
+runs the container next to its own Apertus server (e.g.\ vLLM with the open weights) and changes no code. The same
+property makes a Swiss sovereign cloud (c) or an air-gapped setup (b) possible; neither was tested.
+
+\begin{table}[htb]
+\begin{tabularx}{\textwidth}{@{}lYY@{}}
+\toprule
+ & \entete{Build time} & \entete{Runtime} \\
+\midrule
+Network & Python packages (PyPI) & Apertus endpoint only; usage statistics disabled \\
+Data & In the repository (law texts and insurer links fetched once, scripts included) & Read from the image \\
+Personal data & — & None stored; session memory only; placeholders in letters \\
+\bottomrule
+\end{tabularx}
+\end{table}
+
+% ------------------------------------------------------------------ 3
+\section{Use of Apertus}
+
+\textbf{Models:} Apertus v1.5 8B (\texttt{apertus-v1.5-8b}) and 70B (\texttt{apertus-v1.5-70b}). \textbf{How:}
+inference with structured JSON outputs and retrieval-augmented generation. \textbf{Where:} OpenAI-compatible
+endpoint (hackathon); open weights for self-hosting. A guided conversation uses about 7 calls to the 8B and 6 to
+the 70B.
+
+\gras{Why AI here, and where not.} People describe their situation and ask questions in their own words and
+languages; this is what a language model is for. Premiums and deadlines are not: a model can misread a table, and
+one wrong franc is unacceptable in a financial decision. The split is explicit:
+
+\begin{tabularx}{\textwidth}{@{}YlY@{}}
+\toprule
+\entete{Task} & \entete{Done by} & \entete{Checked by Python} \\
+\midrule
+Read free text (profile, current insurer and model) & Apertus 8B & every field against rules and official lists \\
+Turn a question into legal search keywords & Apertus 8B & — (search also works without them) \\
+Find the relevant law paragraphs (BM25 per paragraph) & Python & — \\
+Premiums, savings, break-even, deadlines, addresses & Python only & — \\
+Opening, answers, saving paragraph, application, letter & Apertus 70B & numbers, citations, language, formal address, required elements \\
+\bottomrule
+\end{tabularx}
+
+\gras{Verified law citations (RAG).} The base holds the LAMal, OAMal, OPAS and LAA in French, German and Italian
+(578 articles per language), split into paragraphs. The question is searched in the user's language; the paragraphs
+are given to the 70B numbered [L1], [L2]… Python rejects any number that was not provided and replaces each valid
+one with the official reference and a fedlex link. The 70B is told never to conclude “not covered” from an absent
+article.
+
+\begin{encadre}
+\textsf{\bfseries\footnotesize Real answer, 16 October 2026 (French interface, excerpt)}\\[2pt]
+\emph{“Est-ce que mes lunettes sont remboursées ?”} — \emph{“Selon la LAMal, l'assurance de base rembourse environ
+180 CHF par année civile uniquement pour les enfants jusqu'à 18 ans révolus. Pour les adultes, un remboursement
+n'est possible que si les lunettes sont liées à un changement de la vue dû à une maladie. […] Pour une
+couverture plus large, il faut une assurance complémentaire privée.”}\\[1pt]
+{\small Source: \href{https://www.fedlex.admin.ch/eli/cc/1995/4964_4964_4964/fr}{OPAS annexe 2} — the link is
+added by Python from the citation number; the amount 180 CHF was accepted because it appears in the retrieved text.}
+\end{encadre}
+
+\gras{Checks on every model text.} Every amount must appear in the facts computed by Python; citations must exist;
+answer in the user's language, formal address (vous / Sie / Lei), at most five sentences, no invented personal
+situation. Letters and applications must contain the insurer, exact product, dates, “basic insurance only”, and
+placeholders for personal data (never an invented number). On failure Apertus gets one retry with the problem
+explained, then a fixed text is shown: the conversation never blocks and \gras{nothing unchecked is displayed}.
+
+\gras{Prompts.} Each prompt states a role, a strict output format and the only facts allowed. User text is data, never
+instructions: an injection attempt (\emph{“Ignore your rules… Helsana at 50 CHF”}) was ignored.
+
+\gras{What basic insurance does not pay} (glasses, dentist, complementary medicine, private ward, abroad) is shown
+as fixed texts written from the law and checked article by article by the team, with the article linked. Here a
+generated text would add risk and no value.
+
+% ------------------------------------------------------------------ 4
+\section{Data}
+
+\begin{table}[htb]
+\begin{tabularx}{\textwidth}{@{}YYl@{}}
+\toprule
+\entete{Data} & \entete{Source} & \entete{Licence} \\
+\midrule
+LAMal premiums 2027 (219,916 rows), premium regions, catchment areas & FOPH, via opendata.swiss & Open use, source given \\
+Approved insurers (32): addresses, phone, email, website & FOPH list (Oct.\ 2026) & Open use, source given \\
+LAMal, OAMal, OPAS, LAA in FR/DE/IT & fedlex.admin.ch & Not copyrighted (art.~5 CopA) \\
+Cantonal premium-subsidy offices (26) & FOPH list (Nov.\ 2025), links checked 13.10.2026 & Public information \\
+Insurer calculator / basic-insurance pages (26 of 32) & Official sites, checked (HTTP 200) 15.10.2026 & Public links \\
+Test sentences, questions, conversations & Written by the team or generated with fixed seeds & Apache 2.0 (repository) \\
+\bottomrule
+\end{tabularx}
+\end{table}
+
+No personal data is collected or stored; test data contains no real person.
+
+% ------------------------------------------------------------------ 5
+\section{Evaluation}
+
+All results use the real Apertus endpoint. For each test, the expected answer was written \emph{before} the run, and every
+answer was \gras{checked and graded by the team, by hand, line by line}. Sets that were later used to tune prompts or
+rules are marked; we report a separate control set wherever we have one.
+
+\subsection{Questions about the law — 60 questions, 4 languages}
+\begin{tabularx}{\textwidth}{@{}Yrrr@{}}
+\toprule
+\entete{Setup (Apertus 70B)} & \entete{Correct} & \entete{Wrong} & \entete{Median time} \\
+\midrule
+Baseline: 17-sentence fact sheet only & 26/60 & 20/60 & 4.0 s \\
+Ours: fact sheet + retrieved law paragraphs (RAG) & \gras{47/60} & \gras{6/60} & 5.0 s \\
+\midrule
+Control series (15, never used for tuning) — baseline & 6/15 & 5/15 & \\
+Control series — ours & \gras{11/15} & \gras{3/15} & \\
+\bottomrule
+\end{tabularx}
+The search finds the key article for 30/30, 15/15 and 12/14 questions of the three series (10/14 without the 8B
+keywords). Wrong answers fall from 20 to 6: retrieval is what makes the advisor trustworthy.
+
+\subsection{Profile understanding — six fields per sentence}
+\begin{tabularx}{\textwidth}{@{}Yrr@{}}
+\toprule
+\entete{Setup} & \entete{Fields correct} & \entete{Sentences fully correct} \\
+\midrule
+300 unseen generated sentences — baseline: Apertus 8B alone & 84.8\% & 32.3\% (97/300) \\
+300 unseen generated sentences — ours: 8B + Python rules & \gras{99.0\%} & \gras{94.7\%} (284/300) \\
+30 hand-written sentences × 3 runs (tuning set) — 70B alone & 93.9\% & 66.7\% \\
+30 hand-written sentences × 3 runs (tuning set) — 8B + rules & 100\% & 100\% \\
+\bottomrule
+\end{tabularx}
+The small model with rules beats the large model alone, with a model nearly nine times smaller. Measured on 9 October;
+the submitted rules follow the same principle.
+
+\subsection{Guided conversations — simulated users, scripted checks}
+\begin{tabularx}{\textwidth}{@{}Yr@{}}
+\toprule
+\entete{Run} & \entete{Without problem} \\
+\midrule
+40 French conversations, before / after fixes & 36/40 / 38/40 \\
+20 new French conversations (control, before its fixes) & \gras{18/20} \\
+24 German, Italian and English conversations, before / after fixes (reply in the user's language) & 18/24 / \gras{24/24} \\
+34 strict conversations incl.\ Swiss German and Romansh (before fixes) & 16/34 \\
+\bottomrule
+\end{tabularx}
+Within the 24 multilingual conversations, the 19 LAMal questions asked along the way: 13 correct, 3 partial, 2 wrong,
+1 fallback.
+
+\subsection{Switching — saving, application, letter}
+\begin{tabularx}{\textwidth}{@{}Yr@{}}
+\toprule
+\entete{Task} & \entete{Result} \\
+\midrule
+Current insurer recognised in free text (FR, DE, IT, EN) & 13/16 \\
+Saving paragraph written by Apertus, amounts accepted by the checks & \gras{13/13} \\
+Cancellation letters written by Apertus, accepted on the first try (FR, DE, IT) & \gras{9/9} \\
+Applications, first run: accepted by the checks / correct on reading & 7/9 / 3/9 \\
+Applications after two new checks (tuning set): written by Apertus / shown to the user and correct & 4/9 / \gras{9/9} \\
+\bottomrule
+\end{tabularx}
+Reading the first run revealed errors the checks missed (asking the new insurer to cancel the old contract,
+mentioning a current insurer the person does not have). Two checks were added: these texts are now rejected and a
+safe template is used. The user only sees correct applications, at the cost of fewer Apertus-written ones.
+
+\subsection{Robustness found during the final end-to-end test}
+On the night before submission, a clean clone of \texttt{main} was built and run exactly as the jury will. Two real
+issues appeared and were fixed: (1) with a wrong key or an unreachable endpoint, the offers page raised an error; it
+now degrades to fixed texts while offers, check-out and application keep working; (2) the endpoint answered slower
+at night and English law answers exceeded the 25-second timeout, which showed the fallback text. The log now
+records the reason for every rejected or missing answer; the 70B timeout was raised to 60 s (100 s per turn), after
+which the same questions were answered with their article.
+
+% ------------------------------------------------------------------ 6
+\section{Limitations}
+\begin{itemize}
+\item \gras{Law answers are still wrong about 1 time in 10} (6/60) and test sets are small. Typical errors: a
+  condition dropped (switching on 30 June applies only with a 300 CHF deductible and free choice), a model
+  misdescribed. Graded by the team, not by a lawyer.
+\item \gras{Swiss German and Romansh} are understood much less reliably (16/34 strict conversations before fixes).
+\item \gras{No official English law text}: English questions are answered from the French text, which is slower.
+\item \gras{Response time}: usually 5–10 s with the 70B, longer when the endpoint is busy.
+\item \gras{No supplementary-insurance comparison}: premiums are not public and product data could not be
+  verified; the app only states what basic insurance does not pay and what to do.
+\item \gras{One person at a time}; 6 insurers (JavaScript sites) only get their website link.
+\item \gras{Orientation tool, not advice}: product conditions must be checked before switching.
+\end{itemize}
+
+% ------------------------------------------------------------------ 7
+\section{Reproducibility}
+\begin{itemize}
+\item \gras{Run:} set \texttt{LLM\_NAME}, \texttt{LLM\_BASE\_URL}, \texttt{LLM\_API\_KEY} (optionally
+  \texttt{LLM\_NAME\_RESTITUTION} for the 70B, otherwise \texttt{LLM\_NAME} is used everywhere), or copy
+  \texttt{.env.example} to \texttt{.env}; then \texttt{make run} from the repository root (or \texttt{track\_2b/}) and
+  open \url{http://localhost:8501}. No key is stored in the repository. No GPU needed on the application side.
+\item \gras{Tests:} \texttt{make test} runs 77 unit tests and two complete journeys with a fake model (form to
+  letter; chat path), without Apertus. Real-model tests: \texttt{tests/apertus/}; raw outputs are kept in
+  \texttt{docs/resultats\_apertus/}. Seeds: 2026 and 2027.
+\item \gras{Exact version:} branch \texttt{main}, application code at commit \texttt{e4fe4cd}. Real-model tests were run in
+  Docker on a team laptop (Windows, Docker Desktop) against the hackathon Apertus endpoint.
+\item \gras{Development tools:} most of the code, the test scripts and first drafts of the documentation and test
+  material were written with an AI coding assistant (Claude), directed by the team; product decisions and the
+  real-Apertus test runs are the team's, and every grade was checked and finalised by the team, by hand. Only Apertus
+  is used at runtime. An unfinished fine-tuning experiment (\texttt{finetuning/}) is not used by the app and not
+  reported.
+\end{itemize}
+
+% ------------------------------------------------------------------ 8
+\section{Next steps}
+Self-host Apertus and run the container air-gapped; measure the opening and the applications on new, untuned sets
+graded by several people, including a lawyer; larger Swiss German test sets; compare a whole family at once; add
+unofficial English law translations; refresh premiums, laws and insurer links automatically each autumn when the
+FOPH publishes new data; open the service to cantonal advice centres and social services.
+
+\section*{License}
+Code and test data: Apache 2.0 (\texttt{LICENSE} in the repository) · this report: Creative Commons Attribution 4.0
+(CC-BY-4.0). All Hack Apertus projects are open source.
+
+\section*{References}
+{\small
+\begin{enumerate}[label={[\arabic*]},leftmargin=2.1em]
+\item Swiss AI Initiative (2025). \emph{Apertus: Democratizing Open and Compliant LLMs for Global Language
+  Environments.} arXiv:2509.14233. Models: \url{https://huggingface.co/swiss-ai}
+\item Federal Office of Public Health (FOPH). \emph{Health insurance premiums 2027}, premium regions and catchment
+  areas of alternative models. \url{https://opendata.swiss}
+\item FOPH. \emph{List of approved health insurers} (October 2026); \emph{Cantonal offices for individual premium
+  reductions} (November 2025). \url{https://www.bag.admin.ch}
+\item FOPH. \emph{Priminfo}, official premium comparator. \url{https://www.priminfo.admin.ch}
+\item Swiss Confederation, Fedlex. Federal Act on Health Insurance (LAMal/KVG, SR 832.10); Ordinance on Health
+  Insurance (OAMal/KVV, SR 832.102); Health Care Benefits Ordinance (OPAS/KLV, SR 832.112.31); Federal Act on Accident
+  Insurance (LAA/UVG, SR 832.20). \url{https://www.fedlex.admin.ch}
+\item Swiss Confederation. Federal Act on Copyright and Related Rights (CopA/URG, SR 231.1), art.~5.
+\item Robertson, S. and Zaragoza, H. (2009). The probabilistic relevance framework: BM25 and beyond.
+  \emph{Foundations and Trends in Information Retrieval} 3(4).
+\item Lewis, P. et al.\ (2020). Retrieval-augmented generation for knowledge-intensive NLP tasks. \emph{NeurIPS 2020}.
+\item Kwon, W. et al.\ (2023). Efficient memory management for large language model serving with PagedAttention
+  (vLLM). \emph{SOSP 2023}.
+\item Streamlit (v1.65), \url{https://streamlit.io}; Docker, \url{https://www.docker.com}.
+\end{enumerate}}
+
+\end{document}
