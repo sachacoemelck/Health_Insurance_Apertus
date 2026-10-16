@@ -99,7 +99,7 @@ One Docker container (`python:3.12-slim`, Streamlit 1.65, pandas). **All data is
 
 **Verified law citations (RAG).** The base holds the LAMal, OAMal, OPAS and LAA in French, German and Italian (578 articles per language), split into paragraphs. The question is searched in the user’s language; the paragraphs are given to the 70B numbered \[L1\], \[L2\]… Python rejects any number that was not provided and replaces each valid one with the official reference and a fedlex link. The 70B is told never to conclude “not covered” from an absent article.
 
-> <span class="sans-serif">**Real answer, 16 October 2026 (French interface, excerpt)**</span>  
+> **Real answer, 16 October 2026 (French interface, excerpt)**  
 > *“Est-ce que mes lunettes sont remboursées ?”* — *“Selon la LAMal, l’assurance de base rembourse environ 180 CHF par année civile uniquement pour les enfants jusqu’à 18 ans révolus. Pour les adultes, un remboursement n’est possible que si les lunettes sont liées à un changement de la vue dû à une maladie. \[…\] Pour une couverture plus large, il faut une assurance complémentaire privée.”*  
 > Source: [OPAS annexe 2](https://www.fedlex.admin.ch/eli/cc/1995/4964_4964_4964/fr) — the link is added by Python from the citation number; the amount 180 CHF was accepted because it appears in the retrieved text.
 
