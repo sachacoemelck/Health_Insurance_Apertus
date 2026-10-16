@@ -9,6 +9,7 @@ fiable deux fois de suite, la question fixe est posée à la place : la conversa
 Une question de la personne n'est jamais prise pour une réponse : « c'est quoi le mieux ? » ne
 remplit pas la franchise à sa place.
 """
+import sys
 import re
 
 import langues
@@ -553,8 +554,13 @@ def demander_verifie(appeler, systeme, faits, doit_questionner, code="fr"):
     probleme = _probleme(reponse, faits, doit_questionner, code)
     if probleme is None:
         return reponse.strip()
+    # Raison du refus dans le terminal (docker run) : utile pour comprendre une réponse de secours
+    print(f"[contrôles] 1re réponse refusée : {probleme} | {reponse[:200]!r}", file=sys.stderr, flush=True)
     reponse = appeler(systeme, faits + "\n\nATTENTION : " + probleme)
-    return reponse.strip() if _probleme(reponse, faits, doit_questionner, code) is None else None
+    probleme = _probleme(reponse, faits, doit_questionner, code)
+    if probleme is not None:
+        print(f"[contrôles] 2e réponse refusée : {probleme} | {reponse[:200]!r}", file=sys.stderr, flush=True)
+    return reponse.strip() if probleme is None else None
 
 
 def historique(messages, n=4):
@@ -629,7 +635,8 @@ def repondre_libre(appeler, texte, faits_resultats, chiffres="", passe="", langu
         reponse = demander_verifie(lambda s, m: appeler(s, m), PROMPT_LIBRE.replace("{langue}", langue),
                                    faits, doit_questionner=False, code=code)
         return citer(raccourcir(nettoyer(reponse, garder_questions=True), 5), code, passages) if reponse else None
-    except Exception:
+    except Exception as erreur:
+        print(f"[Apertus] pas de réponse : {type(erreur).__name__}: {erreur}", file=sys.stderr, flush=True)
         return None
 
 
