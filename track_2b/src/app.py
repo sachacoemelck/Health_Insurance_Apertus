@@ -1020,7 +1020,10 @@ def afficher_affiliation(m, i, suffixe=""):
             st.caption("✅ " + tr("Vous restez chez {caisse} : rien à résilier, la demande ci-dessus suffit pour changer "
                                  "de produit ou de franchise (même délai).", l, caisse=ch["caisse"]))
         elif fiche and fiche["caisse"] != ch["caisse"]:
-            afficher_lettre(fiche, f"fiche_{i}{suffixe}", titre=False)
+            # Comme la demande d'adhésion : la lettre est prête, mais repliée (on l'ouvre si on veut la voir)
+            st.caption("✅ " + tr("Votre lettre de résiliation pour {caisse} est prête.", l, caisse=fiche["caisse"]))
+            with st.expander(tr("Voir et copier la lettre de résiliation", l)):
+                afficher_lettre(fiche, f"fiche_{i}{suffixe}", titre=False)
             ancienne = fiche["caisse"]
         elif dans_chat:
             st.caption("✅ " + tr("Votre lettre de résiliation est prête plus haut dans la conversation.", l))

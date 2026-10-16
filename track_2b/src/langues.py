@@ -950,4 +950,9 @@ _("Je n'ai pas reconnu la caisse « {texte} ». Indiquez-la ci-dessous (ex. : He
   "I did not recognise the insurer “{texte}”. Please enter it below (e.g. Helsana).")
 _("Aujourd'hui : {caisse}", "Heute: {caisse}", "Oggi: {caisse}", "Today: {caisse}")
 
+_("Votre lettre de résiliation pour {caisse} est prête.", "Ihr Kündigungsschreiben für {caisse} ist bereit.",
+  "La sua lettera di disdetta per {caisse} è pronta.", "Your cancellation letter for {caisse} is ready.")
+_("Voir et copier la lettre de résiliation", "Kündigungsschreiben ansehen und kopieren",
+  "Vedere e copiare la lettera di disdetta", "View and copy the cancellation letter")
+
 TRAD = {fr: dict(zip(("de", "it", "en"), v)) for fr, v in T.items()}
