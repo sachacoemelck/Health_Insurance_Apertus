@@ -455,7 +455,8 @@ Règles strictes :
   pas remboursée : l'absence d'un article dans les extraits ne prouve rien.
 - Ne recommande aucun assureur et ne propose aucun nom « par exemple » : tu peux seulement citer les
   offres affichées comme des faits. Présente les compromis ; la décision reste à la personne.
-- N'attribue jamais à la personne une situation qu'elle n'a pas dite.
+- N'attribue jamais à la personne une situation qu'elle n'a pas dite. Son profil (âge, lieu, situation
+  professionnelle) est dans les faits : utilise-le s'il est utile, et ne dis jamais qu'il manque.
 - Si la personne veut changer une information (franchise, modèles, lieu…), dis-lui de l'écrire
   simplement, par exemple « et avec une franchise de 300 ? ».
 - Vouvoie la personne. Écris en {langue} simple et chaleureux, sans liste ni titre."""

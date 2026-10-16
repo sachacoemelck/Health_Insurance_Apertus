@@ -72,7 +72,9 @@ def client_llm(base_url, api_key):
 
 # Délais : lecture d'un message par Apertus 8B, rédaction par Apertus 70B, et durée maximale d'un tour.
 # Au-delà de LIMITE_TOUR, Apertus 70B n'est plus appelé : la personne reçoit la question sans attendre.
-DELAI_8B, DELAI_70B, LIMITE_TOUR = 20, 25, 45
+# 70B : 25 s ne suffisaient pas toujours pour une réponse avec les articles de loi (test réel du 16.10 la nuit :
+# « Request timed out », puis réponse de secours). Mieux vaut attendre un peu que ne pas répondre.
+DELAI_8B, DELAI_70B, LIMITE_TOUR = 20, 60, 100
 
 # Assurances complémentaires et analyse de santé : modules d'une première version, dont les données
 # (produits de 6 caisses, textes de santé) n'ont pas été vérifiées et mesurées comme le reste.
@@ -375,6 +377,11 @@ def faits_connus():
         elif isinstance(v, bool):
             v = "oui" if v else "non"
         faits[libelle] = str(v)
+    if p.get("age") is not None:  # l'âge en clair (sinon Apertus dit parfois ne pas le connaître)
+        faits["âge en 2027"] = f"{p['age']} ans"
+    situation = (st.session_state.get("formulaire_sauve") or {}).get("f_situation")
+    if situation and situation in SITUATIONS and situation != "ne_sait_pas":
+        faits["situation professionnelle"] = SITUATIONS[situation]
     if p.get("commune"):
         faits["commune retenue"] = f"{p['commune']} ({p['canton']}, région de primes {p['region']})"
     b = p.get("budget")
